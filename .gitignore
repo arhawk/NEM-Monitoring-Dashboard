@@ -9,6 +9,9 @@ __pycache__/
 .ruff_cache/
 .streamlit/*
 !.streamlit/config.toml
+.env
+*.log
+data/runtime/
 data/facility_data_cache.json
 broker/data/*
 broker/log/*

@@ -5,8 +5,9 @@ This repository contains a local reproduction flow for the NEM monitoring dashbo
 1. Build the derived data from the raw CSV inputs.
 2. Publish the prepared rows over MQTT.
 3. Run the Streamlit dashboard and subscribe to the live feed.
+4. Keep the live stream in a bounded in-memory cache inside the dashboard process.
 
-The Python application stays local in a `venv`. Only the MQTT broker is containerised with Docker.
+The repository includes a local `.venv` for convenience. You can use that environment or create a fresh `venv`. Only the MQTT broker is containerised with Docker.
 
 ## Requirements
 
@@ -17,7 +18,7 @@ The Python application stays local in a `venv`. Only the MQTT broker is containe
 ## Project Layout
 
 - `Task1-3_data&MQTT.py`: downloads and cleans data, creates `data/data_for_publish.csv`, then publishes MQTT messages
-- `Task4_appStreamlit.py`: subscribes to MQTT and renders the dashboard
+- `Task4_appStreamlit.py`: subscribes to MQTT, keeps a bounded in-memory cache, and renders the dashboard
 - `scripts/run_publisher.py`: Render-friendly wrapper for the publisher entrypoint
 - `app/streamlit_app.py`: Render-friendly wrapper for the Streamlit entrypoint
 - `Task5_continousCheckReport.py`: optional MQTT timing check utility
@@ -28,6 +29,12 @@ The Python application stays local in a `venv`. Only the MQTT broker is containe
 ## Setup
 
 ### 1. Create and activate a virtual environment
+
+If the repository already contains `.venv`, you can use it directly:
+
+```bash
+source .venv/bin/activate
+```
 
 macOS/Linux:
 
@@ -132,22 +139,33 @@ The local Streamlit server binds to `127.0.0.1`, so the browser URL will show `h
 
 To stop the local app processes, use `Ctrl+C` in each terminal.
 
-### Dashboard Metrics Semantics
+### Dashboard Architecture
 
-The four cards at the top of the Streamlit dashboard are live snapshot metrics from `Task4_appStreamlit.py`.
+The Streamlit dashboard now uses MQTT as the live stream and stores the latest messages in a bounded in-memory cache.
 
-In this repository, a "snapshot" means the dashboard's current in-memory set of all known facilities, where each facility is represented by its latest received record. It does not mean a fixed time window, and it does not mean cumulative generation over time.
+The cache keeps only the latest `MAX_STREAM_ROWS` messages, defaults to `1000`, and resets itself every `RESET_INTERVAL_HOURS` hours, default `6`.
 
-- `Total Power Output MW`: sums the latest `power_value` for every facility currently stored in memory. This is a snapshot total, not a cumulative energy counter, so it can increase or decrease as new facility readings arrive.
-- `Total CO2 Emissions tCO2e`: sums the latest `emission_value` for every facility currently stored in memory. This also can move up or down in real time.
-- `Median Price $/MWh`: computes the median of all positive `price_per_mwh` values currently stored in memory.
-- `Median Grid Demand MW`: computes the median of all positive `demand_mw` values currently stored in memory.
+- `nem_facility_data.csv` is not used as live stream storage.
+- The dashboard can start even if `nem_facility_data.csv` is missing.
+- `nem_facility_data.csv` may still be kept as optional/static reference data or publisher input if you want it for offline inspection.
 
-Important behavior notes:
+Dashboard behavior:
 
-- These metrics are calculated from the latest facility snapshot held by the dashboard process, across all facilities that have been observed so far.
-- The sidebar filters currently affect the map and the facility preview table, but they do not change the four top summary metrics.
-- If you want `Total Power Output MW` to be monotonic, it would need a code change to track accumulated generation instead of the current snapshot sum.
+- The top cards are computed from the current cache snapshot.
+- The sidebar filters affect the map and table.
+- The trend chart is built from cached MQTT messages.
+- If MQTT is unavailable, the page stays up and shows a friendly waiting or disconnected state.
+
+The dashboard uses these environment variables:
+
+- `MQTT_BROKER`
+- `MQTT_PORT`
+- `MQTT_TOPIC`
+- `MQTT_USERNAME`
+- `MQTT_PASSWORD`
+- `MAX_STREAM_ROWS`
+- `RESET_INTERVAL_HOURS`
+- `REFRESH_INTERVAL_SECONDS`
 
 ## Render Deployment
 
@@ -158,12 +176,13 @@ Render should run the application as two separate services, not through `docker-
 
 This keeps the broker orchestration local for development while allowing Render to manage the publisher and dashboard independently.
 
-The repository includes a `render.yaml` blueprint with those two services. Configure `MQTT_BROKER_HOST` and `MQTT_BROKER_PORT` in Render to point both services at your MQTT broker, because the blueprint does not deploy Mosquitto.
+The repository includes a `render.yaml` blueprint with those two services. Configure `MQTT_BROKER` and `MQTT_PORT` in Render to point both services at your MQTT broker, because the blueprint does not deploy Mosquitto.
 
 Suggested Render environment variables:
 
-- `MQTT_BROKER_HOST=<your broker host>`
-- `MQTT_BROKER_PORT=1883`
+- `MQTT_BROKER=<your broker host>`
+- `MQTT_PORT=1883`
+- `MQTT_TOPIC=comp5339/task123/measurements/#`
 - For the Streamlit service, keep the default `$PORT` that Render provides.
 
 ## Optional Timing Check
@@ -186,9 +205,20 @@ These files are generated during normal execution:
 
 If you need a clean rerun, delete the generated files above and run `Task1-3_data&MQTT.py` again.
 
+Live dashboard output is not written to CSV anymore. The bounded MQTT cache lives only in memory.
+
 ## Common Issues
 
 - Broker connection fails: confirm Docker is running and port `1883` is free.
 - Dashboard shows no live data: make sure `Task1-3_data&MQTT.py` is still running and the broker is reachable.
-- Old data is being reused: remove the generated CSVs and cache file under `data/`.
+- Dashboard says waiting for MQTT messages: verify the publisher is sending to the same topic the dashboard subscribes to.
+- Old data is being reused: remove the generated CSVs if you want to regenerate the publisher input data.
 - API requests fail: the data preparation step needs outbound network access.
+
+## Environment File
+
+Copy `.env.example` to `.env` if you want local environment overrides for broker settings, cache size, refresh cadence, or soft reset cadence.
+
+## Architecture Note
+
+This is a portfolio/demo architecture. If you later need durable history, the cache can be replaced with a proper storage layer such as PostgreSQL, TimescaleDB, or InfluxDB without changing the MQTT publishing model.

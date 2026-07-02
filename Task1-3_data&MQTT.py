@@ -532,8 +532,10 @@ if sys.platform.startswith("win"):
             pass
 
 # -------- Basic Configuration --------
-BROKER = os.getenv("MQTT_BROKER_HOST", "127.0.0.1")
-PORT = int(os.getenv("MQTT_BROKER_PORT", "1883"))
+BROKER = os.getenv("MQTT_BROKER") or os.getenv("MQTT_BROKER_HOST", "127.0.0.1")
+PORT = int(os.getenv("MQTT_PORT") or os.getenv("MQTT_BROKER_PORT", "1883"))
+USERNAME = os.getenv("MQTT_USERNAME") or None
+PASSWORD = os.getenv("MQTT_PASSWORD") or None
 CLIENT_ID = "comp5339-publisher"   # Fixed ID for persistent session
 
 TOPIC_MEAS = "comp5339/task123/measurements/{facility_code}"  # Only keep the measurement data topic
@@ -603,6 +605,8 @@ def make_client():
         client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id=CLIENT_ID, clean_session=False)
     else:
         client = mqtt.Client(client_id=CLIENT_ID, clean_session=True)
+    if USERNAME:
+        client.username_pw_set(USERNAME, PASSWORD)
     client.on_connect = lambda c, u, f, rc: print(f"[MQTT] connected rc={rc}")
     client.on_disconnect = lambda c, u, rc: print(f"[MQTT] disconnected rc={rc}")
     try:
