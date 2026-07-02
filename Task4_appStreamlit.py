@@ -7,13 +7,50 @@ import time
 from datetime import datetime
 import pandas as pd
 import os
+from threading import Lock
 
 # -------------------------- Global Configuration (Aligned with Assignment Requirements) --------------------------
+st.set_page_config(page_title="NEM Facility Real-time Monitoring Dashboard", layout="wide")
 BROKER = os.getenv("MQTT_BROKER_HOST", "127.0.0.1")
 PORT = int(os.getenv("MQTT_BROKER_PORT", "1883"))
 TOPIC = "comp5339/task123/measurements/#"  # MQTT topic required by Assignment Task3
 DATA_CSV = "nem_facility_data.csv"  # Rename to a clearer file name to avoid confusion with old files
 mqtt_client = None
+facility_data_store = {}
+facility_data_lock = Lock()
+
+
+@st.cache_data(show_spinner=False)
+def load_historical_facilities(data_csv):
+    """Load historical facilities once per CSV contents to avoid re-parsing on every rerun."""
+    facility_data = {}
+    if not os.path.exists(data_csv):
+        return facility_data
+
+    df = pd.read_csv(data_csv)
+    required_cols = ["power_value", "emission_value", "facility_code", "lat", "lng", "state", "fuel_list"]
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        raise ValueError(
+            f"CSV file missing required columns (Violates Task2 requirements): {missing_cols} | "
+            "Please delete old CSV file and try again"
+        )
+
+    for _, row in df.iterrows():
+        facility_data[row["facility_code"]] = {
+            "name": row["facility_name"],
+            "lat": row["lat"],
+            "lng": row["lng"],
+            "timestamp": row["timestamp"],
+            "power_value": round(row["power_value"], 2) if pd.notna(row["power_value"]) else 0,
+            "emission_value": round(row["emission_value"], 2) if pd.notna(row["emission_value"]) else 0,
+            "price_per_mwh": round(row["price_per_mwh"], 2) if pd.notna(row["price_per_mwh"]) else 0,
+            "demand_mw": round(row["demand_mw"], 2) if pd.notna(row["demand_mw"]) else 0,
+            "state": row["state"] or "Unknown Region",
+            "fuel_list": row["fuel_list"] or "Unknown",
+        }
+
+    return facility_data
 
 # ---------------------- MQTT Callbacks (Strictly Match raw_data Fields) ----------------------
 def on_connect(client, userdata, flags, rc, properties=None):
@@ -44,10 +81,8 @@ def on_message(client, userdata, msg, properties=None):
             print(f"[{datetime.now():%H:%M:%S}] ⚠️ Skip invalid data: missing core fields | Facility Code: {fac_code}")
             return
 
-        # 3. Store to SessionState (Field names exactly match raw_data)
-        if "facility_data" not in st.session_state:
-            st.session_state.facility_data = {}
-        st.session_state.facility_data[fac_code] = {
+        # 3. Store into a process-wide snapshot so Streamlit reruns can read the latest data.
+        facility_record = {
             "name": fac_name,
             "lat": lat,
             "lng": lng,
@@ -57,8 +92,10 @@ def on_message(client, userdata, msg, properties=None):
             "price_per_mwh": round(price, 2) if price is not None else 0,
             "demand_mw": round(demand, 2) if demand is not None else 0,
             "state": state or "Unknown Region",
-            "fuel_list": fuel_list
+            "fuel_list": fuel_list,
         }
+        with facility_data_lock:
+            facility_data_store[fac_code] = facility_record
 
         # 4. Write to CSV (Column names exactly match raw_data and SessionState, Assignment Task2 Requirement)
         df = pd.DataFrame([{
@@ -76,7 +113,9 @@ def on_message(client, userdata, msg, properties=None):
         }])
         df.to_csv(DATA_CSV, mode="a", header=not os.path.exists(DATA_CSV), index=False)
 
-        print(f"[{datetime.now():%H:%M:%S}] 📥 Data stored: {fac_code} | Power: {power_val}MW | Total Facilities: {len(st.session_state.facility_data)}")
+        with facility_data_lock:
+            facility_total = len(facility_data_store)
+        print(f"[{datetime.now():%H:%M:%S}] 📥 Data stored: {fac_code} | Power: {power_val}MW | Total Facilities: {facility_total}")
     except Exception as e:
         print(f"[{datetime.now():%H:%M:%S}] ❌ Data processing failed: {str(e)}")
 
@@ -108,30 +147,12 @@ def init_streamlit_state():
     if "selected_region" not in st.session_state:
         st.session_state.selected_region = "All"
 
-    # Restore data from CSV (Assignment Task2 Requirement: Cache integrated data)
-    if os.path.exists(DATA_CSV):
-        df = pd.read_csv(DATA_CSV)
-        # Validate CSV column names match raw_data (Avoid interference from old files)
-        required_cols = ["power_value", "emission_value", "facility_code", "lat", "lng", "state", "fuel_list"]
-        missing_cols = [col for col in required_cols if col not in df.columns]
-        if missing_cols:
-            raise ValueError(f"CSV file missing required columns (Violates Task2 requirements): {missing_cols} | Please delete old CSV file and try again")
-        
-        # Read row by row and store to SessionState
-        for _, row in df.iterrows():
-            st.session_state.facility_data[row["facility_code"]] = {
-                "name": row["facility_name"],
-                "lat": row["lat"],
-                "lng": row["lng"],
-                "timestamp": row["timestamp"],
-                "power_value": round(row["power_value"], 2) if pd.notna(row["power_value"]) else 0,
-                "emission_value": round(row["emission_value"], 2) if pd.notna(row["emission_value"]) else 0,
-                "price_per_mwh": round(row["price_per_mwh"], 2) if pd.notna(row["price_per_mwh"]) else 0,
-                "demand_mw": round(row["demand_mw"], 2) if pd.notna(row["demand_mw"]) else 0,
-                "state": row["state"] or "Unknown Region",
-                "fuel_list": row["fuel_list"] or "Unknown"
-            }
-        print(f"[{datetime.now():%H:%M:%S}] 🔄 Restored historical data from CSV: {len(st.session_state.facility_data)} records (Complies with Task2 requirements)")
+    # Restore data from CSV once, then keep the live process-wide snapshot in sync.
+    with facility_data_lock:
+        if not facility_data_store:
+            facility_data_store.update(load_historical_facilities(DATA_CSV))
+        st.session_state.facility_data = dict(facility_data_store)
+    print(f"[{datetime.now():%H:%M:%S}] 🔄 Restored historical data from CSV: {len(st.session_state.facility_data)} records (Complies with Task2 requirements)")
 
 # ---------------------- Data Filtering Logic (Match fuel_list and state in raw_data) ----------------------
 def filter_facilities():
@@ -151,9 +172,12 @@ def median(lst):
     return (s[n//2-1]/2.0+s[n//2]/2.0, s[n//2])[n % 2] if n else None
 
 # ---------------------- Calculate Real-time Statistics (Updated to Use Cached Data) ----------------------
-def calculate_realtime_stats():
-    # Correct: Use actual existing facility_data
-    latest_facilities = list(st.session_state.facility_data.values())
+def get_latest_facilities():
+    with facility_data_lock:
+        return list(facility_data_store.values())
+
+
+def calculate_realtime_stats_from_facilities(latest_facilities):
     facility_count = len(latest_facilities)
     
     total_power = sum(f["power_value"] for f in latest_facilities)
@@ -166,6 +190,25 @@ def calculate_realtime_stats():
     median_demand = median(valid_demands) if valid_demands else 0
     
     return round(total_power, 2), round(total_emission, 2), round(median_price, 2), round(median_demand, 2)
+
+
+def calculate_realtime_stats():
+    return calculate_realtime_stats_from_facilities(get_latest_facilities())
+
+
+@st.fragment(run_every=2)
+def render_realtime_metrics():
+    # Fragment reruns on a timer, so the numbers stay live without remounting the map.
+    total_power, total_emission, median_price, median_demand = calculate_realtime_stats()
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Total Power Output MW", f"{total_power}", delta="Real-time Update")
+    with col2:
+        st.metric("Total CO2 Emissions tCO2e", f"{total_emission}", delta="Real-time Update")
+    with col3:
+        st.metric("Median Price $/MWh", f"{median_price}", delta="Real-time Update")
+    with col4:
+        st.metric("Median Grid Demand MW", f"{median_demand}", delta="Real-time Update")
 
 # ---------------------- Draw Interactive Map (Assignment Task4 Requirement) ----------------------
 def draw_map(filtered_facilities):
@@ -209,28 +252,37 @@ def draw_map(filtered_facilities):
     
     return m
 
+
+def map_cache_key(filtered_facilities):
+    # Keep the cache tied to spatial/filter changes, not per-message telemetry updates.
+    return tuple(
+        (
+            code,
+            round(info["lat"], 6),
+            round(info["lng"], 6),
+            info["state"],
+            str(info["fuel_list"]),
+        )
+        for code, info in filtered_facilities
+    )
+
+
+def get_cached_map(filtered_facilities):
+    cache_key = map_cache_key(filtered_facilities)
+    if st.session_state.get("_map_cache_key") != cache_key:
+        st.session_state._map_cache_key = cache_key
+        st.session_state._cached_map = draw_map(filtered_facilities)
+    return st.session_state.get("_cached_map")
+
 # -------------------------- Main Logic (Integrate All Assignment Tasks) --------------------------
 def main():
     init_streamlit_state()
     init_mqtt()
-    
-    st.set_page_config(page_title="NEM Facility Real-time Monitoring Dashboard", layout="wide")
+
     st.title("⚡ National Electricity Market (NEM) Facility Real-time Monitoring Dashboard")
-    
-    # Real-time Data Cards (Key metrics required by Assignment Task4)
-    # Fixed: Unified variable names (median_price matches median_price to avoid confusion)
-    total_power, total_emission, median_price, median_demand = calculate_realtime_stats()
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric("Total Power Output MW", f"{total_power}", delta="Real-time Update")
-    with col2:
-        st.metric("Total CO2 Emissions tCO2e", f"{total_emission}", delta="Real-time Update")
-    with col3:
-        # Synchronize variable name display
-        st.metric("Median Price $/MWh", f"{median_price}", delta="Real-time Update")
-    with col4:
-        # Synchronize variable name display
-        st.metric("Median Grid Demand MW", f"{median_demand}", delta="Real-time Update")
+
+    # Keep the metrics live without forcing the map to remount on every refresh.
+    render_realtime_metrics()
     
     # Sidebar: Filter and Control (Optional requirements by Task4)
     with st.sidebar:
@@ -273,7 +325,7 @@ def main():
     
     # Draw Map (Core requirement of Assignment Task4)
     filtered_facilities = filter_facilities()
-    st_folium(draw_map(filtered_facilities), width=1200, height=800)
+    st_folium(get_cached_map(filtered_facilities), key="facility_map", width=1200, height=800)
     
     # Auto-refresh (Assignment Task5 Requirement: Continuous execution) )
     # time.sleep(5)
