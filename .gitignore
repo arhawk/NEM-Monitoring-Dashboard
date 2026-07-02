@@ -1,0 +1,15 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.streamlit/
+data/facility_data_cache.json
+broker/data/*
+broker/log/*
+!broker/data/.gitkeep
+!broker/log/.gitkeep

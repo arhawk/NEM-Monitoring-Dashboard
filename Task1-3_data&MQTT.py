@@ -532,8 +532,8 @@ if sys.platform.startswith("win"):
             pass
 
 # -------- Basic Configuration --------
-BROKER = "127.0.0.1"
-PORT = 1883
+BROKER = os.getenv("MQTT_BROKER_HOST", "127.0.0.1")
+PORT = int(os.getenv("MQTT_BROKER_PORT", "1883"))
 CLIENT_ID = "comp5339-publisher"   # Fixed ID for persistent session
 
 TOPIC_MEAS = "comp5339/task123/measurements/{facility_code}"  # Only keep the measurement data topic

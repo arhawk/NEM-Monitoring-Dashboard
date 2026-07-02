@@ -9,8 +9,8 @@ import pandas as pd
 import os
 
 # -------------------------- Global Configuration (Aligned with Assignment Requirements) --------------------------
-BROKER = "127.0.0.1"
-PORT = 1883
+BROKER = os.getenv("MQTT_BROKER_HOST", "127.0.0.1")
+PORT = int(os.getenv("MQTT_BROKER_PORT", "1883"))
 TOPIC = "comp5339/task123/measurements/#"  # MQTT topic required by Assignment Task3
 DATA_CSV = "nem_facility_data.csv"  # Rename to a clearer file name to avoid confusion with old files
 mqtt_client = None
