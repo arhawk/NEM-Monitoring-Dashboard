@@ -11,7 +11,7 @@ import folium
 import pandas as pd
 import paho.mqtt.client as mqtt
 import streamlit as st
-from streamlit_folium import st_folium
+import streamlit.components.v1 as components
 
 from src.stream_cache import (
     StreamCache,
@@ -138,6 +138,28 @@ def _filter_snapshot(
     return filtered
 
 
+def _build_map_signature(
+    records: Dict[str, Dict[str, Any]],
+    display_mode: str,
+    selected_fuel: str,
+    selected_region: str,
+) -> tuple:
+    marker_signature = tuple(
+        sorted(
+            (
+                fac_code,
+                round(float(info.get("lat", 0.0)), 5),
+                round(float(info.get("lng", 0.0)), 5),
+                str(info.get("state", "")),
+                str(info.get("fuel_list", "")),
+                str(info.get("facility_name", fac_code)),
+            )
+            for fac_code, info in records.items()
+        )
+    )
+    return (display_mode, selected_fuel, selected_region, marker_signature)
+
+
 def _build_map(records: Dict[str, Dict[str, Any]], display_mode: str) -> folium.Map:
     if not records:
         return folium.Map(location=[-27.5, 133.8], zoom_start=4, tiles="OpenStreetMap")
@@ -171,6 +193,11 @@ def _build_map(records: Dict[str, Dict[str, Any]], display_mode: str) -> folium.
             tooltip=tooltip_text,
         ).add_to(m)
     return m
+
+
+def _build_map_html(records: Dict[str, Dict[str, Any]], display_mode: str) -> str:
+    map_obj = _build_map(records, display_mode)
+    return map_obj.get_root().render()
 
 
 def _build_trend_frame(messages: List[Dict[str, Any]]) -> pd.DataFrame:
@@ -510,28 +537,17 @@ def _render_map(filtered_snapshot: Dict[str, Dict[str, Any]], display_mode: str)
     if not filtered_snapshot:
         st.info("No matching facility data in cache.")
         return
-    map_key = (
+    map_key = _build_map_signature(
+        filtered_snapshot,
         display_mode,
-        tuple(
-            sorted(
-                (
-                    code,
-                    round(info.get("lat", 0.0), 5),
-                    round(info.get("lng", 0.0), 5),
-                    info.get("state", ""),
-                    str(info.get("fuel_list", "")),
-                    round(info.get("power_value", 0.0), 2),
-                    round(info.get("emission_value", 0.0), 2),
-                )
-                for code, info in filtered_snapshot.items()
-            )
-        ),
+        st.session_state.get("selected_fuel", "All"),
+        st.session_state.get("selected_region", "All"),
     )
     if st.session_state.get("_map_cache_key") != map_key:
         st.session_state._map_cache_key = map_key
-        st.session_state._cached_map = _build_map(filtered_snapshot, display_mode)
-    if "_cached_map" in st.session_state:
-        st_folium(st.session_state._cached_map, width=1200, height=700)
+        st.session_state._cached_map_html = _build_map_html(filtered_snapshot, display_mode)
+    if "_cached_map_html" in st.session_state:
+        components.html(st.session_state._cached_map_html, height=730, scrolling=False)
 
 
 def render_dashboard() -> None:
