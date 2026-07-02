@@ -65,8 +65,6 @@ colima status
 
 Then run the broker container locally on `localhost:1883`:
 
-Run Mosquitto locally on `localhost:1883`:
-
 ```bash
 docker compose up -d
 ```
@@ -103,7 +101,7 @@ colima stop
 Run the data preparation script from the repository root:
 
 ```bash
-python "Task1-3_data&MQTT.py"
+python3 "Task1-3_data&MQTT.py"
 ```
 
 What it does:
@@ -123,12 +121,14 @@ If `data/consolidated_data_total.csv` already exists, the script reuses it inste
 Open a second terminal, activate the same `venv`, then run:
 
 ```bash
-streamlit run Task4_appStreamlit.py
+python3 -m streamlit run app/streamlit_app.py --server.port 8501
 ```
 
 The dashboard connects to the same broker at `127.0.0.1:1883` and subscribes to:
 
 - `comp5339/task123/measurements/#`
+
+The local Streamlit server binds to `127.0.0.1`, so the browser URL will show `http://127.0.0.1:8501`.
 
 To stop the local app processes, use `Ctrl+C` in each terminal.
 
@@ -154,7 +154,7 @@ Suggested Render environment variables:
 `Task5_continousCheckReport.py` can be used to verify that the MQTT stream is arriving at the expected cadence:
 
 ```bash
-python Task5_continousCheckReport.py --host localhost --port 1883
+python3 Task5_continousCheckReport.py --host localhost --port 1883
 ```
 
 ## Run Artifacts
