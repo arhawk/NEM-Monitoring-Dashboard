@@ -132,6 +132,23 @@ The local Streamlit server binds to `127.0.0.1`, so the browser URL will show `h
 
 To stop the local app processes, use `Ctrl+C` in each terminal.
 
+### Dashboard Metrics Semantics
+
+The four cards at the top of the Streamlit dashboard are live snapshot metrics from `Task4_appStreamlit.py`.
+
+In this repository, a "snapshot" means the dashboard's current in-memory set of all known facilities, where each facility is represented by its latest received record. It does not mean a fixed time window, and it does not mean cumulative generation over time.
+
+- `Total Power Output MW`: sums the latest `power_value` for every facility currently stored in memory. This is a snapshot total, not a cumulative energy counter, so it can increase or decrease as new facility readings arrive.
+- `Total CO2 Emissions tCO2e`: sums the latest `emission_value` for every facility currently stored in memory. This also can move up or down in real time.
+- `Median Price $/MWh`: computes the median of all positive `price_per_mwh` values currently stored in memory.
+- `Median Grid Demand MW`: computes the median of all positive `demand_mw` values currently stored in memory.
+
+Important behavior notes:
+
+- These metrics are calculated from the latest facility snapshot held by the dashboard process, across all facilities that have been observed so far.
+- The sidebar filters currently affect the map and the facility preview table, but they do not change the four top summary metrics.
+- If you want `Total Power Output MW` to be monotonic, it would need a code change to track accumulated generation instead of the current snapshot sum.
+
 ## Render Deployment
 
 Render should run the application as two separate services, not through `docker-compose`:
