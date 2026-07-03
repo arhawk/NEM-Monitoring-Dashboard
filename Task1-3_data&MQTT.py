@@ -12,11 +12,19 @@ import os
 
 #=============================== Task 1 scrapying facility data from Open Electricity API ================================#
 #=========================================================================================================================#
-API_KEY = "oe_3ZWfWHmHqrpYEUbj7vff5Ey5"
-
 CACHE_FILE = "data/facility_data_cache.json"
 # Thread lock to ensure safe cache writing
 cache_lock = threading.Lock()
+
+
+def get_api_key():
+    """Read the Open Electricity API key only when remote fetches are needed."""
+    api_key = os.getenv("OPEN_ELECTRICITY_API_KEY")
+    if not api_key:
+        raise RuntimeError(
+            "OPEN_ELECTRICITY_API_KEY is required to fetch data from the Open Electricity API."
+        )
+    return api_key
 
 def load_cache():
     """Load cached data from JSON file and restore datetime/DataFrame objects"""
@@ -55,7 +63,7 @@ def save_cache(cache):
 def create_session():
     """Create a reusable HTTP session to reduce connection overhead"""
     session = requests.Session()
-    session.headers = {"Authorization": f"Bearer {API_KEY}"} 
+    session.headers = {"Authorization": f"Bearer {get_api_key()}"} 
     return session
 
 
@@ -542,7 +550,10 @@ USERNAME = os.getenv("MQTT_USERNAME") or None
 PASSWORD = os.getenv("MQTT_PASSWORD") or None
 CLIENT_ID = "comp5339-publisher"   # Fixed ID for persistent session
 
-TOPIC_MEAS = "comp5339/task123/measurements/{facility_code}"  # Only keep the measurement data topic
+TOPIC_MEAS = os.getenv(
+    "MQTT_TOPIC_TEMPLATE",
+    "comp5339/task123/measurements/{facility_code}",
+)  # Only keep the measurement data topic
 
 TICK = 0.100
 TICK_NS = int(TICK * 1e9)
