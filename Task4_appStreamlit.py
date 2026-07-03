@@ -10,8 +10,8 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 import paho.mqtt.client as mqtt
 import streamlit as st
-import streamlit.components.v1 as components
 
+from src.nem_map_component import render_nem_facility_map
 from src.stream_cache import (
     StreamCache,
     get_max_stream_rows,
@@ -270,193 +270,6 @@ def _build_marker_payload(
         "selected_region": selected_region,
         "markers": markers,
     }
-
-
-def _build_map_shell_html(static_signature: tuple) -> str:
-    static_signature_json = json.dumps(static_signature, ensure_ascii=False)
-    return f"""
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-  <style>
-    html, body {{
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #f8fafc;
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }}
-    #map {{
-      width: 100%;
-      height: 730px;
-    }}
-    .nem-map-loading {{
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #475569;
-      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-      font-size: 14px;
-      letter-spacing: 0.02em;
-      z-index: 500;
-      pointer-events: none;
-    }}
-  </style>
-</head>
-<body>
-  <div id="map"></div>
-  <div id="map-loading" class="nem-map-loading">Loading map...</div>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script>
-    (function() {{
-      const loadingEl = document.getElementById("map-loading");
-      const map = L.map("map", {{ zoomControl: true }}).setView([-27.5, 133.8], 4);
-      L.tileLayer("https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png", {{
-        maxZoom: 18,
-        attribution: "&copy; OpenStreetMap contributors"
-      }}).addTo(map);
-
-      const markerLayer = L.layerGroup().addTo(map);
-      const state = {{
-        staticSignature: {json.dumps(static_signature_json)},
-        operationalSignature: null,
-        displayMode: null,
-        markersByCode: Object.create(null),
-      }};
-
-      function setTooltip(marker, tooltipText) {{
-        if (marker.getTooltip()) {{
-          marker.unbindTooltip();
-        }}
-        marker.bindTooltip(tooltipText, {{ direction: "top", sticky: true }});
-      }}
-
-      function setPopup(marker, popupHtml) {{
-        if (marker.getPopup()) {{
-          marker.unbindPopup();
-        }}
-        marker.bindPopup(popupHtml, {{ maxWidth: 320 }});
-      }}
-
-      function createMarker(markerData) {{
-        const marker = L.circleMarker([markerData.lat, markerData.lng], {{
-          radius: markerData.radius,
-          color: markerData.color,
-          fillColor: markerData.color,
-          fillOpacity: 0.9,
-          weight: 2,
-        }});
-        setTooltip(marker, markerData.tooltip);
-        setPopup(marker, markerData.popup_html);
-        marker.addTo(markerLayer);
-        marker._nemFingerprint = JSON.stringify(markerData.fingerprint);
-        return marker;
-      }}
-
-      function updateMarker(marker, markerData) {{
-        marker.setLatLng([markerData.lat, markerData.lng]);
-        if (typeof marker.setRadius === "function") {{
-          marker.setRadius(markerData.radius);
-        }}
-        marker.setStyle({{
-          color: markerData.color,
-          fillColor: markerData.color,
-          fillOpacity: 0.9,
-          weight: 2,
-        }});
-        setTooltip(marker, markerData.tooltip);
-        setPopup(marker, markerData.popup_html);
-        marker._nemFingerprint = JSON.stringify(markerData.fingerprint);
-      }}
-
-      function clearMarkers() {{
-        markerLayer.clearLayers();
-        state.markersByCode = Object.create(null);
-      }}
-
-      function renderMarkers(payload) {{
-        if (!payload) {{
-          loadingEl.style.display = "none";
-          return;
-        }}
-
-        const nextStatic = JSON.stringify(payload.static_signature);
-        const nextOperational = JSON.stringify(payload.operational_signature);
-        const nextDisplayMode = payload.display_mode || null;
-        const nextMarkers = Array.isArray(payload.markers) ? payload.markers : [];
-        const nextByCode = Object.create(null);
-
-        if (state.staticSignature !== nextStatic) {{
-          clearMarkers();
-          state.staticSignature = nextStatic;
-        }}
-
-        state.operationalSignature = nextOperational;
-        state.displayMode = nextDisplayMode;
-
-        for (const markerData of nextMarkers) {{
-          nextByCode[markerData.facility_code] = markerData;
-          const existing = state.markersByCode[markerData.facility_code];
-          const fingerprint = JSON.stringify(markerData.fingerprint);
-          if (!existing) {{
-            state.markersByCode[markerData.facility_code] = createMarker(markerData);
-            continue;
-          }}
-          if (existing._nemFingerprint !== fingerprint) {{
-            updateMarker(existing, markerData);
-          }}
-        }}
-
-        for (const facilityCode of Object.keys(state.markersByCode)) {{
-          if (!nextByCode[facilityCode]) {{
-            markerLayer.removeLayer(state.markersByCode[facilityCode]);
-            delete state.markersByCode[facilityCode];
-          }}
-        }}
-
-        loadingEl.style.display = "none";
-      }}
-
-      window.__nemMap = {{
-        map,
-        markerLayer,
-        state,
-        renderMarkers,
-      }};
-
-      if (window.__nemPendingMarkerPayload) {{
-        renderMarkers(window.__nemPendingMarkerPayload);
-        window.__nemPendingMarkerPayload = null;
-      }} else {{
-        loadingEl.style.display = "none";
-      }}
-    }})();
-  </script>
-</body>
-</html>
-"""
-
-
-def _build_map_marker_layer_html(marker_payload: Dict[str, Any]) -> str:
-    marker_payload_json = json.dumps(marker_payload, ensure_ascii=False)
-    return f"""
-<script>
-  (function() {{
-    const payload = {marker_payload_json};
-    if (window.__nemMap && window.__nemMap.renderMarkers) {{
-      window.__nemMap.renderMarkers(payload);
-    }} else {{
-      window.__nemPendingMarkerPayload = payload;
-    }}
-  }})();
-</script>
-"""
 
 
 def _build_trend_frame(messages: List[Dict[str, Any]]) -> pd.DataFrame:
@@ -806,33 +619,13 @@ def _render_map(filtered_snapshot: Dict[str, Dict[str, Any]], display_mode: str)
     if not filtered_snapshot:
         st.info("No matching facility data in cache.")
         return
-    map_key = _build_map_signature(
-        filtered_snapshot,
-        display_mode,
-        st.session_state.get("selected_fuel", "All"),
-        st.session_state.get("selected_region", "All"),
-    )
-    static_signature, operational_signature = map_key
     marker_payload = _build_marker_payload(
         filtered_snapshot,
         display_mode,
         st.session_state.get("selected_fuel", "All"),
         st.session_state.get("selected_region", "All"),
     )
-
-    if st.session_state.get("_map_shell_key") != static_signature:
-        st.session_state._map_shell_key = static_signature
-        st.session_state._cached_map_shell_html = _build_map_shell_html(static_signature)
-
-    if st.session_state.get("_map_marker_key") != operational_signature:
-        st.session_state._map_marker_key = operational_signature
-        st.session_state._cached_marker_layer_html = _build_map_marker_layer_html(marker_payload)
-
-    shell_html = st.session_state.get("_cached_map_shell_html")
-    marker_layer_html = st.session_state.get("_cached_marker_layer_html")
-    if shell_html and marker_layer_html:
-        combined_html = shell_html.replace("</body>", f"{marker_layer_html}</body>", 1)
-        components.html(combined_html, height=730, scrolling=False)
+    render_nem_facility_map(marker_payload, height=730, key="nem-facility-map")
 
 
 def render_dashboard() -> None:

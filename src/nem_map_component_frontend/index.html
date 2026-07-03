@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #f8fafc;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    #map {
+      width: 100%;
+      height: 730px;
+    }
+
+    .nem-map-loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #475569;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      font-size: 14px;
+      letter-spacing: 0.02em;
+      z-index: 500;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div id="map-loading" class="nem-map-loading">Loading map...</div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script>
+    const StreamlitBridge = (() => {
+      const RENDER_EVENT = "streamlit:render";
+      const COMPONENT_READY = "streamlit:componentReady";
+      const SET_FRAME_HEIGHT = "streamlit:setFrameHeight";
+      const SET_COMPONENT_VALUE = "streamlit:setComponentValue";
+      const events = new EventTarget();
+      let lastFrameHeight = 0;
+
+      function send(type, payload) {
+        window.parent.postMessage(
+          Object.assign({ isStreamlitMessage: true, type }, payload || {}),
+          "*"
+        );
+      }
+
+      function setComponentReady() {
+        window.addEventListener("message", onMessageEvent);
+        send(COMPONENT_READY, { apiVersion: 1 });
+      }
+
+      function setFrameHeight(height) {
+        const nextHeight = height || document.body.scrollHeight;
+        if (nextHeight !== lastFrameHeight) {
+          lastFrameHeight = nextHeight;
+          send(SET_FRAME_HEIGHT, { height: nextHeight });
+        }
+      }
+
+      function setComponentValue(value) {
+        send(SET_COMPONENT_VALUE, { value, dataType: "json" });
+      }
+
+      function onMessageEvent(event) {
+        if (!event.data || event.data.type !== RENDER_EVENT) {
+          return;
+        }
+        const detail = {
+          args: event.data.args || {},
+          disabled: Boolean(event.data.disabled),
+          theme: event.data.theme || null,
+        };
+        events.dispatchEvent(new CustomEvent(RENDER_EVENT, { detail }));
+      }
+
+      return {
+        RENDER_EVENT,
+        events,
+        setComponentReady,
+        setComponentValue,
+        setFrameHeight,
+      };
+    })();
+
+    const loadingEl = document.getElementById("map-loading");
+    const mapHeight = 730;
+    document.getElementById("map").style.height = `${mapHeight}px`;
+
+    const map = L.map("map", { zoomControl: true }).setView([-27.5, 133.8], 4);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18,
+      attribution: "&copy; OpenStreetMap contributors",
+    }).addTo(map);
+
+    const markerLayer = L.layerGroup().addTo(map);
+    const state = {
+      staticSignature: null,
+      operationalSignature: null,
+      displayMode: null,
+      markersByCode: Object.create(null),
+      openFacilityCode: null,
+      lastView: {
+        center: map.getCenter(),
+        zoom: map.getZoom(),
+      },
+    };
+
+    function syncViewState() {
+      state.lastView = {
+        center: map.getCenter(),
+        zoom: map.getZoom(),
+      };
+      StreamlitBridge.setComponentValue({
+        center: state.lastView.center,
+        zoom: state.lastView.zoom,
+        open_facility_code: state.openFacilityCode,
+      });
+    }
+
+    function setTooltip(marker, tooltipText) {
+      if (marker.getTooltip()) {
+        marker.unbindTooltip();
+      }
+      marker.bindTooltip(tooltipText, { direction: "top", sticky: true });
+    }
+
+    function setPopup(marker, popupHtml, facilityCode) {
+      if (marker.getPopup()) {
+        marker.unbindPopup();
+      }
+      marker.bindPopup(popupHtml, { maxWidth: 320 });
+      marker.off("popupopen");
+      marker.off("popupclose");
+      marker.on("popupopen", () => {
+        state.openFacilityCode = facilityCode;
+        syncViewState();
+      });
+      marker.on("popupclose", () => {
+        if (state.openFacilityCode === facilityCode) {
+          state.openFacilityCode = null;
+          syncViewState();
+        }
+      });
+    }
+
+    function createMarker(markerData) {
+      const marker = L.circleMarker([markerData.lat, markerData.lng], {
+        radius: markerData.radius,
+        color: markerData.color,
+        fillColor: markerData.color,
+        fillOpacity: 0.9,
+        weight: 2,
+      });
+      setTooltip(marker, markerData.tooltip);
+      setPopup(marker, markerData.popup_html, markerData.facility_code);
+      marker.addTo(markerLayer);
+      marker._nemFingerprint = JSON.stringify(markerData.fingerprint);
+      marker._facilityCode = markerData.facility_code;
+      return marker;
+    }
+
+    function updateMarker(marker, markerData) {
+      const wasOpen = typeof marker.isPopupOpen === "function" && marker.isPopupOpen();
+      marker.setLatLng([markerData.lat, markerData.lng]);
+      if (typeof marker.setRadius === "function") {
+        marker.setRadius(markerData.radius);
+      }
+      marker.setStyle({
+        color: markerData.color,
+        fillColor: markerData.color,
+        fillOpacity: 0.9,
+        weight: 2,
+      });
+      setTooltip(marker, markerData.tooltip);
+      setPopup(marker, markerData.popup_html, markerData.facility_code);
+      marker._nemFingerprint = JSON.stringify(markerData.fingerprint);
+      marker._facilityCode = markerData.facility_code;
+      if (wasOpen || state.openFacilityCode === markerData.facility_code) {
+        marker.openPopup();
+      }
+    }
+
+    function clearMarkers() {
+      markerLayer.clearLayers();
+      state.markersByCode = Object.create(null);
+      state.openFacilityCode = null;
+    }
+
+    function renderMarkers(payload) {
+      if (!payload) {
+        loadingEl.style.display = "none";
+        return;
+      }
+
+      const nextStatic = JSON.stringify(payload.static_signature || null);
+      const nextOperational = JSON.stringify(payload.operational_signature || null);
+      const nextDisplayMode = payload.display_mode || null;
+      const nextMarkers = Array.isArray(payload.markers) ? payload.markers : [];
+      const nextByCode = Object.create(null);
+
+      if (state.staticSignature !== nextStatic) {
+        clearMarkers();
+        state.staticSignature = nextStatic;
+      }
+
+      state.operationalSignature = nextOperational;
+      state.displayMode = nextDisplayMode;
+
+      for (const markerData of nextMarkers) {
+        nextByCode[markerData.facility_code] = markerData;
+        const existing = state.markersByCode[markerData.facility_code];
+        const fingerprint = JSON.stringify(markerData.fingerprint);
+        if (!existing) {
+          state.markersByCode[markerData.facility_code] = createMarker(markerData);
+          continue;
+        }
+        if (existing._nemFingerprint !== fingerprint) {
+          updateMarker(existing, markerData);
+        }
+      }
+
+      for (const facilityCode of Object.keys(state.markersByCode)) {
+        if (!nextByCode[facilityCode]) {
+          if (state.openFacilityCode === facilityCode) {
+            state.openFacilityCode = null;
+          }
+          markerLayer.removeLayer(state.markersByCode[facilityCode]);
+          delete state.markersByCode[facilityCode];
+        }
+      }
+
+      loadingEl.style.display = "none";
+      StreamlitBridge.setFrameHeight(mapHeight);
+      syncViewState();
+    }
+
+    map.on("moveend zoomend", syncViewState);
+    window.addEventListener("resize", () => {
+      map.invalidateSize(false);
+      StreamlitBridge.setFrameHeight(mapHeight);
+    });
+
+    StreamlitBridge.events.addEventListener(StreamlitBridge.RENDER_EVENT, (event) => {
+      const args = event.detail.args || {};
+      const nextHeight = Number(args.height) || mapHeight;
+      document.getElementById("map").style.height = `${nextHeight}px`;
+      map.invalidateSize(false);
+      renderMarkers(args.marker_payload || null);
+      StreamlitBridge.setFrameHeight(nextHeight);
+    });
+
+    StreamlitBridge.setComponentReady();
+    StreamlitBridge.setFrameHeight(mapHeight);
+  </script>
+</body>
+</html>

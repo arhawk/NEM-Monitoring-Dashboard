@@ -261,6 +261,8 @@ class DashboardLogicTests(TestCase):
 
         payload = task4._build_marker_payload(records, "power_value", "All", "All")
         self.assertEqual(payload["display_mode"], "power_value")
+        self.assertEqual(payload["static_signature"], task4._build_static_signature(records))
+        self.assertEqual(payload["operational_signature"], task4._build_operational_signature(records))
         self.assertEqual(payload["markers"][0]["facility_code"], "A1")
         self.assertEqual(payload["markers"][0]["fingerprint"][0], "power_value")
         self.assertGreater(payload["markers"][0]["radius"], 5.5)
