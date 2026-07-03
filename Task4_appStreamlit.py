@@ -438,6 +438,28 @@ def _build_marker_payload(
     }
 
 
+def _get_cached_marker_payload(
+    records: Dict[str, Dict[str, Any]],
+    display_mode: str,
+    selected_fuel: str,
+    selected_region: str,
+) -> Dict[str, Any]:
+    cache_key = "_nem_map_marker_payload_cache"
+    next_signature = _build_map_signature(records, display_mode, selected_fuel, selected_region)
+    cached = st.session_state.get(cache_key)
+    if isinstance(cached, dict) and cached.get("signature") == next_signature:
+        payload = cached.get("payload")
+        if isinstance(payload, dict):
+            return payload
+
+    payload = _build_marker_payload(records, display_mode, selected_fuel, selected_region)
+    st.session_state[cache_key] = {
+        "signature": next_signature,
+        "payload": payload,
+    }
+    return payload
+
+
 def _get_latest_trend_message(messages: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     for message in reversed(messages):
         if message.get("facility_code"):
@@ -833,7 +855,7 @@ def _render_map(filtered_snapshot: Dict[str, Dict[str, Any]], display_mode: str)
     if not filtered_snapshot:
         st.info("No matching facility data in cache.")
         return
-    marker_payload = _build_marker_payload(
+    marker_payload = _get_cached_marker_payload(
         filtered_snapshot,
         display_mode,
         st.session_state.get("selected_fuel", "All"),

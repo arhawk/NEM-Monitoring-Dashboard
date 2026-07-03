@@ -12,6 +12,8 @@ import pandas as pd
 
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 
 def load_module(module_name: str, relative_path: str):
@@ -251,6 +253,66 @@ class DashboardLogicTests(TestCase):
         sig1 = task4._build_map_signature(base, "power_value", "All", "All")
         sig2 = task4._build_map_signature(updated, "power_value", "All", "All")
         self.assertNotEqual(sig1, sig2)
+
+    def test_get_cached_marker_payload_reuses_payload_for_same_signature(self) -> None:
+        records = {
+            "A1": {
+                "lat": -33.0,
+                "lng": 151.0,
+                "state": "NSW",
+                "fuel_list": "Gas",
+                "facility_name": "Alpha",
+                "timestamp": "2026-07-03T00:00:00+10:00",
+                "power_value": 10.0,
+                "emission_value": 2.0,
+                "price_per_mwh": 30.0,
+                "demand_mw": 40.0,
+            }
+        }
+        fake_state = {
+            "_nem_map_marker_payload_cache": None,
+        }
+
+        with patch.object(task4.st, "session_state", fake_state), \
+            patch.object(task4, "_build_marker_payload", wraps=task4._build_marker_payload) as build_mock:
+            payload1 = task4._get_cached_marker_payload(records, "power_value", "All", "All")
+            payload2 = task4._get_cached_marker_payload(records, "power_value", "All", "All")
+
+        self.assertIs(payload1, payload2)
+        self.assertEqual(build_mock.call_count, 1)
+        self.assertIn("_nem_map_marker_payload_cache", fake_state)
+
+    def test_get_cached_marker_payload_invalidates_on_signature_change(self) -> None:
+        base = {
+            "A1": {
+                "lat": -33.0,
+                "lng": 151.0,
+                "state": "NSW",
+                "fuel_list": "Gas",
+                "facility_name": "Alpha",
+                "timestamp": "2026-07-03T00:00:00+10:00",
+                "power_value": 10.0,
+                "emission_value": 2.0,
+                "price_per_mwh": 30.0,
+                "demand_mw": 40.0,
+            }
+        }
+        updated = {
+            "A1": {
+                **base["A1"],
+                "emission_value": 5.0,
+                "timestamp": "2026-07-03T00:05:00+10:00",
+            }
+        }
+        fake_state = {}
+
+        with patch.object(task4.st, "session_state", fake_state), \
+            patch.object(task4, "_build_marker_payload", wraps=task4._build_marker_payload) as build_mock:
+            payload1 = task4._get_cached_marker_payload(base, "power_value", "All", "All")
+            payload2 = task4._get_cached_marker_payload(updated, "power_value", "All", "All")
+
+        self.assertIsNot(payload1, payload2)
+        self.assertEqual(build_mock.call_count, 2)
 
     def test_build_fuel_options_uses_all_tokens_from_snapshot(self) -> None:
         snapshot = {

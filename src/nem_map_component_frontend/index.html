@@ -217,10 +217,12 @@
     const map = L.map("map", {
       zoomControl: true,
       preferCanvas: true,
+      zoomAnimation: false,
+      markerZoomAnimation: false,
       zoomSnap: 0.25,
       zoomDelta: 0.25,
-      wheelDebounceTime: 16,
-      wheelPxPerZoomLevel: 30,
+      wheelDebounceTime: 80,
+      wheelPxPerZoomLevel: 90,
     }).setView([-27.5, 133.8], 4);
     const canvasRenderer = L.canvas({ padding: 0.5 });
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -375,7 +377,7 @@
       viewSyncTimer = window.setTimeout(() => {
         viewSyncTimer = null;
         syncViewState();
-      }, 200);
+      }, 350);
     }
 
     function setTooltip(marker, tooltipText) {
