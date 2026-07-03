@@ -216,6 +216,35 @@ This cache is the source for:
 - the trend chart
 - the map
 
+### 6.3 What "Real-Time" Means Here
+
+In this project, "real-time" means that the dashboard consumes messages as they arrive on the MQTT broker and renders the latest cached state on a repeating refresh cycle.
+
+That is different from hard real-time processing:
+
+- the publisher streams one JSON record per row over MQTT
+- the dashboard receives each message in the MQTT `on_message` callback
+- the UI reruns on a fixed interval and redraws from the in-memory cache
+
+The timestamps in the system have different meanings:
+
+- `timestamp` is the business timestamp from the source data
+- `sent_mono_ns` is when the publisher sent the MQTT message
+- `received_at` is when the dashboard stored the message in cache
+
+So the dashboard is best described as **near-real-time** or **live-streamed**:
+
+- the transport is live
+- the UI is updated continuously
+- the source measurements may still represent historical 5-minute intervals from the API
+- the display is not a hard real-time control loop
+
+This distinction matters when reading charts or tables:
+
+- `timestamp` tells you when the measurement belongs in the source timeline
+- `received_at` tells you when the dashboard learned about it
+- the visible latency between them is expected and depends on publishing cadence, broker delivery, and Streamlit refresh timing
+
 ## 7. Dashboard Rendering
 
 ### 7.1 Metric Cards
