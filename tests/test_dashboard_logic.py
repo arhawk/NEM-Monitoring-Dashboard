@@ -173,6 +173,7 @@ class DashboardLogicTests(TestCase):
 
         runtime.cache.add_message({"facility_code": "A1"})
         previous_reset_at = runtime.cache.last_reset_at()
+        previous_soft_reset_at = runtime.last_soft_reset_at
         task4._soft_reset_runtime(runtime)
 
         self.assertEqual(runtime.cache.size(), 0)
@@ -180,7 +181,7 @@ class DashboardLogicTests(TestCase):
         self.assertIsNone(runtime.cache.last_updated_at())
         self.assertGreater(runtime.cache.last_reset_at(), previous_reset_at)
         self.assertIsNone(runtime.last_error)
-        self.assertGreater(runtime.last_soft_reset_at.timestamp(), datetime(2026, 7, 3, 23, 56, 37, tzinfo=timezone.utc).timestamp())
+        self.assertNotEqual(runtime.last_soft_reset_at, previous_soft_reset_at)
         runtime._set_status.assert_not_called()
         runtime._schedule_connect.assert_not_called()
 
@@ -675,6 +676,7 @@ class DashboardLogicTests(TestCase):
         runtime = self._build_sidebar_runtime(status="Connecting")
 
         with patch.dict(task4.st.session_state, {"display_mode": "power_value"}, clear=True), \
+            patch.object(task4.st, "markdown"), \
             patch.object(task4.st, "header"), \
             patch.object(task4.st, "subheader") as subheader_mock, \
             patch.object(task4.st, "button", return_value=False), \
@@ -717,6 +719,7 @@ class DashboardLogicTests(TestCase):
         }
 
         with patch.dict(task4.st.session_state, {"display_mode": "power_value", "selected_fuel": "All", "selected_region": "All"}, clear=True), \
+            patch.object(task4.st, "markdown"), \
             patch.object(task4.st, "header"), \
             patch.object(task4.st, "subheader"), \
             patch.object(task4.st, "button", return_value=False), \
@@ -745,6 +748,7 @@ class DashboardLogicTests(TestCase):
             runtime_obj.last_soft_reset_at = updated_reset_at
 
         with patch.dict(task4.st.session_state, {"display_mode": "power_value", "selected_fuel": "All", "selected_region": "All"}, clear=True), \
+            patch.object(task4.st, "markdown"), \
             patch.object(task4.st, "header"), \
             patch.object(task4.st, "subheader"), \
             patch.object(task4.st, "button", return_value=True) as button_mock, \
@@ -786,6 +790,7 @@ class DashboardLogicTests(TestCase):
         )
 
         with patch.object(task4.st, "session_state", state), \
+            patch.object(task4.st, "markdown"), \
             patch.object(task4.st, "header"), \
             patch.object(task4.st, "subheader"), \
             patch.object(task4.st, "button", return_value=False), \
@@ -811,6 +816,7 @@ class DashboardLogicTests(TestCase):
         error_mock.reset_mock()
 
         with patch.object(task4.st, "session_state", state), \
+            patch.object(task4.st, "markdown"), \
             patch.object(task4.st, "header"), \
             patch.object(task4.st, "subheader"), \
             patch.object(task4.st, "button", return_value=False), \
@@ -829,6 +835,33 @@ class DashboardLogicTests(TestCase):
         info_mock.assert_not_called()
         warning_mock.assert_not_called()
         error_mock.assert_not_called()
+
+    def test_render_sidebar_injects_compact_header_css(self) -> None:
+        runtime = self._build_sidebar_runtime(status="Connected")
+
+        with patch.dict(task4.st.session_state, {"display_mode": "power_value", "selected_fuel": "All", "selected_region": "All"}, clear=True), \
+            patch.object(task4.st, "markdown") as markdown_mock, \
+            patch.object(task4.st, "header"), \
+            patch.object(task4.st, "subheader"), \
+            patch.object(task4.st, "button", return_value=False), \
+            patch.object(task4.st, "selectbox"), \
+            patch.object(task4.st, "write"), \
+            patch.object(task4.st, "caption"), \
+            patch.object(task4.st, "info"), \
+            patch.object(task4.st, "success"), \
+            patch.object(task4.st, "warning"), \
+            patch.object(task4.st, "error"):
+            task4._render_sidebar(runtime, {}, {}, "live", ["All", "Gas"])
+
+        self.assertTrue(markdown_mock.called)
+        css = markdown_mock.call_args_list[0].args[0]
+        self.assertIn('data-testid="stSidebarHeader"', css)
+        self.assertIn('data-testid="stSidebarCollapseButton"', css)
+        self.assertIn("Control Center", css)
+        self.assertIn("font-size: 1.25rem", css)
+        self.assertIn("margin-bottom: 0 !important", css)
+        self.assertIn("overflow-y: hidden !important", css)
+        self.assertIn("margin-top: 0 !important", css)
 
     def test_render_map_syncs_display_mode_from_component_value(self) -> None:
         filtered_snapshot = {

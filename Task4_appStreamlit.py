@@ -41,6 +41,7 @@ FALLBACK_STALE_SECONDS = max(1, int(os.getenv("FALLBACK_STALE_SECONDS", "30")))
 ENABLE_FALLBACK_REPLAY = os.getenv("ENABLE_FALLBACK_REPLAY", "true").strip().lower() not in {"0", "false", "no", "off"}
 DISPLAY_REGION_OPTIONS = ["All", "ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
 READY_NOTICE_SESSION_KEY = "_cache_ready_notice_pending"
+SIDEBAR_HEADER_TITLE = "🔧 Control Center"
 FUEL_GROUP_COLORS = {
     "Renewable": "#16a34a",
     "Fossil / Non-renewable": "#dc2626",
@@ -699,7 +700,67 @@ def _render_sidebar(
     data_source: str,
     fuel_options: List[str],
 ) -> None:
-    st.header("🔧 Control Center")
+    st.markdown(
+        textwrap.dedent(
+            f"""
+            <style>
+              section[data-testid="stSidebar"][aria-expanded="true"] [data-testid="stSidebarHeader"] {{
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+                gap: 0.5rem;
+                margin-bottom: 0 !important;
+              }}
+
+              section[data-testid="stSidebar"][aria-expanded="true"] [data-testid="stSidebarHeader"]::before {{
+                content: "{SIDEBAR_HEADER_TITLE}";
+                flex: 1 1 auto;
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                font-size: 1.25rem;
+                font-weight: 700;
+                line-height: 1.2;
+                color: inherit;
+              }}
+
+              section[data-testid="stSidebar"][aria-expanded="false"] [data-testid="stSidebarHeader"]::before {{
+                content: "";
+              }}
+
+              section[data-testid="stSidebar"][aria-expanded="true"] [data-testid="stSidebarHeader"] > :first-child {{
+                flex: 0 0 auto;
+                min-width: 0;
+              }}
+
+              section[data-testid="stSidebar"][aria-expanded="true"] [data-testid="stSidebarCollapseButton"] {{
+                margin-left: auto;
+                display: inline-flex;
+                align-items: center;
+              }}
+
+              section[data-testid="stSidebar"][aria-expanded="true"] [data-testid="stSidebarCollapseButton"] button {{
+                padding: 0;
+              }}
+
+              section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
+                overflow-y: hidden !important;
+              }}
+
+              section[data-testid="stSidebar"] [data-testid="stSidebarContent"] > div:first-child {{
+                margin-top: 0 !important;
+              }}
+
+              section[data-testid="stSidebar"] [data-testid="stSidebarContent"] h2:first-of-type,
+              section[data-testid="stSidebar"] [data-testid="stSidebarContent"] h3:first-of-type {{
+                margin-top: 0 !important;
+              }}
+            </style>
+            """
+        ).strip(),
+        unsafe_allow_html=True,
+    )
     st.subheader("MQTT Status")
     if runtime.status == "Connected":
         st.success("Connected")
