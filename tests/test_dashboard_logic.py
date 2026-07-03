@@ -191,6 +191,80 @@ class DashboardLogicTests(TestCase):
         sig2 = task4._build_map_signature(updated, "power_value", "All", "All")
         self.assertNotEqual(sig1, sig2)
 
+    def test_static_signature_ignores_operational_changes(self) -> None:
+        base = {
+            "A1": {
+                "lat": -33.0,
+                "lng": 151.0,
+                "state": "NSW",
+                "fuel_list": "Gas",
+                "facility_name": "Alpha",
+                "timestamp": "2026-07-03T00:00:00+10:00",
+                "power_value": 10.0,
+                "emission_value": None,
+                "price_per_mwh": None,
+                "demand_mw": None,
+            }
+        }
+        updated = {
+            "A1": {
+                **base["A1"],
+                "timestamp": "2026-07-03T00:05:00+10:00",
+                "power_value": 12.0,
+                "emission_value": 4.0,
+            }
+        }
+
+        self.assertEqual(task4._build_static_signature(base), task4._build_static_signature(updated))
+        self.assertNotEqual(task4._build_operational_signature(base), task4._build_operational_signature(updated))
+
+    def test_static_signature_changes_with_location_and_identity_fields(self) -> None:
+        base = {
+            "A1": {
+                "lat": -33.0,
+                "lng": 151.0,
+                "state": "NSW",
+                "fuel_list": "Gas",
+                "facility_name": "Alpha",
+                "timestamp": "2026-07-03T00:00:00+10:00",
+                "power_value": 10.0,
+                "emission_value": None,
+                "price_per_mwh": None,
+                "demand_mw": None,
+            }
+        }
+        moved = {
+            "A1": {
+                **base["A1"],
+                "lat": -34.0,
+            }
+        }
+
+        self.assertNotEqual(task4._build_static_signature(base), task4._build_static_signature(moved))
+
+    def test_marker_payload_reflects_display_mode_and_fingerprint(self) -> None:
+        records = {
+            "A1": {
+                "facility_code": "A1",
+                "facility_name": "Alpha",
+                "lat": -33.0,
+                "lng": 151.0,
+                "state": "NSW",
+                "fuel_list": "Gas",
+                "timestamp": "2026-07-03T00:00:00+10:00",
+                "power_value": 10.0,
+                "emission_value": 2.0,
+                "price_per_mwh": 30.0,
+                "demand_mw": 40.0,
+            }
+        }
+
+        payload = task4._build_marker_payload(records, "power_value", "All", "All")
+        self.assertEqual(payload["display_mode"], "power_value")
+        self.assertEqual(payload["markers"][0]["facility_code"], "A1")
+        self.assertEqual(payload["markers"][0]["fingerprint"][0], "power_value")
+        self.assertGreater(payload["markers"][0]["radius"], 5.5)
+
     def test_build_trend_frame_keeps_missing_values_as_nan(self) -> None:
         messages = [
             {
