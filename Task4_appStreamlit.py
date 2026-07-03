@@ -63,6 +63,21 @@ def _reason_is_success(reason_code: Any) -> bool:
         return str(reason_code).strip().lower() in {"0", "success"}
 
 
+def _format_optional_metric(value: Any, unit: str = "") -> str:
+    coerced = _coerce_float(value)
+    if coerced is None:
+        return "N/A"
+    text = f"{round(coerced, 2)}"
+    return f"{text} {unit}".strip()
+
+
+def _signature_metric_value(value: Any) -> Optional[float]:
+    coerced = _coerce_float(value)
+    if coerced is None:
+        return None
+    return round(coerced, 2)
+
+
 def _normalize_message(payload: Dict[str, Any], topic: str) -> Optional[Dict[str, Any]]:
     fac_code = str(payload.get("facility_code") or "").strip()
     lat = _coerce_float(payload.get("lat"))
@@ -79,9 +94,9 @@ def _normalize_message(payload: Dict[str, Any], topic: str) -> Optional[Dict[str
         "lng": lng,
         "timestamp": payload.get("timestamp") or "",
         "power_value": round(power_val, 2),
-        "emission_value": round(_coerce_float(payload.get("emission_value")) or 0.0, 2),
-        "price_per_mwh": round(_coerce_float(payload.get("price_per_mwh")) or 0.0, 2),
-        "demand_mw": round(_coerce_float(payload.get("demand_mw")) or 0.0, 2),
+        "emission_value": _signature_metric_value(payload.get("emission_value")),
+        "price_per_mwh": _signature_metric_value(payload.get("price_per_mwh")),
+        "demand_mw": _signature_metric_value(payload.get("demand_mw")),
         "state": payload.get("state") or "Unknown Region",
         "fuel_list": payload.get("fuel_list") or "Unknown",
         "topic": topic,
@@ -98,29 +113,28 @@ def _build_latest_snapshot(messages: List[Dict[str, Any]]) -> Dict[str, Dict[str
     return snapshot
 
 
-def _calculate_snapshot_stats(snapshot: Dict[str, Dict[str, Any]]) -> Dict[str, float]:
+def _calculate_snapshot_stats(snapshot: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
     values = list(snapshot.values())
     if not values:
         return {
             "facility_count": 0,
             "total_power": 0.0,
-            "total_emission": 0.0,
-            "median_price": 0.0,
-            "median_demand": 0.0,
+            "total_emission": None,
+            "median_price": None,
+            "median_demand": None,
         }
 
-    total_power = sum(float(item.get("power_value", 0.0)) for item in values)
-    total_emission = sum(float(item.get("emission_value", 0.0)) for item in values)
-
-    valid_prices = [float(item.get("price_per_mwh", 0.0)) for item in values if float(item.get("price_per_mwh", 0.0)) > 0]
-    valid_demands = [float(item.get("demand_mw", 0.0)) for item in values if float(item.get("demand_mw", 0.0)) > 0]
+    power_values = [float(item["power_value"]) for item in values if item.get("power_value") is not None]
+    emission_values = [float(item["emission_value"]) for item in values if item.get("emission_value") is not None]
+    price_values = [float(item["price_per_mwh"]) for item in values if item.get("price_per_mwh") is not None]
+    demand_values = [float(item["demand_mw"]) for item in values if item.get("demand_mw") is not None]
 
     return {
         "facility_count": len(values),
-        "total_power": round(total_power, 2),
-        "total_emission": round(total_emission, 2),
-        "median_price": round(float(pd.Series(valid_prices).median()) if valid_prices else 0.0, 2),
-        "median_demand": round(float(pd.Series(valid_demands).median()) if valid_demands else 0.0, 2),
+        "total_power": round(sum(power_values), 2) if power_values else 0.0,
+        "total_emission": round(sum(emission_values), 2) if emission_values else None,
+        "median_price": round(float(pd.Series(price_values).median()), 2) if price_values else None,
+        "median_demand": round(float(pd.Series(demand_values).median()), 2) if demand_values else None,
     }
 
 
@@ -153,6 +167,11 @@ def _build_map_signature(
                 str(info.get("state", "")),
                 str(info.get("fuel_list", "")),
                 str(info.get("facility_name", fac_code)),
+                str(info.get("timestamp", "")),
+                _signature_metric_value(info.get("power_value")),
+                _signature_metric_value(info.get("emission_value")),
+                _signature_metric_value(info.get("price_per_mwh")),
+                _signature_metric_value(info.get("demand_mw")),
             )
             for fac_code, info in records.items()
         )
@@ -166,20 +185,20 @@ def _build_map(records: Dict[str, Dict[str, Any]], display_mode: str) -> folium.
 
     m = folium.Map(location=[-27.5, 133.8], zoom_start=4, tiles="OpenStreetMap")
     for fac_code, info in records.items():
-        value = info.get(display_mode, 0)
+        value = info.get(display_mode)
         unit = "MW" if display_mode == "power_value" else "tCO2e"
         label = "Power" if display_mode == "power_value" else "Emissions"
-        tooltip_text = f"{info.get('facility_name', fac_code)} | {label}: {value} {unit}"
+        tooltip_text = f"{info.get('facility_name', fac_code)} | {label}: {_format_optional_metric(value, unit)}"
         popup_html = f"""
         <b>{info.get('facility_name', fac_code)}</b><br>
         Facility Code: {fac_code}<br>
         Region: {info.get('state', 'Unknown Region')}<br>
         Fuel Type: {info.get('fuel_list', 'Unknown')}<br>
         Last Payload Time: {info.get('timestamp', 'Unknown')}<br>
-        Power Output: {info.get('power_value', 0)} MW<br>
-        CO2 Emissions: {info.get('emission_value', 0)} tCO2e<br>
-        Current Price: {info.get('price_per_mwh', 0)} $/MWh<br>
-        Grid Demand: {info.get('demand_mw', 0)} MW
+        Power Output: {_format_optional_metric(info.get('power_value'), 'MW')}<br>
+        CO2 Emissions: {_format_optional_metric(info.get('emission_value'), 'tCO2e')}<br>
+        Current Price: {_format_optional_metric(info.get('price_per_mwh'), '$/MWh')}<br>
+        Grid Demand: {_format_optional_metric(info.get('demand_mw'), 'MW')}
         """
         fuel_text = str(info.get("fuel_list", ""))
         fuel_color = "green" if any(token in fuel_text for token in ("Solar", "Wind", "Hydro")) else "orange" if "Gas" in fuel_text else "red"
@@ -211,7 +230,8 @@ def _build_trend_frame(messages: List[Dict[str, Any]]) -> pd.DataFrame:
     numeric_cols = ["power_value", "emission_value", "price_per_mwh", "demand_mw"]
     for col in numeric_cols:
         if col not in df.columns:
-            df[col] = 0.0
+            df[col] = pd.NA
+        df[col] = pd.to_numeric(df[col], errors="coerce")
     return df[["received_at", "facility_code", "state", *numeric_cols]]
 
 
@@ -253,13 +273,21 @@ def _build_trend_svg(messages: List[Dict[str, Any]]) -> str:
         normalized = (value - min_y) / (max_y - min_y)
         return padding_y + plot_h - normalized * plot_h
 
-    def polyline(metric: str) -> str:
-        points = []
-        values = [float(v) for v in df[metric].tolist()]
+    def polyline_segments(metric: str) -> List[str]:
+        segments: List[str] = []
+        current: List[str] = []
+        values = df[metric].tolist()
         total = len(values)
         for idx, value in enumerate(values):
-            points.append(f"{scale_x(idx, total):.1f},{scale_y(value):.1f}")
-        return " ".join(points)
+            if pd.isna(value):
+                if current:
+                    segments.append(" ".join(current))
+                    current = []
+                continue
+            current.append(f"{scale_x(idx, total):.1f},{scale_y(float(value)):.1f}")
+        if current:
+            segments.append(" ".join(current))
+        return segments
 
     grid_lines = []
     for step in range(5):
@@ -296,9 +324,10 @@ def _build_trend_svg(messages: List[Dict[str, Any]]) -> str:
 
     path_elements = []
     for metric, color, _ in metrics:
-        path_elements.append(
-            f'<polyline fill="none" stroke="{color}" stroke-width="2.2" points="{polyline(metric)}" />'
-        )
+        for segment in polyline_segments(metric):
+            path_elements.append(
+                f'<polyline fill="none" stroke="{color}" stroke-width="2.2" points="{segment}" />'
+            )
 
     svg = f"""
     <svg viewBox="0 0 {width} {height}" width="100%" height="{height}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Recent MQTT trend chart">
@@ -435,7 +464,7 @@ def _ensure_session_defaults() -> None:
         st.session_state.selected_region = "All"
 
 
-def _render_header(runtime: DashboardRuntime, stats: Dict[str, float], snapshot: Dict[str, Dict[str, Any]]) -> None:
+def _render_header(runtime: DashboardRuntime, stats: Dict[str, Any], snapshot: Dict[str, Dict[str, Any]]) -> None:
     st.title("⚡ National Electricity Market (NEM) Facility Real-time Monitoring Dashboard")
     st.caption("Live MQTT stream with bounded in-memory cache. No live CSV storage is used.")
 
@@ -443,11 +472,11 @@ def _render_header(runtime: DashboardRuntime, stats: Dict[str, float], snapshot:
     with col1:
         st.metric("Total Power Output MW", f"{stats['total_power']}")
     with col2:
-        st.metric("Total CO2 Emissions tCO2e", f"{stats['total_emission']}")
+        st.metric("Total CO2 Emissions tCO2e", _format_optional_metric(stats["total_emission"], "tCO2e"))
     with col3:
-        st.metric("Median Price $/MWh", f"{stats['median_price']}")
+        st.metric("Median Price $/MWh", _format_optional_metric(stats["median_price"], "$/MWh"))
     with col4:
-        st.metric("Median Grid Demand MW", f"{stats['median_demand']}")
+        st.metric("Median Grid Demand MW", _format_optional_metric(stats["median_demand"], "MW"))
 
 
 def _render_sidebar(runtime: DashboardRuntime, snapshot: Dict[str, Dict[str, Any]], filtered_snapshot: Dict[str, Dict[str, Any]]) -> None:

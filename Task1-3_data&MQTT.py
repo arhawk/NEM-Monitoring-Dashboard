@@ -629,7 +629,13 @@ def safe_publish(client, topic, payload, qos=1, retain=False):
 def safe_publish_stream(client, topic, payload, qos=1, retain=False):
     data = json.dumps(payload, ensure_ascii=False)
     info = client.publish(topic, data, qos=qos, retain=retain)
-    return getattr(info, "rc", 0) == mqtt.MQTT_ERR_SUCCESS
+    if getattr(info, "rc", 0) != mqtt.MQTT_ERR_SUCCESS:
+        return False
+    try:
+        info.wait_for_publish(timeout=5)
+    except Exception:
+        return False
+    return info.is_published()
 
 # -------- Publishing --------
 def publish_new_since(client, all_rows, state):
@@ -667,9 +673,9 @@ def publish_new_since(client, all_rows, state):
         sleep_until_ns(target_ns)
         step += 1
 
-        state["seq"] = state.get("seq", 0) + 1
+        next_seq = state.get("seq", 0) + 1
         payload = {
-            "seq":            state["seq"],
+            "seq":            next_seq,
             "facility_code":  code,
             "facility_name":  r["facility_name"],
             "timestamp":      r["_ts_iso"],
@@ -687,9 +693,12 @@ def publish_new_since(client, all_rows, state):
             "slot_mono_ns":   target_ns,           # Planned tick (exact 0.1s arithmetic sequence)
         }
         topic = TOPIC_MEAS.format(facility_code=code)
-        safe_publish_stream(client, topic, payload, qos=1, retain=False)
+        if not safe_publish_stream(client, topic, payload, qos=1, retain=False):
+            print(f"[STREAM] Publish failed for {code}, will retry on next poll.")
+            break
 
-        # —— Key: Advance the "cursor" only after successful publication —— #
+        # Advance the cursor only after publication has been confirmed.
+        state["seq"] = next_seq
         state["last_ts"]  = r["_ts_dt"]
         state["last_fac"] = code
 
