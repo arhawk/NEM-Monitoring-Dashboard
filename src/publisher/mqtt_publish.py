@@ -56,18 +56,6 @@ def sleep_until_ns(target_ns: int, spin_ns: int = 5_000_000):
             return
 
 
-def _safe_float(x):
-    if x is None:
-        return None
-    s = str(x).strip()
-    if s in ("", "NA", "N/A", "null", "None"):
-        return None
-    try:
-        return float(s)
-    except Exception:
-        return None
-
-
 def normalize_ts(ts: str) -> str:
     return ts.replace(" ", "T")
 
@@ -113,13 +101,6 @@ def make_client():
     client.connect(BROKER, PORT, keepalive=60)
     client.loop_start()
     return client
-
-
-def safe_publish(client, topic, payload, qos=1, retain=False):
-    data = json.dumps(payload, ensure_ascii=False)
-    info = client.publish(topic, data, qos=qos, retain=retain)
-    info.wait_for_publish(timeout=5)
-    return getattr(info, "rc", 0) == mqtt.MQTT_ERR_SUCCESS and info.is_published()
 
 
 def safe_publish_stream(client, topic, payload, qos=1, retain=False):

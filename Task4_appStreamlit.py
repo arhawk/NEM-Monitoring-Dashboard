@@ -336,7 +336,6 @@ def _load_fallback_messages(limit: int = 200) -> List[Dict[str, Any]]:
 
 def _resolve_data_source(
     live_messages: List[Dict[str, Any]],
-    fallback_messages: List[Dict[str, Any]],
 ) -> str:
     if live_messages:
         return "live"
@@ -559,11 +558,8 @@ class DashboardRuntime:
         self.client: Optional[mqtt.Client] = None
         self.status = "Connecting"
         self.last_error: Optional[str] = None
-        self.started_at = time.monotonic()
         self.last_soft_reset_at = datetime.now(timezone.utc)
         self._last_connect_attempt_at = 0.0
-        self._last_status_change_at = time.monotonic()
-        self._connected_once = False
         self._build_client()
         if self.client is not None:
             self.client.loop_start()
@@ -585,8 +581,6 @@ class DashboardRuntime:
         self.client.on_message = self._on_message
 
     def _set_status(self, status: str, error: Optional[str] = None) -> None:
-        if self.status != status:
-            self._last_status_change_at = time.monotonic()
         self.status = status
         self.last_error = error
 
@@ -602,7 +596,6 @@ class DashboardRuntime:
 
     def _on_connect(self, client, userdata, flags, reason_code, properties=None) -> None:
         if _reason_is_success(reason_code):
-            self._connected_once = True
             self.cache.set_last_error(None)
             self._set_status("Connected", None)
             try:
@@ -644,16 +637,6 @@ class DashboardRuntime:
         if (time.monotonic() - self._last_connect_attempt_at) < RECONNECT_COOLDOWN_SECONDS:
             return
         self._schedule_connect(initial=False)
-
-    def soft_reset(self) -> None:
-        current_status = self.status
-        self.cache.clear()
-        self.last_soft_reset_at = datetime.now(timezone.utc)
-        self.last_error = None
-        self.cache.set_last_error(None)
-        if current_status != "Connected":
-            self._set_status("Connecting", None)
-            self._schedule_connect(initial=False)
 
     def maybe_soft_reset(self) -> bool:
         if RESET_INTERVAL_HOURS <= 0:
@@ -877,7 +860,7 @@ def _build_dashboard_context() -> Dict[str, Any]:
     live_messages = runtime.cache.get_recent_messages()
     use_fallback = _should_use_fallback(runtime)
     fallback_messages = _load_fallback_messages() if use_fallback else []
-    data_source = _resolve_data_source(live_messages, fallback_messages)
+    data_source = _resolve_data_source(live_messages)
     messages = live_messages if live_messages else fallback_messages
     snapshot = _build_latest_snapshot(messages)
     fuel_options = _build_fuel_options(snapshot)

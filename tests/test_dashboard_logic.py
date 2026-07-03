@@ -391,23 +391,20 @@ class DashboardLogicTests(TestCase):
         self.assertNotEqual(task4._build_operational_signature(base), task4._build_operational_signature(updated))
 
     def test_resolve_data_source_defaults_to_fallback_without_live_or_fallback(self) -> None:
-        self.assertEqual(task4._resolve_data_source([], []), "fallback")
+        self.assertEqual(task4._resolve_data_source([]), "fallback")
 
     def test_resolve_data_source_uses_fallback_before_live_messages_arrive(self) -> None:
-        fallback_messages = [{"facility_code": "A1"}]
-        self.assertEqual(task4._resolve_data_source([], fallback_messages), "fallback")
+        self.assertEqual(task4._resolve_data_source([]), "fallback")
 
     def test_resolve_data_source_uses_live_only_when_live_messages_exist(self) -> None:
         live_messages = [{"facility_code": "A1"}]
-        fallback_messages = [{"facility_code": "B1"}]
-        self.assertEqual(task4._resolve_data_source(live_messages, fallback_messages), "live")
+        self.assertEqual(task4._resolve_data_source(live_messages), "live")
 
     def test_resolve_data_source_transitions_to_live_after_first_message(self) -> None:
-        fallback_messages = [{"facility_code": "B1"}]
-        self.assertEqual(task4._resolve_data_source([], fallback_messages), "fallback")
+        self.assertEqual(task4._resolve_data_source([]), "fallback")
 
         live_messages = [{"facility_code": "A1"}]
-        self.assertEqual(task4._resolve_data_source(live_messages, fallback_messages), "live")
+        self.assertEqual(task4._resolve_data_source(live_messages), "live")
 
     def test_should_use_fallback_immediately_before_first_live_message(self) -> None:
         runtime = Mock()
