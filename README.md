@@ -143,7 +143,7 @@ To stop the local app processes, use `Ctrl+C` in each terminal.
 
 The Streamlit dashboard now uses MQTT as the live stream and stores the latest messages in a bounded in-memory cache.
 
-The cache keeps only the latest `MAX_STREAM_ROWS` messages, defaults to `1000`, and resets itself every `RESET_INTERVAL_HOURS` hours, default `6`.
+The cache keeps only the latest `MAX_STREAM_ROWS` messages, defaults to `5520`, and resets itself every `RESET_INTERVAL_HOURS` hours, default `6`.
 
 - `nem_facility_data.csv` is not used as live stream storage.
 - The dashboard can start even if `nem_facility_data.csv` is missing.

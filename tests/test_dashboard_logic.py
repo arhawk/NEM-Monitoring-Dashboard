@@ -181,6 +181,20 @@ class DashboardLogicTests(TestCase):
         self.assertIsNone(record["price_per_mwh"])
         self.assertIsNone(record["demand_mw"])
 
+    def test_normalize_message_rejects_non_finite_coordinates(self) -> None:
+        payload = {
+            "facility_code": "A1",
+            "facility_name": "Alpha",
+            "lat": float("nan"),
+            "lng": 151.0,
+            "timestamp": "2026-07-03T00:00:00+10:00",
+            "power_value": 12.0,
+            "state": "NSW",
+            "fuel_list": "Gas",
+        }
+
+        self.assertIsNone(task4._normalize_message(payload, "topic/test"))
+
     def test_classify_fuel_group_covers_four_way_mapping(self) -> None:
         self.assertEqual(task4._classify_fuel_group("['Solar', 'Wind', 'Solar']"), "Renewable")
         self.assertEqual(task4._classify_fuel_group("['Black Coal']"), "Fossil / Non-renewable")
@@ -367,6 +381,39 @@ class DashboardLogicTests(TestCase):
         self.assertEqual(payload["markers"][0]["fingerprint"][0], 10.0)
         self.assertGreater(payload["markers"][0]["radius"], 5.5)
 
+    def test_marker_payload_skips_records_with_invalid_coordinates(self) -> None:
+        records = {
+            "A1": {
+                "facility_code": "A1",
+                "facility_name": "Alpha",
+                "lat": float("nan"),
+                "lng": 151.0,
+                "state": "NSW",
+                "fuel_list": "Gas",
+                "timestamp": "2026-07-03T00:00:00+10:00",
+                "power_value": 10.0,
+                "emission_value": 2.0,
+                "price_per_mwh": 30.0,
+                "demand_mw": 40.0,
+            },
+            "A2": {
+                "facility_code": "A2",
+                "facility_name": "Beta",
+                "lat": -34.0,
+                "lng": 150.0,
+                "state": "NSW",
+                "fuel_list": "Gas",
+                "timestamp": "2026-07-03T00:05:00+10:00",
+                "power_value": 12.0,
+                "emission_value": 3.0,
+                "price_per_mwh": 31.0,
+                "demand_mw": 41.0,
+            },
+        }
+
+        payload = task4._build_marker_payload(records, "power_value", "All", "All")
+        self.assertEqual([marker["facility_code"] for marker in payload["markers"]], ["A2"])
+
     def test_get_latest_trend_message_prefers_latest_valid_record(self) -> None:
         messages = [
             {
@@ -470,6 +517,10 @@ class DashboardLogicTests(TestCase):
     def test_refresh_interval_prefers_environment_override(self) -> None:
         with patch.dict(os.environ, {"REFRESH_INTERVAL_SECONDS": "7"}, clear=True):
             self.assertEqual(stream_cache.get_refresh_interval_seconds(), 7)
+
+    def test_max_stream_rows_defaults_to_five_thousand_five_hundred_twenty(self) -> None:
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(stream_cache.get_max_stream_rows(), 5520)
 
     def test_optional_market_fields_keep_missing_semantics(self) -> None:
         payload = {
@@ -612,7 +663,7 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "success") as success_mock, \
             patch.object(task4.st, "warning") as warning_mock, \
             patch.object(task4.st, "error") as error_mock:
-            task4._render_sidebar(runtime, {}, {}, "fallback")
+            task4._render_sidebar(runtime, {}, {}, "fallback", ["All", "Gas"])
 
         info_mock.assert_any_call("Waiting for MQTT messages. Showing sample replay fallback.")
         info_mock.assert_any_call("Connecting")
@@ -635,7 +686,7 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "success") as success_mock, \
             patch.object(task4.st, "warning") as warning_mock, \
             patch.object(task4.st, "error") as error_mock:
-            task4._render_sidebar(runtime, {}, {}, "live")
+            task4._render_sidebar(runtime, {}, {}, "live", ["All", "Gas"])
 
         success_mock.assert_any_call("Live MQTT stream active")
         success_mock.assert_any_call("Connected")

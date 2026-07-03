@@ -6,6 +6,7 @@ import time
 import html
 import textwrap
 import ast
+import math
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -73,9 +74,12 @@ def _coerce_float(value: Any) -> Optional[float]:
     if value is None or value == "":
         return None
     try:
-        return float(value)
+        coerced = float(value)
     except (TypeError, ValueError):
         return None
+    if not math.isfinite(coerced):
+        return None
+    return coerced
 
 
 def _format_ts(ts: Optional[float]) -> str:
@@ -211,13 +215,15 @@ def _build_static_signature(records: Dict[str, Dict[str, Any]]) -> tuple:
         sorted(
             (
                 fac_code,
-                round(float(info.get("lat", 0.0)), 5),
-                round(float(info.get("lng", 0.0)), 5),
+                round(lat, 5),
+                round(lng, 5),
                 str(info.get("state", "")),
                 str(info.get("fuel_list", "")),
                 str(info.get("facility_name", fac_code)),
             )
             for fac_code, info in records.items()
+            if (lat := _coerce_float(info.get("lat"))) is not None
+            and (lng := _coerce_float(info.get("lng"))) is not None
         )
     )
 
@@ -234,6 +240,7 @@ def _build_operational_signature(records: Dict[str, Dict[str, Any]]) -> tuple:
                 _signature_metric_value(info.get("demand_mw")),
             )
             for fac_code, info in records.items()
+            if _coerce_float(info.get("lat")) is not None and _coerce_float(info.get("lng")) is not None
         )
     )
 
@@ -391,12 +398,16 @@ def _build_marker_payload(
 ) -> Dict[str, Any]:
     markers = []
     for fac_code, info in sorted(records.items()):
+        lat = _coerce_float(info.get("lat"))
+        lng = _coerce_float(info.get("lng"))
+        if lat is None or lng is None:
+            continue
         markers.append(
             {
                 "facility_code": fac_code,
                 "facility_name": info.get("facility_name", fac_code),
-                "lat": float(info["lat"]),
-                "lng": float(info["lng"]),
+                "lat": lat,
+                "lng": lng,
                 "fuel_group": info.get("fuel_group") or _classify_fuel_group(info.get("fuel_list")),
                 "color": _marker_color(info.get("fuel_group") or info.get("fuel_list")),
                 "radius": round(_marker_radius(info, display_mode), 2),
