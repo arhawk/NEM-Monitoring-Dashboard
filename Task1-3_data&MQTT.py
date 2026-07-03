@@ -324,10 +324,14 @@ print("Number of negative values in Power (MW) before processing (excluding NaN)
 print("Number of negative values in Emissions (tonnes) before processing (excluding NaN):", emission_neg_count)
 
 
+def normalize_non_negative(series):
+    """Replace negative values with 0 while preserving NaN for true missing data."""
+    return series.mask(series < 0, 0)
+
+
 # Replace negative values with 0 (only affect values < 0; NaN remains unchanged)
-# Use mask() to replace values where the condition (x < 0) is True with 0
-data['Power (MW)'] = data['Power (MW)'].mask(data['Power (MW)'] < 0, 0)
-data['Emissions (tonnes)'] = data['Emissions (tonnes)'].mask(data['Emissions (tonnes)'] < 0, 0)
+data['Power (MW)'] = normalize_non_negative(data['Power (MW)'])
+data['Emissions (tonnes)'] = normalize_non_negative(data['Emissions (tonnes)'])
 
 
 # Verify the result: negative values should be replaced with 0 (excluding NaN)
