@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 from pathlib import Path
+import sys
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
@@ -17,12 +19,14 @@ def load_module(module_name: str, relative_path: str):
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Unable to load module from {module_path}")
     module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
     spec.loader.exec_module(module)
     return module
 
 
 task13 = load_module("task13_module", "Task1-3_data&MQTT.py")
 task4 = load_module("task4_module", "Task4_appStreamlit.py")
+stream_cache = load_module("stream_cache_module", "src/stream_cache.py")
 
 
 class PublishLogicTests(TestCase):
@@ -344,6 +348,91 @@ class DashboardLogicTests(TestCase):
         self.assertTrue(pd.isna(frame.loc[0, "price_per_mwh"]))
         self.assertTrue(pd.isna(frame.loc[0, "demand_mw"]))
         self.assertEqual(frame.loc[1, "emission_value"], 4.0)
+
+    def test_refresh_interval_defaults_to_one_second(self) -> None:
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(stream_cache.get_refresh_interval_seconds(), 1)
+
+    def test_refresh_interval_prefers_environment_override(self) -> None:
+        with patch.dict(os.environ, {"REFRESH_INTERVAL_SECONDS": "7"}, clear=True):
+            self.assertEqual(stream_cache.get_refresh_interval_seconds(), 7)
+
+    def test_build_trend_svg_uses_fixed_top_y_axis_label(self) -> None:
+        messages = [
+            {
+                "received_at": 1,
+                "facility_code": "A1",
+                "state": "NSW",
+                "power_value": 1200.0,
+                "emission_value": 400.0,
+                "price_per_mwh": 80.0,
+                "demand_mw": 900.0,
+            },
+            {
+                "received_at": 2,
+                "facility_code": "A1",
+                "state": "NSW",
+                "power_value": 1800.0,
+                "emission_value": 500.0,
+                "price_per_mwh": 90.0,
+                "demand_mw": 1100.0,
+            },
+        ]
+
+        svg = task4._build_trend_svg(messages)
+        self.assertIn('>20000</text>', svg)
+
+    def test_build_trend_svg_keeps_fixed_upper_bound_when_values_below_cap(self) -> None:
+        messages = [
+            {
+                "received_at": 1,
+                "facility_code": "A1",
+                "state": "NSW",
+                "power_value": 100.0,
+                "emission_value": 200.0,
+                "price_per_mwh": 300.0,
+                "demand_mw": 400.0,
+            },
+            {
+                "received_at": 2,
+                "facility_code": "A1",
+                "state": "NSW",
+                "power_value": 150.0,
+                "emission_value": 250.0,
+                "price_per_mwh": 350.0,
+                "demand_mw": 450.0,
+            },
+        ]
+
+        svg = task4._build_trend_svg(messages)
+        self.assertIn('>20000</text>', svg)
+        self.assertNotIn('>450</text>', svg)
+
+    def test_build_trend_svg_handles_values_above_fixed_cap(self) -> None:
+        messages = [
+            {
+                "received_at": 1,
+                "facility_code": "A1",
+                "state": "NSW",
+                "power_value": 20200.0,
+                "emission_value": 20100.0,
+                "price_per_mwh": 20050.0,
+                "demand_mw": 20300.0,
+            },
+            {
+                "received_at": 2,
+                "facility_code": "A1",
+                "state": "NSW",
+                "power_value": 20400.0,
+                "emission_value": 20150.0,
+                "price_per_mwh": 20075.0,
+                "demand_mw": 20500.0,
+            },
+        ]
+
+        svg = task4._build_trend_svg(messages)
+        self.assertIn('>20000</text>', svg)
+        self.assertIn('points="55.0,28.0 1145.0,28.0"', svg)
 
     def test_optional_market_fields_keep_missing_semantics(self) -> None:
         payload = {

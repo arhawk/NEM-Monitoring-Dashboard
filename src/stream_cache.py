@@ -11,7 +11,7 @@ from typing import Any, Deque, Dict, List, Optional
 
 DEFAULT_MAX_STREAM_ROWS = 1000
 DEFAULT_RESET_INTERVAL_HOURS = 6
-DEFAULT_REFRESH_INTERVAL_SECONDS = 3
+DEFAULT_REFRESH_INTERVAL_SECONDS = 1
 
 
 def _get_env_int(name: str, default: int) -> int:
@@ -133,4 +133,3 @@ class StreamCache:
     def last_error(self) -> Optional[str]:
         with self._lock:
             return self._last_error
-

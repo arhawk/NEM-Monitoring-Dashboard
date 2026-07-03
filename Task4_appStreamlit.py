@@ -356,6 +356,7 @@ def _build_trend_svg(messages: List[Dict[str, Any]]) -> str:
     if df.empty:
         return ""
 
+    trend_max_y = 20000.0
     df = df.tail(120).copy()
     width = 1200
     height = 300
@@ -376,9 +377,9 @@ def _build_trend_svg(messages: List[Dict[str, Any]]) -> str:
         return ""
 
     min_y = min(all_values)
-    max_y = max(all_values)
-    if max_y == min_y:
-        max_y = min_y + 1.0
+    max_y = trend_max_y
+    if min_y >= max_y:
+        min_y = max_y - 1.0
 
     def scale_x(index: int, total: int) -> float:
         if total <= 1:
@@ -387,6 +388,7 @@ def _build_trend_svg(messages: List[Dict[str, Any]]) -> str:
 
     def scale_y(value: float) -> float:
         normalized = (value - min_y) / (max_y - min_y)
+        normalized = min(max(normalized, 0.0), 1.0)
         return padding_y + plot_h - normalized * plot_h
 
     def polyline_segments(metric: str) -> List[str]:
