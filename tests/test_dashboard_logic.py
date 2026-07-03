@@ -145,6 +145,18 @@ class PublishLogicTests(TestCase):
 
 
 class DashboardLogicTests(TestCase):
+    def _build_sidebar_runtime(self, status: str = "Connected") -> Mock:
+        runtime = Mock()
+        runtime.status = status
+        runtime.last_error = None
+        runtime.cache.messages_since_reset.return_value = 3
+        runtime.cache.get_latest_message.return_value = None
+        runtime.cache.size.return_value = 2
+        runtime.cache.max_size.return_value = 100
+        runtime.cache.last_updated_at.return_value = None
+        runtime.cache.last_reset_at.return_value = None
+        return runtime
+
     def test_normalize_message_preserves_missing_optional_metrics(self) -> None:
         payload = {
             "facility_code": "A1",
@@ -217,6 +229,44 @@ class DashboardLogicTests(TestCase):
 
         self.assertEqual(task4._build_static_signature(base), task4._build_static_signature(updated))
         self.assertNotEqual(task4._build_operational_signature(base), task4._build_operational_signature(updated))
+
+    def test_resolve_data_source_defaults_to_fallback_without_live_or_fallback(self) -> None:
+        self.assertEqual(task4._resolve_data_source([], []), "fallback")
+
+    def test_resolve_data_source_uses_fallback_before_live_messages_arrive(self) -> None:
+        fallback_messages = [{"facility_code": "A1"}]
+        self.assertEqual(task4._resolve_data_source([], fallback_messages), "fallback")
+
+    def test_resolve_data_source_uses_live_only_when_live_messages_exist(self) -> None:
+        live_messages = [{"facility_code": "A1"}]
+        fallback_messages = [{"facility_code": "B1"}]
+        self.assertEqual(task4._resolve_data_source(live_messages, fallback_messages), "live")
+
+    def test_resolve_data_source_transitions_to_live_after_first_message(self) -> None:
+        fallback_messages = [{"facility_code": "B1"}]
+        self.assertEqual(task4._resolve_data_source([], fallback_messages), "fallback")
+
+        live_messages = [{"facility_code": "A1"}]
+        self.assertEqual(task4._resolve_data_source(live_messages, fallback_messages), "live")
+
+    def test_should_use_fallback_immediately_before_first_live_message(self) -> None:
+        runtime = Mock()
+        runtime.cache.last_updated_at.return_value = None
+        self.assertTrue(task4._should_use_fallback(runtime))
+
+    def test_should_use_fallback_when_live_data_is_stale(self) -> None:
+        runtime = Mock()
+        runtime.cache.last_updated_at.return_value = 100.0
+
+        with patch.object(task4.time, "time", return_value=100.0 + task4.FALLBACK_STALE_SECONDS + 1):
+            self.assertTrue(task4._should_use_fallback(runtime))
+
+    def test_should_not_use_fallback_when_live_data_is_fresh(self) -> None:
+        runtime = Mock()
+        runtime.cache.last_updated_at.return_value = 100.0
+
+        with patch.object(task4.time, "time", return_value=100.0 + max(0, task4.FALLBACK_STALE_SECONDS - 1)):
+            self.assertFalse(task4._should_use_fallback(runtime))
 
     def test_static_signature_changes_with_location_and_identity_fields(self) -> None:
         base = {
@@ -364,9 +414,8 @@ class DashboardLogicTests(TestCase):
         self.assertEqual(records[0]["price_per_mwh"], 30.0)
         self.assertEqual(records[0]["demand_mw"], 40.0)
 
-    def test_should_use_fallback_only_when_connected_and_cache_missing_or_stale(self) -> None:
+    def test_should_use_fallback_when_cache_missing_or_stale(self) -> None:
         runtime = Mock()
-        runtime.status = "Connected"
         runtime.cache.last_updated_at.return_value = None
 
         self.assertTrue(task4._should_use_fallback(runtime))
@@ -376,10 +425,6 @@ class DashboardLogicTests(TestCase):
             self.assertFalse(task4._should_use_fallback(runtime))
         with patch.object(task4.time, "time", return_value=10_100.0):
             self.assertTrue(task4._should_use_fallback(runtime))
-
-        runtime.status = "Disconnected"
-        runtime.cache.last_updated_at.return_value = None
-        self.assertFalse(task4._should_use_fallback(runtime))
 
     def test_load_fallback_messages_skips_sort_when_timestamps_are_all_invalid(self) -> None:
         sample = pd.DataFrame(
@@ -402,3 +447,72 @@ class DashboardLogicTests(TestCase):
 
         self.assertEqual(len(records), 1)
         self.assertEqual(records[0]["timestamp"], "not-a-date")
+
+    def test_render_header_no_longer_emits_data_source_status(self) -> None:
+        stats = {
+            "total_power": 30.0,
+            "total_emission": 8.0,
+            "median_price": 30.0,
+            "median_demand": 5.0,
+        }
+        column_mocks = [Mock(), Mock(), Mock(), Mock()]
+        for column in column_mocks:
+            column.__enter__ = Mock(return_value=column)
+            column.__exit__ = Mock(return_value=None)
+
+        with patch.object(task4.st, "title"), \
+            patch.object(task4.st, "caption"), \
+            patch.object(task4.st, "info") as info_mock, \
+            patch.object(task4.st, "success") as success_mock, \
+            patch.object(task4.st, "columns", return_value=column_mocks), \
+            patch.object(task4.st, "metric"):
+            task4._render_header(Mock(), stats, {})
+
+        info_mock.assert_not_called()
+        success_mock.assert_not_called()
+
+    def test_render_sidebar_emits_fallback_status_and_keeps_transport_status(self) -> None:
+        runtime = self._build_sidebar_runtime(status="Connecting")
+
+        with patch.dict(task4.st.session_state, {"display_mode": "power_value"}, clear=True), \
+            patch.object(task4.st, "header"), \
+            patch.object(task4.st, "subheader"), \
+            patch.object(task4.st, "button", return_value=False), \
+            patch.object(task4.st, "selectbox"), \
+            patch.object(task4.st, "write"), \
+            patch.object(task4.st, "json"), \
+            patch.object(task4.st, "caption"), \
+            patch.object(task4.st, "info") as info_mock, \
+            patch.object(task4.st, "success") as success_mock, \
+            patch.object(task4.st, "warning") as warning_mock, \
+            patch.object(task4.st, "error") as error_mock:
+            task4._render_sidebar(runtime, {}, {}, "fallback")
+
+        info_mock.assert_any_call("Waiting for MQTT messages. Showing sample replay fallback.")
+        info_mock.assert_any_call("Connecting")
+        success_mock.assert_not_called()
+        warning_mock.assert_not_called()
+        error_mock.assert_not_called()
+
+    def test_render_sidebar_emits_live_status_and_keeps_transport_status(self) -> None:
+        runtime = self._build_sidebar_runtime(status="Connected")
+
+        with patch.dict(task4.st.session_state, {"display_mode": "power_value"}, clear=True), \
+            patch.object(task4.st, "header"), \
+            patch.object(task4.st, "subheader"), \
+            patch.object(task4.st, "button", return_value=False), \
+            patch.object(task4.st, "selectbox"), \
+            patch.object(task4.st, "write"), \
+            patch.object(task4.st, "json"), \
+            patch.object(task4.st, "caption"), \
+            patch.object(task4.st, "info") as info_mock, \
+            patch.object(task4.st, "success") as success_mock, \
+            patch.object(task4.st, "warning") as warning_mock, \
+            patch.object(task4.st, "error") as error_mock:
+            task4._render_sidebar(runtime, {}, {}, "live")
+
+        success_mock.assert_any_call("Live MQTT stream active")
+        success_mock.assert_any_call("Connected")
+        info_mock.assert_not_called()
+        warning_mock.assert_not_called()
+        error_mock.assert_not_called()

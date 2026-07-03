@@ -205,7 +205,7 @@ def _should_use_fallback(runtime: "DashboardRuntime") -> bool:
         return False
     last_updated_at = runtime.cache.last_updated_at()
     if last_updated_at is None:
-        return runtime.status == "Connected"
+        return True
     return (time.time() - last_updated_at) > FALLBACK_STALE_SECONDS
 
 
@@ -245,6 +245,15 @@ def _load_fallback_messages(limit: int = 200) -> List[Dict[str, Any]]:
         record["received_at_iso"] = str(record.get("timestamp") or "")
         fallback_messages.append(record)
     return fallback_messages
+
+
+def _resolve_data_source(
+    live_messages: List[Dict[str, Any]],
+    fallback_messages: List[Dict[str, Any]],
+) -> str:
+    if live_messages:
+        return "live"
+    return "fallback"
 
 
 def _calculate_snapshot_stats(snapshot: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
@@ -575,14 +584,9 @@ def _render_header(
     runtime: DashboardRuntime,
     stats: Dict[str, Any],
     snapshot: Dict[str, Dict[str, Any]],
-    data_source: str,
 ) -> None:
     st.title("⚡ National Electricity Market (NEM) Facility Real-time Monitoring Dashboard")
     st.caption("Live MQTT stream with bounded in-memory cache. No live CSV storage is used.")
-    if data_source == "fallback":
-        st.info("Waiting for MQTT messages. Showing sample replay fallback.")
-    elif data_source == "live":
-        st.success("Live MQTT stream active")
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -595,8 +599,17 @@ def _render_header(
         st.metric("Median Grid Demand MW", _format_optional_metric(stats["median_demand"], "MW"))
 
 
-def _render_sidebar(runtime: DashboardRuntime, snapshot: Dict[str, Dict[str, Any]], filtered_snapshot: Dict[str, Dict[str, Any]]) -> None:
+def _render_sidebar(
+    runtime: DashboardRuntime,
+    snapshot: Dict[str, Dict[str, Any]],
+    filtered_snapshot: Dict[str, Dict[str, Any]],
+    data_source: str,
+) -> None:
     st.header("🔧 Control Center")
+    if data_source == "fallback":
+        st.info("Waiting for MQTT messages. Showing sample replay fallback.")
+    elif data_source == "live":
+        st.success("Live MQTT stream active")
     st.subheader("Display Mode")
     display_mode = st.session_state.get("display_mode", "power_value")
     if st.button("📊 Show Power", type="primary" if display_mode == "power_value" else "secondary"):
@@ -700,19 +713,15 @@ def render_dashboard() -> None:
     live_messages = runtime.cache.get_recent_messages()
     use_fallback = _should_use_fallback(runtime)
     fallback_messages = _load_fallback_messages() if use_fallback else []
-    if use_fallback:
-        messages = fallback_messages
-        data_source = "fallback" if fallback_messages else "waiting"
-    else:
-        messages = live_messages
-        data_source = "live"
+    data_source = _resolve_data_source(live_messages, fallback_messages)
+    messages = live_messages if live_messages else fallback_messages
     snapshot = _build_latest_snapshot(messages)
     filtered_snapshot = _filter_snapshot(snapshot, st.session_state.selected_fuel, st.session_state.selected_region)
     stats = _calculate_snapshot_stats(snapshot)
 
-    _render_header(runtime, stats, snapshot, data_source)
+    _render_header(runtime, stats, snapshot)
     with st.sidebar:
-        _render_sidebar(runtime, snapshot, filtered_snapshot)
+        _render_sidebar(runtime, snapshot, filtered_snapshot, data_source)
     _render_chart(messages)
     _render_map(filtered_snapshot, st.session_state.display_mode)
     _render_table(filtered_snapshot)
