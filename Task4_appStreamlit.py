@@ -190,7 +190,6 @@ def _marker_popup_html(info: Dict[str, Any], fac_code: str) -> str:
 
 def _marker_fingerprint(info: Dict[str, Any], display_mode: str) -> tuple:
     return (
-        display_mode,
         _signature_metric_value(info.get("power_value")),
         _signature_metric_value(info.get("emission_value")),
         _signature_metric_value(info.get("price_per_mwh")),
@@ -386,6 +385,7 @@ def _build_marker_payload(
         markers.append(
             {
                 "facility_code": fac_code,
+                "facility_name": info.get("facility_name", fac_code),
                 "lat": float(info["lat"]),
                 "lng": float(info["lng"]),
                 "fuel_group": info.get("fuel_group") or _classify_fuel_group(info.get("fuel_list")),
@@ -394,6 +394,8 @@ def _build_marker_payload(
                 "tooltip": _marker_tooltip_text(info, fac_code, display_mode),
                 "popup_html": _marker_popup_html(info, fac_code),
                 "fingerprint": _marker_fingerprint(info, display_mode),
+                "power_value": _signature_metric_value(info.get("power_value")),
+                "emission_value": _signature_metric_value(info.get("emission_value")),
             }
         )
 
@@ -656,12 +658,6 @@ def _render_sidebar(
         st.info("Waiting for MQTT messages. Showing sample replay fallback.")
     elif data_source == "live":
         st.success("Live MQTT stream active")
-    st.subheader("Display Mode")
-    display_mode = st.session_state.get("display_mode", "power_value")
-    if st.button("📊 Show Power", type="primary" if display_mode == "power_value" else "secondary"):
-        st.session_state.display_mode = "power_value"
-    if st.button("🌍 Show Emissions", type="primary" if display_mode == "emission_value" else "secondary"):
-        st.session_state.display_mode = "emission_value"
 
     st.subheader("Fuel Type Filter")
     st.selectbox("Select Fuel Group", DISPLAY_FUEL_OPTIONS, key="selected_fuel")
@@ -741,7 +737,11 @@ def _render_map(filtered_snapshot: Dict[str, Dict[str, Any]], display_mode: str)
         st.session_state.get("selected_fuel", "All"),
         st.session_state.get("selected_region", "All"),
     )
-    render_nem_facility_map(marker_payload, height=730, key="nem-facility-map")
+    component_value = render_nem_facility_map(marker_payload, height=730, key="nem-facility-map")
+    if isinstance(component_value, dict):
+        next_display_mode = component_value.get("display_mode")
+        if next_display_mode in {"power_value", "emission_value"}:
+            st.session_state.display_mode = next_display_mode
 
 
 def render_dashboard() -> None:

@@ -19,6 +19,10 @@
       font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
+    body {
+      position: relative;
+    }
+
     #map {
       width: 100%;
       height: 730px;
@@ -81,11 +85,62 @@
       border: 1px solid rgba(15, 23, 42, 0.12);
       flex: 0 0 auto;
     }
+
+    .nem-map-controls {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      z-index: 460;
+      display: flex;
+      gap: 6px;
+      padding: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+      backdrop-filter: blur(8px);
+      transform: translateX(-50%);
+    }
+
+    .nem-map-control {
+      appearance: none;
+      border-radius: 999px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #0f172a;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      padding: 7px 10px;
+      transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+      white-space: nowrap;
+    }
+
+    .nem-map-control:hover {
+      transform: translateY(-1px);
+      border-color: #94a3b8;
+      background: #f8fafc;
+    }
+
+    .nem-map-control.is-active {
+      background: #16a34a;
+      border-color: #16a34a;
+      color: #ffffff;
+      box-shadow: 0 8px 18px rgba(22, 163, 74, 0.28);
+    }
+
+    .nem-map-control.is-active:hover {
+      background: #15803d;
+      border-color: #15803d;
+      color: #ffffff;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
   <div id="map-loading" class="nem-map-loading">Loading map...</div>
+  <div id="map-controls" class="nem-map-controls" aria-label="Display mode controls"></div>
   <div id="map-legend" class="nem-map-legend" aria-label="Map legend"></div>
 
   <script
@@ -148,6 +203,7 @@
     })();
 
     const loadingEl = document.getElementById("map-loading");
+    const controlsEl = document.getElementById("map-controls");
     const legendEl = document.getElementById("map-legend");
     const mapHeight = 730;
     document.getElementById("map").style.height = `${mapHeight}px`;
@@ -170,6 +226,101 @@
         zoom: map.getZoom(),
       },
     };
+
+    const VALID_DISPLAY_MODES = {
+      power_value: true,
+      emission_value: true,
+    };
+
+    function formatOptionalMetric(value, unit) {
+      if (value === null || value === undefined || value === "") {
+        return "N/A";
+      }
+
+      const numericValue = Number(value);
+      if (!Number.isFinite(numericValue)) {
+        return "N/A";
+      }
+
+      return `${Math.round(numericValue * 100) / 100} ${unit}`.trim();
+    }
+
+    function getDisplayModeLabel(mode) {
+      return mode === "emission_value" ? "Emissions" : "Power";
+    }
+
+    function getDisplayModeUnit(mode) {
+      return mode === "emission_value" ? "tCO2e" : "MW";
+    }
+
+    function getActiveDisplayMode() {
+      return VALID_DISPLAY_MODES[state.displayMode] ? state.displayMode : "power_value";
+    }
+
+    function setActiveButtonState() {
+      const activeMode = getActiveDisplayMode();
+      controlsEl.querySelectorAll("[data-mode]").forEach((button) => {
+        const isActive = button.getAttribute("data-mode") === activeMode;
+        button.classList.toggle("is-active", isActive);
+        button.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+    }
+
+    function renderModeControls() {
+      if (!controlsEl.childElementCount) {
+        controlsEl.innerHTML = `
+          <button type="button" class="nem-map-control" data-mode="power_value">Show Power</button>
+          <button type="button" class="nem-map-control" data-mode="emission_value">Show Emissions</button>
+        `;
+        controlsEl.querySelectorAll("[data-mode]").forEach((button) => {
+          button.addEventListener("click", () => {
+            setDisplayMode(button.getAttribute("data-mode"), true);
+          });
+        });
+      }
+      setActiveButtonState();
+    }
+
+    function applyMarkerPresentation(marker) {
+      const markerData = marker && marker._markerData;
+      if (!markerData) {
+        return;
+      }
+
+      const mode = getActiveDisplayMode();
+      const value = markerData[mode];
+      const label = getDisplayModeLabel(mode);
+      const unit = getDisplayModeUnit(mode);
+      const numericValue = Number(value);
+      const radius = Number.isFinite(numericValue)
+        ? Math.max(5.5, Math.min(16.0, 6.0 + Math.sqrt(Math.abs(numericValue))))
+        : 6.0;
+
+      marker.setRadius(radius);
+      setTooltip(marker, `${markerData.facility_name || markerData.facility_code} | ${label}: ${formatOptionalMetric(value, unit)}`);
+    }
+
+    function refreshMarkerPresentation() {
+      Object.values(state.markersByCode).forEach((marker) => {
+        applyMarkerPresentation(marker);
+      });
+    }
+
+    function setDisplayMode(nextMode, notifyPython) {
+      if (!VALID_DISPLAY_MODES[nextMode]) {
+        return;
+      }
+
+      state.displayMode = nextMode;
+      setActiveButtonState();
+      refreshMarkerPresentation();
+
+      if (notifyPython) {
+        StreamlitBridge.setComponentValue({
+          display_mode: state.displayMode,
+        });
+      }
+    }
 
     function syncViewState() {
       state.lastView = {
@@ -217,11 +368,12 @@
         fillOpacity: 0.9,
         weight: 2,
       });
-      setTooltip(marker, markerData.tooltip);
       setPopup(marker, markerData.popup_html, markerData.facility_code);
       marker.addTo(markerLayer);
+      marker._markerData = markerData;
       marker._nemFingerprint = JSON.stringify(markerData.fingerprint);
       marker._facilityCode = markerData.facility_code;
+      applyMarkerPresentation(marker);
       return marker;
     }
 
@@ -237,10 +389,11 @@
         fillOpacity: 0.9,
         weight: 2,
       });
-      setTooltip(marker, markerData.tooltip);
       setPopup(marker, markerData.popup_html, markerData.facility_code);
+      marker._markerData = markerData;
       marker._nemFingerprint = JSON.stringify(markerData.fingerprint);
       marker._facilityCode = markerData.facility_code;
+      applyMarkerPresentation(marker);
       if (wasOpen || state.openFacilityCode === markerData.facility_code) {
         marker.openPopup();
       }
@@ -280,12 +433,15 @@
       if (!payload) {
         loadingEl.style.display = "none";
         legendEl.style.display = "none";
+        controlsEl.style.display = "flex";
+        if (!controlsEl.childElementCount) {
+          renderModeControls();
+        }
         return;
       }
 
       const nextStatic = JSON.stringify(payload.static_signature || null);
       const nextOperational = JSON.stringify(payload.operational_signature || null);
-      const nextDisplayMode = payload.display_mode || null;
       const nextMarkers = Array.isArray(payload.markers) ? payload.markers : [];
       const nextByCode = Object.create(null);
 
@@ -295,7 +451,10 @@
       }
 
       state.operationalSignature = nextOperational;
-      state.displayMode = nextDisplayMode;
+      if (!VALID_DISPLAY_MODES[state.displayMode]) {
+        state.displayMode = VALID_DISPLAY_MODES[payload.display_mode] ? payload.display_mode : "power_value";
+      }
+      renderModeControls();
       renderLegend(payload);
 
       for (const markerData of nextMarkers) {
@@ -321,7 +480,10 @@
         }
       }
 
+      refreshMarkerPresentation();
+
       loadingEl.style.display = "none";
+      controlsEl.style.display = "flex";
       StreamlitBridge.setFrameHeight(mapHeight);
       syncViewState();
     }

@@ -342,8 +342,11 @@ class DashboardLogicTests(TestCase):
         self.assertEqual(payload["static_signature"], task4._build_static_signature(records))
         self.assertEqual(payload["operational_signature"], task4._build_operational_signature(records))
         self.assertEqual(payload["markers"][0]["facility_code"], "A1")
+        self.assertEqual(payload["markers"][0]["facility_name"], "Alpha")
         self.assertEqual(payload["markers"][0]["fuel_group"], "Fossil / Non-renewable")
-        self.assertEqual(payload["markers"][0]["fingerprint"][0], "power_value")
+        self.assertEqual(payload["markers"][0]["power_value"], 10.0)
+        self.assertEqual(payload["markers"][0]["emission_value"], 2.0)
+        self.assertEqual(payload["markers"][0]["fingerprint"][0], 10.0)
         self.assertGreater(payload["markers"][0]["radius"], 5.5)
 
     def test_get_latest_trend_message_prefers_latest_valid_record(self) -> None:
@@ -621,3 +624,44 @@ class DashboardLogicTests(TestCase):
         info_mock.assert_not_called()
         warning_mock.assert_not_called()
         error_mock.assert_not_called()
+
+    def test_render_map_syncs_display_mode_from_component_value(self) -> None:
+        filtered_snapshot = {
+            "A1": {
+                "facility_code": "A1",
+                "facility_name": "Alpha",
+                "lat": -33.0,
+                "lng": 151.0,
+                "state": "NSW",
+                "fuel_list": "Gas",
+                "power_value": 10.0,
+                "emission_value": 2.0,
+                "price_per_mwh": 30.0,
+                "demand_mw": 40.0,
+                "timestamp": "2026-07-03T00:00:00+10:00",
+                "fuel_group": "Fossil / Non-renewable",
+            }
+        }
+
+        class FakeSessionState(dict):
+            def __getattr__(self, key: str):
+                return self[key]
+
+            def __setattr__(self, key: str, value):
+                self[key] = value
+
+        fake_state = FakeSessionState(
+            display_mode="power_value",
+            selected_fuel="All",
+            selected_region="All",
+        )
+
+        with patch.object(task4.st, "session_state", fake_state), \
+            patch.object(task4.st, "subheader"), \
+            patch.object(task4.st, "caption"), \
+            patch.object(task4.st, "info"), \
+            patch.object(task4, "render_nem_facility_map", return_value={"display_mode": "emission_value"}) as render_mock:
+            task4._render_map(filtered_snapshot, "power_value")
+
+        self.assertEqual(fake_state["display_mode"], "emission_value")
+        render_mock.assert_called_once()
