@@ -135,6 +135,49 @@
       border-color: #15803d;
       color: #ffffff;
     }
+
+    .nem-map-home-control {
+      margin-top: 6px;
+      overflow: hidden;
+    }
+
+    .nem-map-home-control__button {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      background: #ffffff;
+      color: #0f172a;
+      text-decoration: none;
+      line-height: 1;
+      text-indent: 0;
+      overflow: hidden;
+    }
+
+    .nem-map-home-control__button:hover {
+      background: #f8fafc;
+    }
+
+    .nem-map-home-control__button:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: -2px;
+    }
+
+    .nem-map-home-control__icon {
+      position: absolute;
+      inset: 0;
+      margin: auto;
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -237,13 +280,11 @@
       displayMode: null,
       renderedSignature: null,
       isInteracting: false,
+      suppressViewSync: false,
       pendingPayload: null,
       markersByCode: Object.create(null),
       openFacilityCode: null,
-      lastView: {
-        center: map.getCenter(),
-        zoom: map.getZoom(),
-      },
+      defaultView: null,
     };
     let viewSyncTimer = null;
 
@@ -362,17 +403,40 @@
       };
     }
 
+    function cancelViewStateSync() {
+      if (viewSyncTimer !== null) {
+        window.clearTimeout(viewSyncTimer);
+        viewSyncTimer = null;
+      }
+    }
+
+    function setViewState(viewState) {
+      if (!viewState) {
+        return;
+      }
+
+      cancelViewStateSync();
+      state.suppressViewSync = true;
+      map.setView([viewState.center.lat, viewState.center.lng], viewState.zoom, {
+        animate: false,
+      });
+    }
+
+    function resetHomeView() {
+      setViewState(state.defaultView);
+    }
+
     function syncViewState() {
-      state.lastView = serializeViewState();
+      const currentView = serializeViewState();
       StreamlitBridge.setComponentValue({
-        center: state.lastView.center,
-        zoom: state.lastView.zoom,
+        center: currentView.center,
+        zoom: currentView.zoom,
       });
     }
 
     function scheduleViewStateSync() {
       if (viewSyncTimer !== null) {
-        window.clearTimeout(viewSyncTimer);
+        cancelViewStateSync();
       }
       viewSyncTimer = window.setTimeout(() => {
         viewSyncTimer = null;
@@ -516,6 +580,10 @@
     function endInteraction() {
       state.isInteracting = false;
       flushPendingPayload();
+      if (state.suppressViewSync) {
+        state.suppressViewSync = false;
+        return;
+      }
       scheduleViewStateSync();
     }
 
@@ -601,6 +669,40 @@
       controlsEl.style.display = "flex";
       StreamlitBridge.setFrameHeight(mapHeight);
     }
+
+    const HomeViewControl = L.Control.extend({
+      options: {
+        position: "topleft",
+      },
+      onAdd: () => {
+        const container = L.DomUtil.create("div", "leaflet-bar leaflet-control nem-map-home-control");
+        const button = L.DomUtil.create("a", "nem-map-home-control__button", container);
+        button.href = "#";
+        button.title = "Reset to default view";
+        button.setAttribute("role", "button");
+        button.setAttribute("aria-label", "Reset to default view");
+        button.innerHTML = `
+          <svg class="nem-map-home-control__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="7"></circle>
+            <path d="M12 5v3"></path>
+            <path d="M12 16v3"></path>
+            <path d="M5 12h3"></path>
+            <path d="M16 12h3"></path>
+            <path d="M12 12m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path>
+          </svg>
+        `;
+
+        L.DomEvent.disableClickPropagation(container);
+        L.DomEvent.disableScrollPropagation(container);
+        L.DomEvent.on(button, "click", L.DomEvent.preventDefault);
+        L.DomEvent.on(button, "click", resetHomeView);
+
+        return container;
+      },
+    });
+
+    map.addControl(new HomeViewControl());
+    state.defaultView = serializeViewState();
 
     map.on("movestart zoomstart", startInteraction);
     map.on("moveend zoomend", endInteraction);
