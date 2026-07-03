@@ -156,6 +156,7 @@
       const SET_COMPONENT_VALUE = "streamlit:setComponentValue";
       const events = new EventTarget();
       let lastFrameHeight = 0;
+      let lastComponentValue = null;
 
       function send(type, payload) {
         window.parent.postMessage(
@@ -178,6 +179,11 @@
       }
 
       function setComponentValue(value) {
+        const serialized = JSON.stringify(value || {});
+        if (serialized === lastComponentValue) {
+          return;
+        }
+        lastComponentValue = serialized;
         send(SET_COMPONENT_VALUE, { value, dataType: "json" });
       }
 
@@ -208,7 +214,15 @@
     const mapHeight = 730;
     document.getElementById("map").style.height = `${mapHeight}px`;
 
-    const map = L.map("map", { zoomControl: true }).setView([-27.5, 133.8], 4);
+    const map = L.map("map", {
+      zoomControl: true,
+      preferCanvas: true,
+      zoomSnap: 0.25,
+      zoomDelta: 0.25,
+      wheelDebounceTime: 16,
+      wheelPxPerZoomLevel: 30,
+    }).setView([-27.5, 133.8], 4);
+    const canvasRenderer = L.canvas({ padding: 0.5 });
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 18,
       attribution: "&copy; OpenStreetMap contributors",
@@ -219,6 +233,9 @@
       staticSignature: null,
       operationalSignature: null,
       displayMode: null,
+      renderedSignature: null,
+      isInteracting: false,
+      pendingPayload: null,
       markersByCode: Object.create(null),
       openFacilityCode: null,
       lastView: {
@@ -226,6 +243,7 @@
         zoom: map.getZoom(),
       },
     };
+    let viewSyncTimer = null;
 
     const VALID_DISPLAY_MODES = {
       power_value: true,
@@ -255,6 +273,15 @@
 
     function getActiveDisplayMode() {
       return VALID_DISPLAY_MODES[state.displayMode] ? state.displayMode : "power_value";
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
     }
 
     function setActiveButtonState() {
@@ -322,16 +349,33 @@
       }
     }
 
-    function syncViewState() {
-      state.lastView = {
-        center: map.getCenter(),
+    function serializeViewState() {
+      const center = map.getCenter();
+      return {
+        center: {
+          lat: center.lat,
+          lng: center.lng,
+        },
         zoom: map.getZoom(),
       };
+    }
+
+    function syncViewState() {
+      state.lastView = serializeViewState();
       StreamlitBridge.setComponentValue({
         center: state.lastView.center,
         zoom: state.lastView.zoom,
-        open_facility_code: state.openFacilityCode,
       });
+    }
+
+    function scheduleViewStateSync() {
+      if (viewSyncTimer !== null) {
+        window.clearTimeout(viewSyncTimer);
+      }
+      viewSyncTimer = window.setTimeout(() => {
+        viewSyncTimer = null;
+        syncViewState();
+      }, 200);
     }
 
     function setTooltip(marker, tooltipText) {
@@ -339,6 +383,32 @@
         marker.unbindTooltip();
       }
       marker.bindTooltip(tooltipText, { direction: "top", sticky: true });
+    }
+
+    function buildPopupHtml(markerData) {
+      const facilityName = escapeHtml(markerData.facility_name || markerData.facility_code || "Unknown");
+      const facilityCode = escapeHtml(markerData.facility_code || "");
+      const region = escapeHtml(markerData.state || "Unknown Region");
+      const fuelGroup = escapeHtml(markerData.fuel_group || "Mixed / Other");
+      const fuelType = escapeHtml(markerData.fuel_list || "Unknown");
+      const timestamp = escapeHtml(markerData.timestamp || "Unknown");
+      const power = escapeHtml(formatOptionalMetric(markerData.power_value, "MW"));
+      const emission = escapeHtml(formatOptionalMetric(markerData.emission_value, "tCO2e"));
+      const price = escapeHtml(formatOptionalMetric(markerData.price_per_mwh, "$/MWh"));
+      const demand = escapeHtml(formatOptionalMetric(markerData.demand_mw, "MW"));
+
+      return [
+        `<b>${facilityName}</b><br>`,
+        `Facility Code: ${facilityCode}<br>`,
+        `Region: ${region}<br>`,
+        `Fuel Group: ${fuelGroup}<br>`,
+        `Fuel Type: ${fuelType}<br>`,
+        `Last Payload Time: ${timestamp}<br>`,
+        `Power Output: ${power}<br>`,
+        `CO2 Emissions: ${emission}<br>`,
+        `Current Price: ${price}<br>`,
+        `Grid Demand: ${demand}`,
+      ].join("");
     }
 
     function setPopup(marker, popupHtml, facilityCode) {
@@ -350,12 +420,10 @@
       marker.off("popupclose");
       marker.on("popupopen", () => {
         state.openFacilityCode = facilityCode;
-        syncViewState();
       });
       marker.on("popupclose", () => {
         if (state.openFacilityCode === facilityCode) {
           state.openFacilityCode = null;
-          syncViewState();
         }
       });
     }
@@ -367,8 +435,9 @@
         fillColor: markerData.color,
         fillOpacity: 0.9,
         weight: 2,
+        renderer: canvasRenderer,
       });
-      setPopup(marker, markerData.popup_html, markerData.facility_code);
+      setPopup(marker, buildPopupHtml(markerData), markerData.facility_code);
       marker.addTo(markerLayer);
       marker._markerData = markerData;
       marker._nemFingerprint = JSON.stringify(markerData.fingerprint);
@@ -389,7 +458,7 @@
         fillOpacity: 0.9,
         weight: 2,
       });
-      setPopup(marker, markerData.popup_html, markerData.facility_code);
+      setPopup(marker, buildPopupHtml(markerData), markerData.facility_code);
       marker._markerData = markerData;
       marker._nemFingerprint = JSON.stringify(markerData.fingerprint);
       marker._facilityCode = markerData.facility_code;
@@ -429,6 +498,25 @@
       `;
     }
 
+    function startInteraction() {
+      state.isInteracting = true;
+    }
+
+    function flushPendingPayload() {
+      if (!state.pendingPayload) {
+        return;
+      }
+      const pending = state.pendingPayload;
+      state.pendingPayload = null;
+      renderMarkers(pending);
+    }
+
+    function endInteraction() {
+      state.isInteracting = false;
+      flushPendingPayload();
+      scheduleViewStateSync();
+    }
+
     function renderMarkers(payload) {
       if (!payload) {
         loadingEl.style.display = "none";
@@ -440,10 +528,22 @@
         return;
       }
 
+      if (state.isInteracting) {
+        state.pendingPayload = payload;
+        return;
+      }
+
       const nextStatic = JSON.stringify(payload.static_signature || null);
       const nextOperational = JSON.stringify(payload.operational_signature || null);
       const nextMarkers = Array.isArray(payload.markers) ? payload.markers : [];
-      const nextByCode = Object.create(null);
+      const nextDisplayMode = VALID_DISPLAY_MODES[payload.display_mode] ? payload.display_mode : "power_value";
+      const nextSignature = JSON.stringify({
+        static: nextStatic,
+        operational: nextOperational,
+        displayMode: nextDisplayMode,
+        selectedFuel: payload.selected_fuel || null,
+        selectedRegion: payload.selected_region || null,
+      });
 
       if (state.staticSignature !== nextStatic) {
         clearMarkers();
@@ -451,11 +551,22 @@
       }
 
       state.operationalSignature = nextOperational;
+      const previousDisplayMode = state.displayMode;
       if (!VALID_DISPLAY_MODES[state.displayMode]) {
-        state.displayMode = VALID_DISPLAY_MODES[payload.display_mode] ? payload.display_mode : "power_value";
+        state.displayMode = nextDisplayMode;
       }
+      const displayModeChanged = previousDisplayMode !== state.displayMode;
       renderModeControls();
       renderLegend(payload);
+
+      if (state.renderedSignature === nextSignature) {
+        loadingEl.style.display = "none";
+        controlsEl.style.display = "flex";
+        return;
+      }
+      state.renderedSignature = nextSignature;
+
+      const nextByCode = Object.create(null);
 
       for (const markerData of nextMarkers) {
         nextByCode[markerData.facility_code] = markerData;
@@ -480,15 +591,17 @@
         }
       }
 
-      refreshMarkerPresentation();
+      if (displayModeChanged) {
+        refreshMarkerPresentation();
+      }
 
       loadingEl.style.display = "none";
       controlsEl.style.display = "flex";
       StreamlitBridge.setFrameHeight(mapHeight);
-      syncViewState();
     }
 
-    map.on("moveend zoomend", syncViewState);
+    map.on("movestart zoomstart", startInteraction);
+    map.on("moveend zoomend", endInteraction);
     window.addEventListener("resize", () => {
       map.invalidateSize(false);
       StreamlitBridge.setFrameHeight(mapHeight);

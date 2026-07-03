@@ -413,11 +413,14 @@ def _build_marker_payload(
                 "fuel_group": info.get("fuel_group") or _classify_fuel_group(info.get("fuel_list")),
                 "color": _marker_color(info.get("fuel_group") or info.get("fuel_list")),
                 "radius": round(_marker_radius(info, display_mode), 2),
-                "tooltip": _marker_tooltip_text(info, fac_code, display_mode),
-                "popup_html": _marker_popup_html(info, fac_code),
                 "fingerprint": _marker_fingerprint(info, display_mode),
+                "state": info.get("state"),
+                "fuel_list": info.get("fuel_list"),
+                "timestamp": info.get("timestamp"),
                 "power_value": _signature_metric_value(info.get("power_value")),
                 "emission_value": _signature_metric_value(info.get("emission_value")),
+                "price_per_mwh": _signature_metric_value(info.get("price_per_mwh")),
+                "demand_mw": _signature_metric_value(info.get("demand_mw")),
             }
         )
 

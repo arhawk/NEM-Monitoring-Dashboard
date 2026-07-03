@@ -913,3 +913,44 @@ class DashboardLogicTests(TestCase):
 
         self.assertEqual(fake_state["display_mode"], "emission_value")
         render_mock.assert_called_once()
+
+    def test_render_map_ignores_view_state_only_component_value(self) -> None:
+        filtered_snapshot = {
+            "A1": {
+                "facility_code": "A1",
+                "facility_name": "Alpha",
+                "lat": -33.0,
+                "lng": 151.0,
+                "state": "NSW",
+                "fuel_list": "Gas",
+                "power_value": 10.0,
+                "emission_value": 2.0,
+                "price_per_mwh": 30.0,
+                "demand_mw": 40.0,
+                "timestamp": "2026-07-03T00:00:00+10:00",
+                "fuel_group": "Fossil / Non-renewable",
+            }
+        }
+
+        class FakeSessionState(dict):
+            def __getattr__(self, key: str):
+                return self[key]
+
+            def __setattr__(self, key: str, value):
+                self[key] = value
+
+        fake_state = FakeSessionState(
+            display_mode="power_value",
+            selected_fuel="All",
+            selected_region="All",
+        )
+
+        with patch.object(task4.st, "session_state", fake_state), \
+            patch.object(task4.st, "subheader"), \
+            patch.object(task4.st, "caption"), \
+            patch.object(task4.st, "info"), \
+            patch.object(task4, "render_nem_facility_map", return_value={"center": {"lat": -33.0, "lng": 151.0}, "zoom": 6}) as render_mock:
+            task4._render_map(filtered_snapshot, "power_value")
+
+        self.assertEqual(fake_state["display_mode"], "power_value")
+        render_mock.assert_called_once()
