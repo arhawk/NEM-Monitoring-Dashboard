@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib
 import importlib.util
 import os
 from datetime import datetime, timezone
@@ -32,6 +33,7 @@ from src.publisher import mqtt_publish as task13_mqtt
 
 task4 = load_module("task4_module", "Task4_appStreamlit.py")
 stream_cache = load_module("stream_cache_module", "src/stream_cache.py")
+dashboard_render = importlib.import_module("src.dashboard.render")
 
 
 class PublishLogicTests(TestCase):
@@ -172,11 +174,31 @@ class DashboardLogicTests(TestCase):
         runtime.last_error = None
         runtime.last_soft_reset_at = datetime(2026, 7, 3, 23, 56, 37, tzinfo=timezone.utc)
         runtime.cache.messages_since_reset.return_value = 3
+        runtime.cache.get_recent_messages.return_value = []
         runtime.cache.size.return_value = 2
         runtime.cache.max_size.return_value = 100
         runtime.cache.last_updated_at.return_value = None
         runtime.cache.last_reset_at.return_value = None
         return runtime
+
+    def test_build_dashboard_context_does_not_touch_connection_state(self) -> None:
+        runtime = self._build_sidebar_runtime(status="Disconnected")
+
+        class FakeSessionState(dict):
+            def __getattr__(self, key: str):
+                return self[key]
+
+            def __setattr__(self, key: str, value):
+                self[key] = value
+
+        with patch.object(dashboard_render, "get_active_runtime", return_value=runtime), \
+            patch.object(dashboard_render, "_load_fallback_messages", return_value=[]), \
+            patch.object(dashboard_render.st, "session_state", FakeSessionState()):
+            context = dashboard_render._build_dashboard_context()
+
+        runtime.maybe_soft_reset.assert_not_called()
+        runtime.ensure_connection.assert_not_called()
+        self.assertEqual(context["data_source"], "fallback")
 
     def test_soft_reset_clears_current_cache_and_updates_timestamp(self) -> None:
         runtime = Mock()
@@ -910,11 +932,15 @@ class DashboardLogicTests(TestCase):
         error_mock.assert_not_called()
 
     def test_main_calls_render_dashboard_without_manual_rerun_loop(self) -> None:
-        with patch.object(task4, "render_dashboard") as render_mock, \
+        with patch.object(task4, "get_runtime") as runtime_mock, \
+            patch.object(task4, "set_active_runtime") as set_runtime_mock, \
+            patch.object(task4, "render_dashboard") as render_mock, \
             patch.object(task4.time, "sleep") as sleep_mock, \
             patch.object(task4.st, "rerun") as rerun_mock:
+            runtime_mock.return_value = Mock()
             task4.main()
 
+        set_runtime_mock.assert_called_once_with(runtime_mock.return_value)
         render_mock.assert_called_once()
         sleep_mock.assert_not_called()
         rerun_mock.assert_not_called()

@@ -23,7 +23,7 @@ from .data import (
     _should_use_fallback,
 )
 from .map_payload import _get_cached_marker_payload as _get_cached_marker_payload_impl
-from .runtime import DashboardRuntime, get_runtime, _soft_reset_runtime
+from .runtime import DashboardRuntime, get_active_runtime, _soft_reset_runtime
 from .settings import (
     DISPLAY_REGION_OPTIONS,
     READY_NOTICE_SESSION_KEY,
@@ -266,12 +266,9 @@ def _render_map(filtered_snapshot: Dict[str, Dict[str, Any]], display_mode: str)
             st.session_state.display_mode = next_display_mode
 
 
-def _build_dashboard_context(*, check_connection: bool = False) -> Dict[str, Any]:
-    runtime = get_runtime()
+def _build_dashboard_context() -> Dict[str, Any]:
+    runtime = get_active_runtime()
     _ensure_session_defaults()
-    if check_connection:
-        runtime.maybe_soft_reset()
-        runtime.ensure_connection()
 
     live_messages = runtime.cache.get_recent_messages()
     use_fallback = _should_use_fallback(runtime)
@@ -317,7 +314,7 @@ def _render_dashboard_main() -> None:
 
 @st.fragment(run_every=REFRESH_INTERVAL_SECONDS)
 def _render_dashboard_sidebar() -> None:
-    context = _build_dashboard_context(check_connection=True)
+    context = _build_dashboard_context()
     _render_sidebar(
         context["runtime"],
         context["snapshot"],

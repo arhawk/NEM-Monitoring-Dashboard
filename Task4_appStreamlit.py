@@ -1,5 +1,4 @@
 from src.dashboard.settings import *  # noqa: F401,F403
-from src.dashboard.app import main
 from src.dashboard.data import *  # noqa: F401,F403
 from src.dashboard.map_payload import *  # noqa: F401,F403
 from src.dashboard.render import *  # noqa: F401,F403
@@ -162,6 +161,7 @@ def render_dashboard():
 
 
 def main():
+    set_active_runtime(get_runtime())
     render_dashboard()
 
 

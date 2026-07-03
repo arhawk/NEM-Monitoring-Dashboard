@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from threading import Event, Lock, Thread
 import time as pytime
 from typing import Optional
 
@@ -16,6 +17,7 @@ from .settings import (
     MAX_STREAM_ROWS,
     PASSWORD,
     PORT,
+    MONITOR_INTERVAL_SECONDS,
     RECONNECT_COOLDOWN_SECONDS,
     RESET_INTERVAL_HOURS,
     TOPIC,
@@ -31,10 +33,14 @@ class DashboardRuntime:
         self.last_error: Optional[str] = None
         self.last_soft_reset_at = datetime.now(timezone.utc)
         self._last_connect_attempt_at = 0.0
+        self._monitor_stop = Event()
+        self._monitor_lock = Lock()
+        self._monitor_thread: Optional[Thread] = None
         self._build_client()
         if self.client is not None:
             self.client.loop_start()
         self._schedule_connect(initial=True)
+        self._start_background_monitor()
 
     def _build_client(self) -> None:
         self.client = mqtt.Client(
@@ -44,7 +50,7 @@ class DashboardRuntime:
         )
         if USERNAME:
             self.client.username_pw_set(USERNAME, PASSWORD)
-        self.client.reconnect_delay_set(min_delay=1, max_delay=30)
+        self.client.reconnect_delay_set(min_delay=5, max_delay=30)
         self.client.on_connect = self._on_connect
         self.client.on_disconnect = self._on_disconnect
         if hasattr(self.client, "on_connect_fail"):
@@ -111,6 +117,32 @@ class DashboardRuntime:
             return
         self._schedule_connect(initial=False)
 
+    def _background_monitor_loop(self) -> None:
+        while not self._monitor_stop.wait(MONITOR_INTERVAL_SECONDS):
+            try:
+                self.maybe_soft_reset()
+                self.ensure_connection()
+            except Exception as exc:
+                self.last_error = f"MQTT monitor failed: {exc}"
+
+    def _start_background_monitor(self) -> None:
+        with self._monitor_lock:
+            if self._monitor_thread is not None and self._monitor_thread.is_alive():
+                return
+            self._monitor_stop.clear()
+            self._monitor_thread = Thread(
+                target=self._background_monitor_loop,
+                name="nem-dashboard-mqtt-monitor",
+                daemon=True,
+            )
+            self._monitor_thread.start()
+
+    def stop(self) -> None:
+        self._monitor_stop.set()
+        thread = self._monitor_thread
+        if thread is not None and thread.is_alive():
+            thread.join(timeout=1)
+
     def maybe_soft_reset(self) -> bool:
         if RESET_INTERVAL_HOURS <= 0:
             return False
@@ -118,6 +150,20 @@ class DashboardRuntime:
             return False
         _soft_reset_runtime(self)
         return True
+
+
+_ACTIVE_RUNTIME: Optional[DashboardRuntime] = None
+
+
+def set_active_runtime(runtime: DashboardRuntime) -> None:
+    global _ACTIVE_RUNTIME
+    _ACTIVE_RUNTIME = runtime
+
+
+def get_active_runtime() -> DashboardRuntime:
+    if _ACTIVE_RUNTIME is None:
+        raise RuntimeError("Dashboard runtime has not been initialised")
+    return _ACTIVE_RUNTIME
 
 
 @st.cache_resource(show_spinner=False)
@@ -147,5 +193,7 @@ def _soft_reset_runtime(runtime: object) -> None:
 __all__ = [
     "DashboardRuntime",
     "get_runtime",
+    "get_active_runtime",
+    "set_active_runtime",
     "_soft_reset_runtime",
 ]

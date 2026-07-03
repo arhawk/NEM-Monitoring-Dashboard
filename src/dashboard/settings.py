@@ -19,6 +19,7 @@ RESET_INTERVAL_HOURS = get_reset_interval_hours()
 REFRESH_INTERVAL_SECONDS = get_refresh_interval_seconds()
 CONNECTION_TIMEOUT_SECONDS = 10
 RECONNECT_COOLDOWN_SECONDS = 5
+MONITOR_INTERVAL_SECONDS = max(1, int(os.getenv("MQTT_MONITOR_INTERVAL_SECONDS", "5")))
 FALLBACK_SAMPLE_PATH = os.getenv("FALLBACK_SAMPLE_PATH", "data/data_for_publish.csv")
 FALLBACK_STALE_SECONDS = max(1, int(os.getenv("FALLBACK_STALE_SECONDS", "30")))
 ENABLE_FALLBACK_REPLAY = os.getenv("ENABLE_FALLBACK_REPLAY", "true").strip().lower() not in {
@@ -58,4 +59,3 @@ FOSSIL_FUEL_TOKENS = {
     "waste coal mine gas",
 }
 STORAGE_FUEL_TOKENS = {"battery"}
-
