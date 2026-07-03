@@ -214,7 +214,25 @@ class DashboardLogicTests(TestCase):
         sig2 = task4._build_map_signature(updated, "power_value", "All", "All")
         self.assertNotEqual(sig1, sig2)
 
-    def test_filter_snapshot_uses_fuel_group_not_raw_fuel_text(self) -> None:
+    def test_build_fuel_options_uses_all_tokens_from_snapshot(self) -> None:
+        snapshot = {
+            "A1": {
+                "fuel_list": "['Gas', 'Solar']",
+            },
+            "A2": {
+                "fuel_list": "['Battery']",
+            },
+            "A3": {
+                "fuel_list": "['Wind', 'Solar']",
+            },
+        }
+
+        self.assertEqual(
+            task4._build_fuel_options(snapshot),
+            ["All", "Battery", "Gas", "Solar", "Wind"],
+        )
+
+    def test_filter_snapshot_uses_raw_fuel_tokens(self) -> None:
         snapshot = {
             "A1": {
                 "state": "NSW",
@@ -228,7 +246,7 @@ class DashboardLogicTests(TestCase):
             },
         }
 
-        filtered = task4._filter_snapshot(snapshot, "Mixed / Other", "NSW")
+        filtered = task4._filter_snapshot(snapshot, "Gas", "NSW")
         self.assertEqual(list(filtered.keys()), ["A1"])
 
     def test_static_signature_ignores_operational_changes(self) -> None:

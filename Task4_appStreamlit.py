@@ -38,7 +38,6 @@ RECONNECT_COOLDOWN_SECONDS = 5
 FALLBACK_SAMPLE_PATH = os.getenv("FALLBACK_SAMPLE_PATH", "data/data_for_publish.csv")
 FALLBACK_STALE_SECONDS = max(1, int(os.getenv("FALLBACK_STALE_SECONDS", "30")))
 ENABLE_FALLBACK_REPLAY = os.getenv("ENABLE_FALLBACK_REPLAY", "true").strip().lower() not in {"0", "false", "no", "off"}
-DISPLAY_FUEL_OPTIONS = ["All", "Renewable", "Fossil / Non-renewable", "Storage", "Mixed / Other"]
 DISPLAY_REGION_OPTIONS = ["All", "ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
 FUEL_GROUP_COLORS = {
     "Renewable": "#16a34a",
@@ -130,6 +129,15 @@ def _extract_fuel_tokens(fuel_list: Any) -> List[str]:
         return [str(token).strip() for token in parsed if str(token).strip()]
     parsed_text = str(parsed).strip()
     return [parsed_text] if parsed_text else []
+
+
+def _build_fuel_options(snapshot: Dict[str, Dict[str, Any]]) -> List[str]:
+    fuel_types = {
+        token
+        for record in snapshot.values()
+        for token in _extract_fuel_tokens(record.get("fuel_list"))
+    }
+    return ["All", *sorted(fuel_types, key=str.casefold)]
 
 
 def _classify_fuel_group(fuel_list: Any) -> str:
@@ -358,7 +366,8 @@ def _filter_snapshot(
 ) -> Dict[str, Dict[str, Any]]:
     filtered: Dict[str, Dict[str, Any]] = {}
     for fac_code, record in snapshot.items():
-        fuel_match = selected_fuel == "All" or selected_fuel == record.get("fuel_group")
+        fuel_tokens = _extract_fuel_tokens(record.get("fuel_list"))
+        fuel_match = selected_fuel == "All" or selected_fuel in fuel_tokens
         region_match = selected_region == "All" or selected_region == record.get("state")
         if fuel_match and region_match:
             filtered[fac_code] = record
@@ -622,7 +631,7 @@ def get_runtime() -> DashboardRuntime:
 def _ensure_session_defaults() -> None:
     if "display_mode" not in st.session_state:
         st.session_state.display_mode = "power_value"
-    if "selected_fuel" not in st.session_state or st.session_state.selected_fuel not in DISPLAY_FUEL_OPTIONS:
+    if "selected_fuel" not in st.session_state:
         st.session_state.selected_fuel = "All"
     if "selected_region" not in st.session_state:
         st.session_state.selected_region = "All"
@@ -652,6 +661,7 @@ def _render_sidebar(
     snapshot: Dict[str, Dict[str, Any]],
     filtered_snapshot: Dict[str, Dict[str, Any]],
     data_source: str,
+    fuel_options: List[str],
 ) -> None:
     st.header("🔧 Control Center")
     if data_source == "fallback":
@@ -660,7 +670,9 @@ def _render_sidebar(
         st.success("Live MQTT stream active")
 
     st.subheader("Fuel Type Filter")
-    st.selectbox("Select Fuel Group", DISPLAY_FUEL_OPTIONS, key="selected_fuel")
+    if st.session_state.get("selected_fuel") not in fuel_options:
+        st.session_state.selected_fuel = "All"
+    st.selectbox("Select Fuel Type", fuel_options, key="selected_fuel")
 
     st.subheader("Grid Region Filter")
     st.selectbox("Select Region", DISPLAY_REGION_OPTIONS, key="selected_region")
@@ -756,12 +768,15 @@ def render_dashboard() -> None:
     data_source = _resolve_data_source(live_messages, fallback_messages)
     messages = live_messages if live_messages else fallback_messages
     snapshot = _build_latest_snapshot(messages)
+    fuel_options = _build_fuel_options(snapshot)
+    if st.session_state.get("selected_fuel") not in fuel_options:
+        st.session_state.selected_fuel = "All"
     filtered_snapshot = _filter_snapshot(snapshot, st.session_state.selected_fuel, st.session_state.selected_region)
     stats = _calculate_snapshot_stats(snapshot)
 
     _render_header(runtime, stats, snapshot)
     with st.sidebar:
-        _render_sidebar(runtime, snapshot, filtered_snapshot, data_source)
+        _render_sidebar(runtime, snapshot, filtered_snapshot, data_source, fuel_options)
     _render_current_trend(messages)
     _render_map(filtered_snapshot, st.session_state.display_mode)
     _render_table(filtered_snapshot)
