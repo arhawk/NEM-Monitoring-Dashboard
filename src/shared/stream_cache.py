@@ -74,12 +74,6 @@ class StreamCache:
             self._last_updated_at = float(record["received_at"])
         return record
 
-    def get_latest_message(self) -> Optional[Dict[str, Any]]:
-        with self._lock:
-            if not self._messages:
-                return None
-            return dict(self._messages[-1])
-
     def get_recent_messages(self, limit: Optional[int] = None) -> List[Dict[str, Any]]:
         with self._lock:
             items = list(self._messages)
@@ -106,18 +100,9 @@ class StreamCache:
         with self._lock:
             return self._last_updated_at
 
-    def last_updated_at_iso(self) -> Optional[str]:
-        ts = self.last_updated_at()
-        if ts is None:
-            return None
-        return datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
-
     def last_reset_at(self) -> float:
         with self._lock:
             return self._last_reset_at
-
-    def last_reset_at_iso(self) -> str:
-        return datetime.fromtimestamp(self.last_reset_at(), tz=timezone.utc).isoformat()
 
     def messages_since_reset(self) -> int:
         with self._lock:
@@ -129,8 +114,3 @@ class StreamCache:
     def set_last_error(self, error: Optional[str]) -> None:
         with self._lock:
             self._last_error = error
-
-    def last_error(self) -> Optional[str]:
-        with self._lock:
-            return self._last_error
-

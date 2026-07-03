@@ -32,8 +32,10 @@ def load_module(module_name: str, relative_path: str):
 from src.dashboard import app as dashboard_app
 from src.dashboard import data as dashboard_data
 from src.dashboard.components import nem_map_component as dashboard_nem_map_component
+from src.dashboard.views import header as dashboard_header_view
 from src.dashboard import render as dashboard_render
-from src.dashboard.data import aggregation as dashboard_data_aggregation
+from src.dashboard import render_context as dashboard_render_context
+from src.dashboard import settings as dashboard_settings
 from src.dashboard.data import fallback as dashboard_data_fallback
 from src.dashboard.views import map as dashboard_map_payload
 from src.dashboard.views import sidebar as dashboard_sidebar_view
@@ -43,16 +45,26 @@ from src.publisher.publish import mqtt_publish as task13_mqtt
 from src.shared import stream_cache
 
 task4 = SimpleNamespace()
-for module in (dashboard_render, dashboard_data, dashboard_map_payload, dashboard_runtime):
+for module in (
+    dashboard_render,
+    dashboard_data,
+    dashboard_header_view,
+    dashboard_sidebar_view,
+    dashboard_map_payload,
+    dashboard_runtime,
+    dashboard_render_context,
+):
     for name in getattr(module, "__all__", []):
         setattr(task4, name, getattr(module, name))
-task4.st = dashboard_render.st
+task4.st = dashboard_render_context.compat_st
 task4.pd = dashboard_data_fallback.pd
-task4.components = dashboard_render.components
+task4.components = dashboard_header_view.components
 task4.time = dashboard_data_fallback.time
-task4.FALLBACK_STALE_SECONDS = dashboard_data_fallback.FALLBACK_STALE_SECONDS
-task4.READY_NOTICE_SESSION_KEY = dashboard_render.READY_NOTICE_SESSION_KEY
-task4.render_nem_facility_map = dashboard_render.render_nem_facility_map
+task4.FALLBACK_STALE_SECONDS = dashboard_settings.FALLBACK_STALE_SECONDS
+task4.READY_NOTICE_SESSION_KEY = dashboard_settings.READY_NOTICE_SESSION_KEY
+task4.render_nem_facility_map = dashboard_nem_map_component.render_nem_facility_map
+task4._should_use_fallback = dashboard_data_fallback._should_use_fallback
+task4._load_fallback_messages = dashboard_data_fallback._load_fallback_messages
 task4.get_runtime = dashboard_runtime.get_runtime
 task4.set_active_runtime = dashboard_runtime.set_active_runtime
 task4.render_dashboard = dashboard_render.render_dashboard
@@ -228,8 +240,8 @@ class DashboardLogicTests(TestCase):
 
         with patch.object(dashboard_runtime, "get_active_runtime", return_value=runtime), \
             patch.object(dashboard_data_fallback, "_load_fallback_messages", return_value=[]), \
-            patch.object(dashboard_data_aggregation.compat_st, "session_state", FakeSessionState()):
-            context = dashboard_render._build_dashboard_context()
+            patch.object(dashboard_render_context.compat_st, "session_state", FakeSessionState()):
+            context = dashboard_render_context._build_dashboard_context()
 
         runtime.maybe_soft_reset.assert_not_called()
         runtime.ensure_connection.assert_not_called()
@@ -273,9 +285,9 @@ class DashboardLogicTests(TestCase):
 
         with patch.object(dashboard_runtime, "get_active_runtime", return_value=runtime), \
             patch.object(dashboard_data_fallback, "_load_fallback_messages", return_value=fallback_messages), \
-            patch.object(dashboard_data.time, "time", return_value=100.0 + dashboard_data.FALLBACK_STALE_SECONDS + 1), \
-            patch.object(dashboard_data_aggregation.compat_st, "session_state", FakeSessionState()):
-            context = dashboard_render._build_dashboard_context()
+            patch.object(dashboard_data_fallback.time, "time", return_value=100.0 + dashboard_settings.FALLBACK_STALE_SECONDS + 1), \
+            patch.object(dashboard_render_context.compat_st, "session_state", FakeSessionState()):
+            context = dashboard_render_context._build_dashboard_context()
 
         self.assertEqual(context["data_source"], "fallback")
         self.assertEqual(list(context["snapshot"].keys()), ["FB1"])
@@ -942,7 +954,7 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "rerun") as rerun_mock:
             task4._render_sidebar(runtime, {}, {}, "live", ["All", "Gas"])
 
-        button_mock.assert_called_once_with("Reset Cache", key="reset_cache")
+        button_mock.assert_called_once_with("Reset Cache", key="reset_cache", type="primary")
         soft_reset_mock.assert_called_once()
         rerun_mock.assert_not_called()
         self.assertIn(
