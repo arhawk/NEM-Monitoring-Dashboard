@@ -19,7 +19,9 @@ The repository includes a local `.venv` for convenience. You can use that enviro
 
 - `src/publisher/`: fetch, cleaning, alignment, and MQTT publishing modules
 - `Task1-3_data&MQTT.py`: legacy thin wrapper around `src/publisher/cli.py`
-- `Task4_appStreamlit.py`: subscribes to MQTT, keeps a bounded in-memory cache, and renders the dashboard
+- `src/dashboard/`: dashboard runtime, data shaping, render logic, and map payload generation
+- `src/shared/stream_cache.py`: shared bounded cache and environment helpers
+- `Task4_appStreamlit.py`: compatibility wrapper for the dashboard entrypoint
 - `scripts/run_publisher.py`: Render-friendly wrapper for the publisher entrypoint
 - `app/streamlit_app.py`: Render-friendly wrapper for the Streamlit entrypoint
 - `Task5_continousCheckReport.py`: optional MQTT timing check utility

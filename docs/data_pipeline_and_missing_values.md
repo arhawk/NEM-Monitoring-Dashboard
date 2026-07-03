@@ -23,7 +23,8 @@ The project follows a simple pipeline:
 The two main code entry points are:
 
 - `src/publisher/`: data retrieval, cleaning, integration, and MQTT publishing
-- `Task4_appStreamlit.py`: MQTT subscription, in-memory caching, and Streamlit visualization
+- `src/dashboard/`: MQTT subscription, in-memory caching, and Streamlit visualization
+- `src/shared/stream_cache.py`: shared bounded cache utilities
 
 ## 2. Data Retrieval
 
@@ -109,7 +110,7 @@ The repository matches that policy:
 - `src/publisher/cleaning.py` drops facilities where both `Power (MW)` and `Emissions (tonnes)` are fully missing
 - `src/publisher/cleaning.py` preserves partial gaps in core series using the split fill strategy
 - `src/publisher/cleaning.py` keeps optional market fields as `NaN` / `None`
-- `Task4_appStreamlit.py` keeps optional metrics missing and shows them as `N/A`
+- `src/dashboard/` keeps optional metrics missing and shows them as `N/A`
 
 This means the live system keeps missing data visible as missing, rather than silently turning it into a fabricated numeric value.
 
@@ -181,7 +182,7 @@ This prevents silent message loss when the broker is unavailable or temporarily 
 
 ## 6. Subscription and In-Memory Cache
 
-`Task4_appStreamlit.py` subscribes to the MQTT wildcard topic and decodes each JSON payload.
+`src/dashboard/` subscribes to the MQTT wildcard topic and decodes each JSON payload; `Task4_appStreamlit.py` remains a compatibility wrapper.
 
 ### 6.1 Validation on Receive
 
@@ -332,6 +333,7 @@ This is the correct interpretation for downstream charts, summary cards, and map
 ## 11. Files to Read Next
 
 - `src/publisher/`
+- `src/dashboard/`
 - `Task4_appStreamlit.py`
 - `README.md`
 - `tests/test_dashboard_logic.py`
