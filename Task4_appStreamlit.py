@@ -32,6 +32,9 @@ RESET_INTERVAL_HOURS = get_reset_interval_hours()
 REFRESH_INTERVAL_SECONDS = get_refresh_interval_seconds()
 CONNECTION_TIMEOUT_SECONDS = 10
 RECONNECT_COOLDOWN_SECONDS = 5
+FALLBACK_SAMPLE_PATH = os.getenv("FALLBACK_SAMPLE_PATH", "data/data_for_publish.csv")
+FALLBACK_STALE_SECONDS = max(1, int(os.getenv("FALLBACK_STALE_SECONDS", "30")))
+ENABLE_FALLBACK_REPLAY = os.getenv("ENABLE_FALLBACK_REPLAY", "true").strip().lower() not in {"0", "false", "no", "off"}
 DISPLAY_FUEL_OPTIONS = ["All", "Solar", "Wind", "Hydro", "Gas", "Coal", "Battery", "Biomass"]
 DISPLAY_REGION_OPTIONS = ["All", "ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
 
@@ -191,6 +194,57 @@ def _build_latest_snapshot(messages: List[Dict[str, Any]]) -> Dict[str, Dict[str
         if fac_code:
             snapshot[str(fac_code)] = message
     return snapshot
+
+
+def _fallback_enabled() -> bool:
+    return ENABLE_FALLBACK_REPLAY
+
+
+def _should_use_fallback(runtime: "DashboardRuntime") -> bool:
+    if not _fallback_enabled():
+        return False
+    last_updated_at = runtime.cache.last_updated_at()
+    if last_updated_at is None:
+        return runtime.status == "Connected"
+    return (time.time() - last_updated_at) > FALLBACK_STALE_SECONDS
+
+
+def _load_fallback_messages(limit: int = 200) -> List[Dict[str, Any]]:
+    sample_path = FALLBACK_SAMPLE_PATH.strip()
+    if not sample_path:
+        return []
+
+    try:
+        df = pd.read_csv(sample_path)
+    except (FileNotFoundError, OSError, pd.errors.EmptyDataError):
+        return []
+
+    if df.empty:
+        return []
+
+    rows = df.tail(max(1, limit)).to_dict("records")
+    fallback_messages: List[Dict[str, Any]] = []
+    for index, row in enumerate(rows):
+        payload = {
+            "facility_code": row.get("facility_code"),
+            "facility_name": row.get("facility_name"),
+            "lat": row.get("lat"),
+            "lng": row.get("lng"),
+            "timestamp": row.get("timestamp"),
+            "power_value": row.get("power_value", row.get("Power (MW)")),
+            "emission_value": row.get("emission_value", row.get("Emissions (tonnes)")),
+            "price_per_mwh": row.get("price_per_mwh", row.get("Price ($/MWh)")),
+            "demand_mw": row.get("demand_mw", row.get("Demand (MW)")),
+            "state": row.get("state"),
+            "fuel_list": row.get("fuel_list"),
+        }
+        record = _normalize_message(payload, "fallback/sample_replay")
+        if record is None:
+            continue
+        record["received_at"] = float(index + 1)
+        record["received_at_iso"] = str(record.get("timestamp") or "")
+        fallback_messages.append(record)
+    return fallback_messages
 
 
 def _calculate_snapshot_stats(snapshot: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
@@ -517,9 +571,18 @@ def _ensure_session_defaults() -> None:
         st.session_state.selected_region = "All"
 
 
-def _render_header(runtime: DashboardRuntime, stats: Dict[str, Any], snapshot: Dict[str, Dict[str, Any]]) -> None:
+def _render_header(
+    runtime: DashboardRuntime,
+    stats: Dict[str, Any],
+    snapshot: Dict[str, Dict[str, Any]],
+    data_source: str,
+) -> None:
     st.title("⚡ National Electricity Market (NEM) Facility Real-time Monitoring Dashboard")
     st.caption("Live MQTT stream with bounded in-memory cache. No live CSV storage is used.")
+    if data_source == "fallback":
+        st.info("Waiting for MQTT messages. Showing sample replay fallback.")
+    elif data_source == "live":
+        st.success("Live MQTT stream active")
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -634,17 +697,25 @@ def render_dashboard() -> None:
     runtime.maybe_soft_reset()
     runtime.ensure_connection()
 
-    messages = runtime.cache.get_recent_messages()
+    live_messages = runtime.cache.get_recent_messages()
+    use_fallback = _should_use_fallback(runtime)
+    fallback_messages = _load_fallback_messages() if use_fallback else []
+    if use_fallback:
+        messages = fallback_messages
+        data_source = "fallback" if fallback_messages else "waiting"
+    else:
+        messages = live_messages
+        data_source = "live"
     snapshot = _build_latest_snapshot(messages)
     filtered_snapshot = _filter_snapshot(snapshot, st.session_state.selected_fuel, st.session_state.selected_region)
     stats = _calculate_snapshot_stats(snapshot)
 
-    _render_header(runtime, stats, snapshot)
+    _render_header(runtime, stats, snapshot, data_source)
     with st.sidebar:
         _render_sidebar(runtime, snapshot, filtered_snapshot)
     _render_chart(messages)
-    _render_table(filtered_snapshot)
     _render_map(filtered_snapshot, st.session_state.display_mode)
+    _render_table(filtered_snapshot)
 
 
 def main() -> None:

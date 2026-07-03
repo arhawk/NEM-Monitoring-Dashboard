@@ -334,3 +334,71 @@ class DashboardLogicTests(TestCase):
         self.assertEqual(stats["total_emission"], 8.0)
         self.assertEqual(stats["median_price"], 30.0)
         self.assertEqual(stats["median_demand"], 5.0)
+
+    def test_load_fallback_messages_normalizes_sample_rows(self) -> None:
+        sample = pd.DataFrame(
+            [
+                {
+                    "timestamp": "2026-07-03 00:00:00",
+                    "Power (MW)": 10.0,
+                    "Emissions (tonnes)": 2.5,
+                    "facility_code": "A1",
+                    "Price ($/MWh)": 30.0,
+                    "Demand (MW)": 40.0,
+                    "facility_name": "Alpha",
+                    "lat": -33.0,
+                    "lng": 151.0,
+                    "state": "NSW",
+                    "fuel_list": "Gas",
+                }
+            ]
+        )
+
+        with patch.object(task4.pd, "read_csv", return_value=sample):
+            records = task4._load_fallback_messages(limit=10)
+
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["topic"], "fallback/sample_replay")
+        self.assertEqual(records[0]["power_value"], 10.0)
+        self.assertEqual(records[0]["emission_value"], 2.5)
+        self.assertEqual(records[0]["price_per_mwh"], 30.0)
+        self.assertEqual(records[0]["demand_mw"], 40.0)
+
+    def test_should_use_fallback_only_when_connected_and_cache_missing_or_stale(self) -> None:
+        runtime = Mock()
+        runtime.status = "Connected"
+        runtime.cache.last_updated_at.return_value = None
+
+        self.assertTrue(task4._should_use_fallback(runtime))
+
+        runtime.cache.last_updated_at.return_value = 10_000.0
+        with patch.object(task4.time, "time", return_value=10_010.0):
+            self.assertFalse(task4._should_use_fallback(runtime))
+        with patch.object(task4.time, "time", return_value=10_100.0):
+            self.assertTrue(task4._should_use_fallback(runtime))
+
+        runtime.status = "Disconnected"
+        runtime.cache.last_updated_at.return_value = None
+        self.assertFalse(task4._should_use_fallback(runtime))
+
+    def test_load_fallback_messages_skips_sort_when_timestamps_are_all_invalid(self) -> None:
+        sample = pd.DataFrame(
+            [
+                {
+                    "timestamp": "not-a-date",
+                    "Power (MW)": 10.0,
+                    "facility_code": "A1",
+                    "facility_name": "Alpha",
+                    "lat": -33.0,
+                    "lng": 151.0,
+                    "state": "NSW",
+                    "fuel_list": "Gas",
+                }
+            ]
+        )
+
+        with patch.object(task4.pd, "read_csv", return_value=sample):
+            records = task4._load_fallback_messages(limit=10)
+
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["timestamp"], "not-a-date")
