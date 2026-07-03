@@ -2,14 +2,12 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from threading import Event, Lock, Thread
-import time as pytime
 from typing import Optional
 
+from .._compat import st
+from ..settings import MAX_STREAM_ROWS, MONITOR_INTERVAL_SECONDS, RESET_INTERVAL_HOURS
 from src.shared.stream_cache import StreamCache
-
-from .mqtt_connection import MqttConnectionManager
-from ._compat import st
-from .settings import MAX_STREAM_ROWS, MONITOR_INTERVAL_SECONDS, RESET_INTERVAL_HOURS
+from .mqtt import MqttConnectionManager
 
 
 class DashboardRuntime:

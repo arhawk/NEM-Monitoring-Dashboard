@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from typing import Optional
-
 import time as pytime
 from types import SimpleNamespace
+from typing import Optional
 
 try:
     import paho.mqtt.client as mqtt
@@ -18,8 +17,8 @@ except ImportError:  # pragma: no cover - exercised in dependency-light test env
         CallbackAPIVersion=SimpleNamespace(VERSION2=2),
     )
 
-from .data import _normalize_message, _reason_is_success
-from .settings import BROKER, PASSWORD, PORT, TOPIC, USERNAME
+from ..data import _normalize_message, _reason_is_success
+from ..settings import BROKER, PASSWORD, PORT, TOPIC, USERNAME
 
 
 class MqttConnectionManager:
@@ -92,13 +91,13 @@ class MqttConnectionManager:
             self.runtime.last_error = f"Message processing failed: {exc}"
 
     def refresh_connection_state(self) -> None:
-        from .settings import CONNECTION_TIMEOUT_SECONDS
+        from ..settings import CONNECTION_TIMEOUT_SECONDS
 
         if self.runtime.status == "Connecting" and (pytime.monotonic() - self.runtime._last_connect_attempt_at) > CONNECTION_TIMEOUT_SECONDS:
             self.runtime._set_status("Disconnected", "MQTT connection timed out")
 
     def ensure_connection(self) -> None:
-        from .settings import RECONNECT_COOLDOWN_SECONDS
+        from ..settings import RECONNECT_COOLDOWN_SECONDS
 
         self.refresh_connection_state()
         if self.runtime.status == "Connected":

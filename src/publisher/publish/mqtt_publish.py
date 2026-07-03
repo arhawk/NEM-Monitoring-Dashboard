@@ -9,8 +9,6 @@ import time
 from datetime import datetime
 from pathlib import Path
 from time import perf_counter_ns
-from typing import Any
-
 from types import SimpleNamespace
 
 try:
@@ -26,7 +24,7 @@ except ImportError:  # pragma: no cover - exercised in dependency-light test env
         CallbackAPIVersion=SimpleNamespace(VERSION1=1),
     )
 
-from .paths import data_path
+from src.shared.paths import data_path
 
 
 if sys.platform.startswith("win"):

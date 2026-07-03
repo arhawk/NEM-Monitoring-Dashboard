@@ -29,16 +29,17 @@ def load_module(module_name: str, relative_path: str):
     return module
 
 
-from src.publisher import cleaning as task13_cleaning
-from src.publisher import mqtt_publish as task13_mqtt
 from src.dashboard import app as dashboard_app
-from src.dashboard import context as dashboard_context
 from src.dashboard import data as dashboard_data
 from src.dashboard.components import nem_map_component as dashboard_nem_map_component
-from src.dashboard import map_payload as dashboard_map_payload
 from src.dashboard import render as dashboard_render
+from src.dashboard.data import aggregation as dashboard_data_aggregation
+from src.dashboard.data import fallback as dashboard_data_fallback
+from src.dashboard.views import map as dashboard_map_payload
 from src.dashboard.views import sidebar as dashboard_sidebar_view
 from src.dashboard import runtime as dashboard_runtime
+from src.publisher.data import cleaning as task13_cleaning
+from src.publisher.publish import mqtt_publish as task13_mqtt
 from src.shared import stream_cache
 
 task4 = SimpleNamespace()
@@ -46,10 +47,10 @@ for module in (dashboard_render, dashboard_data, dashboard_map_payload, dashboar
     for name in getattr(module, "__all__", []):
         setattr(task4, name, getattr(module, name))
 task4.st = dashboard_render.st
-task4.pd = dashboard_render.pd
+task4.pd = dashboard_data_fallback.pd
 task4.components = dashboard_render.components
-task4.time = dashboard_data.time
-task4.FALLBACK_STALE_SECONDS = dashboard_data.FALLBACK_STALE_SECONDS
+task4.time = dashboard_data_fallback.time
+task4.FALLBACK_STALE_SECONDS = dashboard_data_fallback.FALLBACK_STALE_SECONDS
 task4.READY_NOTICE_SESSION_KEY = dashboard_render.READY_NOTICE_SESSION_KEY
 task4.render_nem_facility_map = dashboard_render.render_nem_facility_map
 task4.get_runtime = dashboard_runtime.get_runtime
@@ -225,9 +226,9 @@ class DashboardLogicTests(TestCase):
             def __setattr__(self, key: str, value):
                 self[key] = value
 
-        with patch.object(dashboard_context, "get_active_runtime", return_value=runtime), \
-            patch.object(dashboard_context, "_load_fallback_messages", return_value=[]), \
-            patch.object(dashboard_context.st, "session_state", FakeSessionState()):
+        with patch.object(dashboard_runtime, "get_active_runtime", return_value=runtime), \
+            patch.object(dashboard_data_fallback, "_load_fallback_messages", return_value=[]), \
+            patch.object(dashboard_data_aggregation.compat_st, "session_state", FakeSessionState()):
             context = dashboard_render._build_dashboard_context()
 
         runtime.maybe_soft_reset.assert_not_called()
@@ -270,10 +271,10 @@ class DashboardLogicTests(TestCase):
             def __setattr__(self, key: str, value):
                 self[key] = value
 
-        with patch.object(dashboard_context, "get_active_runtime", return_value=runtime), \
-            patch.object(dashboard_context, "_load_fallback_messages", return_value=fallback_messages), \
+        with patch.object(dashboard_runtime, "get_active_runtime", return_value=runtime), \
+            patch.object(dashboard_data_fallback, "_load_fallback_messages", return_value=fallback_messages), \
             patch.object(dashboard_data.time, "time", return_value=100.0 + dashboard_data.FALLBACK_STALE_SECONDS + 1), \
-            patch.object(dashboard_context.st, "session_state", FakeSessionState()):
+            patch.object(dashboard_data_aggregation.compat_st, "session_state", FakeSessionState()):
             context = dashboard_render._build_dashboard_context()
 
         self.assertEqual(context["data_source"], "fallback")

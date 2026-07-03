@@ -4,6 +4,7 @@ from datetime import datetime
 from urllib.parse import parse_qs, urlparse
 
 import pandas as pd
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:  # pragma: no cover - Python versions with pytz only

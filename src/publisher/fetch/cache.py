@@ -8,7 +8,7 @@ from typing import Any
 
 import pandas as pd
 
-from .paths import data_path
+from src.shared.paths import data_path
 
 
 CACHE_FILE = data_path("facility_data_cache.json")

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import os
+from types import SimpleNamespace
 from typing import Any
 
 import pandas as pd
-from types import SimpleNamespace
 
 try:
     import requests

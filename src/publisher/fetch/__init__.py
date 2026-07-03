@@ -1,6 +1,4 @@
-from __future__ import annotations
-
-from .cache_store import CACHE_FILE, cache_lock, load_cache, save_cache
+from .cache import CACHE_FILE, cache_lock, load_cache, save_cache
 from .client import create_session, fetch_facility_list, fetch_response, get_api_key
 from .orchestrator import fetch_and_build_consolidated_data, process_facility
 from .transform import fetch_data
