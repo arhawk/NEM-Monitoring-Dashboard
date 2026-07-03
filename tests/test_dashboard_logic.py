@@ -26,6 +26,32 @@ task4 = load_module("task4_module", "Task4_appStreamlit.py")
 
 
 class PublishLogicTests(TestCase):
+    def test_normalize_non_negative_replaces_negative_values_only(self) -> None:
+        series = pd.Series([5.0, -3.0, None, 0.0, -1.5], name="Power (MW)")
+        cleaned = task13.normalize_non_negative(series)
+        self.assertEqual(cleaned.iloc[0], 5.0)
+        self.assertEqual(cleaned.iloc[1], 0.0)
+        self.assertTrue(pd.isna(cleaned.iloc[2]))
+        self.assertEqual(cleaned.iloc[3], 0.0)
+        self.assertEqual(cleaned.iloc[4], 0.0)
+
+    def test_handle_missing_values_fast_drops_fully_missing_facility(self) -> None:
+        group = pd.DataFrame(
+            {
+                "facility_code": ["A1", "A1"],
+                "Power (MW)": [None, None],
+                "Emissions (tonnes)": [None, None],
+            }
+        )
+        result = task13.handle_missing_values_fast(group)
+        self.assertTrue(result.empty)
+
+    def test_fill_missing_half_ffill_bfill_keeps_partial_gap_semantics(self) -> None:
+        series = pd.Series([1.0, None, None, 4.0], name="Power (MW)")
+        cleaned = task13.fill_missing_half_ffill_bfill(series)
+        self.assertEqual(cleaned.iloc[1], 1.0)
+        self.assertEqual(cleaned.iloc[2], 4.0)
+
     def test_safe_publish_stream_requires_confirmed_publish(self) -> None:
         class DummyInfo:
             def __init__(self, rc: int, published: bool) -> None:
@@ -192,6 +218,24 @@ class DashboardLogicTests(TestCase):
         self.assertTrue(pd.isna(frame.loc[0, "price_per_mwh"]))
         self.assertTrue(pd.isna(frame.loc[0, "demand_mw"]))
         self.assertEqual(frame.loc[1, "emission_value"], 4.0)
+
+    def test_optional_market_fields_keep_missing_semantics(self) -> None:
+        payload = {
+            "facility_code": "A2",
+            "facility_name": "Beta",
+            "lat": -33.1,
+            "lng": 151.1,
+            "timestamp": "2026-07-03T00:05:00+10:00",
+            "power_value": 20.0,
+            "emission_value": 8.0,
+            "state": "NSW",
+            "fuel_list": "Gas",
+        }
+
+        record = task4._normalize_message(payload, "topic/test")
+        self.assertIsNotNone(record)
+        self.assertIsNone(record["price_per_mwh"])
+        self.assertIsNone(record["demand_mw"])
 
     def test_snapshot_stats_ignore_missing_optional_values(self) -> None:
         snapshot = {

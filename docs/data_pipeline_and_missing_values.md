@@ -80,47 +80,38 @@ The intended integrated schema is centered on:
 - `price_per_mwh`
 - `demand_mw`
 
-### 3.2 Invalid Values
+### 3.2 Missing and Invalid Value Policy
 
-The report describes a defensive cleaning strategy for invalid values:
+The project uses a three-way policy for core operational data:
 
-- negative power or emissions values are treated as invalid
-- they are counted and then replaced or corrected during cleaning
-- NaN is preserved as the marker for real missing data
+- **negative `Power (MW)` or `Emissions (tonnes)` values** are treated as invalid and normalized to `0`
+- **fully missing `Power (MW)` and `Emissions (tonnes)` for a facility** cause that facility to be dropped
+- **partial gaps in `Power (MW)` and `Emissions (tonnes)`** are filled with the existing split strategy
+  - first half of the gap uses forward fill
+  - second half uses backward fill
+
+For optional market data:
+
+- `Price ($/MWh)` and `Demand (MW)` keep missing semantics as `NaN` / `None`
+- these fields are not force-filled to zero
+- dashboard rendering shows them as missing, not as real zero values
 
 The important distinction is:
 
-- `0` means a real measured zero
+- `0` means a real measured zero or a cleaned invalid negative value
 - `NaN` or `None` means the value was missing or not available
 
-### 3.3 Missing-Value Handling in the Report
+### 3.3 Missing-Value Handling in the Current Code
 
-The report’s stated policy is:
+The repository matches that policy:
 
-- **Facilities with fully missing `Power (MW)` and `Emissions (tonnes)`** are filtered out
-  - these records do not provide enough operational insight
-- **Continuous gaps in 5-minute series** are filled in a split manner
-  - the first half uses forward fill
-  - the second half uses backward fill
-  - this is meant to reduce trend distortion
-- **Optional market fields `Price ($/MWh)` and `Demand (MW)`** are kept as `NaN`
-  - they are not force-filled to zero
-  - this avoids inventing fake market smoothness
+- `Task1-3_data&MQTT.py` replaces negative core values with `0`
+- `Task1-3_data&MQTT.py` drops facilities where both `Power (MW)` and `Emissions (tonnes)` are fully missing
+- `Task1-3_data&MQTT.py` preserves partial gaps in core series using the split fill strategy
+- `Task1-3_data&MQTT.py` keeps optional market fields as `NaN` / `None`
+- `Task4_appStreamlit.py` keeps optional metrics missing and shows them as `N/A`
 
-### 3.4 Missing-Value Handling in the Current Code
-
-The repository currently preserves the same semantic distinction:
-
-- required core fields must exist before a record is accepted
-- optional metrics may stay missing
-- the dashboard displays missing optional metrics as `N/A`
-
-Concretely:
-
-- `Task1-3_data&MQTT.py` leaves optional values as `None` when they are absent
-- `Task4_appStreamlit.py` preserves those values as missing and does not convert them to `0.0`
-
-This means the live system keeps missing data visible as missing, rather than silently turning it into a real numeric value.
+This means the live system keeps missing data visible as missing, rather than silently turning it into a fabricated numeric value.
 
 ## 4. Integration with Assignment 1
 
@@ -315,4 +306,3 @@ This is the correct interpretation for downstream charts, summary cards, and map
 - `Task4_appStreamlit.py`
 - `README.md`
 - `tests/test_dashboard_logic.py`
-
