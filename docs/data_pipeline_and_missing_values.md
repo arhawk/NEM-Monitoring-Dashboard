@@ -1,0 +1,318 @@
+# NEM Monitoring Dashboard Data Pipeline and Missing-Value Policy
+
+This document describes the end-to-end data flow for the project, from data retrieval to cleaning, publishing, subscription, and dashboard rendering.
+
+It is written against two sources of truth:
+
+- the current repository implementation
+- the assignment report in `A2Report.pdf`
+
+Where the report and current code differ in wording or behavior, this document calls that out explicitly.
+
+## 1. End-to-End Flow
+
+The project follows a simple pipeline:
+
+1. Fetch raw electricity and facility data from the Open Electricity API.
+2. Clean and standardize the data.
+3. Merge operational data with Assignment 1 static metadata.
+4. Publish the cleaned rows as MQTT messages.
+5. Subscribe to the live stream in the dashboard.
+6. Render tables, charts, and maps from the latest cached messages.
+
+The two main code entry points are:
+
+- `Task1-3_data&MQTT.py`: data retrieval, cleaning, integration, and MQTT publishing
+- `Task4_appStreamlit.py`: MQTT subscription, in-memory caching, and Streamlit visualization
+
+## 2. Data Retrieval
+
+### 2.1 Source Endpoints
+
+The project uses the Open Electricity API endpoints described in the report:
+
+- `/v4/facilities/`
+  - returns facility code, facility name, and coordinates
+  - used to build the facility base table
+- `/v4/data/facilities/NEM`
+  - returns per-facility operational time-series data
+  - used for `power_value` and `emission_value`
+- `/v4/market/network/NEM`
+  - returns market-wide time-series data
+  - used for `price_per_mwh` and `demand_mw`
+
+The data is restricted to the NEM network via the `network=NEM` filter.
+
+### 2.2 Time Window and Granularity
+
+The report states that the pipeline retrieves one week of 5-minute records and normalizes timestamps into Sydney time.
+
+In the repository, the cleaned output preserves:
+
+- a single facility-level primary key
+- ISO 8601 timestamps
+- timezone-aware Sydney timestamps
+
+## 3. Cleaning and Standardization
+
+Cleaning happens before MQTT publishing, so the stream already carries normalized rows.
+
+### 3.1 Schema Normalization
+
+The cleaned dataset consolidates:
+
+- facility identity and coordinates
+- operational metrics
+- market metrics
+- Assignment 1 metadata such as fuel type and state
+
+The intended integrated schema is centered on:
+
+- `facility_code`
+- `facility_name`
+- `timestamp`
+- `lat`
+- `lng`
+- `state`
+- `fuel_list`
+- `power_value`
+- `emission_value`
+- `price_per_mwh`
+- `demand_mw`
+
+### 3.2 Invalid Values
+
+The report describes a defensive cleaning strategy for invalid values:
+
+- negative power or emissions values are treated as invalid
+- they are counted and then replaced or corrected during cleaning
+- NaN is preserved as the marker for real missing data
+
+The important distinction is:
+
+- `0` means a real measured zero
+- `NaN` or `None` means the value was missing or not available
+
+### 3.3 Missing-Value Handling in the Report
+
+The report’s stated policy is:
+
+- **Facilities with fully missing `Power (MW)` and `Emissions (tonnes)`** are filtered out
+  - these records do not provide enough operational insight
+- **Continuous gaps in 5-minute series** are filled in a split manner
+  - the first half uses forward fill
+  - the second half uses backward fill
+  - this is meant to reduce trend distortion
+- **Optional market fields `Price ($/MWh)` and `Demand (MW)`** are kept as `NaN`
+  - they are not force-filled to zero
+  - this avoids inventing fake market smoothness
+
+### 3.4 Missing-Value Handling in the Current Code
+
+The repository currently preserves the same semantic distinction:
+
+- required core fields must exist before a record is accepted
+- optional metrics may stay missing
+- the dashboard displays missing optional metrics as `N/A`
+
+Concretely:
+
+- `Task1-3_data&MQTT.py` leaves optional values as `None` when they are absent
+- `Task4_appStreamlit.py` preserves those values as missing and does not convert them to `0.0`
+
+This means the live system keeps missing data visible as missing, rather than silently turning it into a real numeric value.
+
+## 4. Integration with Assignment 1
+
+The operational data is combined with static metadata from Assignment 1:
+
+- `facility_code` is the integration key
+- `facility_name` is used for fuzzy matching and grouping
+- static fields such as `state`, `lat`, `lng`, and `fuel_list` are attached to the operational rows
+
+The report describes this as a merge between:
+
+- Open Electricity operational data
+- NGER / CER static metadata
+
+The current pipeline keeps the same intent:
+
+- static facility context is attached once
+- dynamic metrics are updated on each incoming record
+- records without valid coordinates are not useful for map rendering and are skipped in the dashboard
+
+## 5. MQTT Publishing
+
+### 5.1 Topic Design
+
+Published measurement messages use:
+
+- `comp5339/task123/measurements/{facility_code}`
+
+This allows the dashboard to subscribe with:
+
+- `comp5339/task123/measurements/#`
+
+### 5.2 Message Payload
+
+Each published payload contains:
+
+- `seq`
+- `facility_code`
+- `facility_name`
+- `timestamp`
+- `state`
+- `fuel_list`
+- `power_value`
+- `emission_value`
+- `price_per_mwh`
+- `demand_mw`
+- `lat`
+- `lng`
+- `unit`
+- `sent_mono_ns`
+- `slot_mono_ns`
+
+The monotonic timestamps are included for auditability and to show that the publisher follows a fixed time schedule.
+
+### 5.3 Ordering and Retry Behavior
+
+The report states that the stream should be globally ordered and emitted with a strict 0.1-second cadence.
+
+The current publisher keeps that behavior and additionally makes the commit point safer:
+
+- rows are sorted by `(timestamp, facility_code)`
+- the publisher sends rows in deterministic order
+- the cursor is advanced only after publish confirmation
+- if publish fails, the current row is retried on the next polling cycle
+
+This prevents silent message loss when the broker is unavailable or temporarily overloaded.
+
+## 6. Subscription and In-Memory Cache
+
+`Task4_appStreamlit.py` subscribes to the MQTT wildcard topic and decodes each JSON payload.
+
+### 6.1 Validation on Receive
+
+A message is accepted only if core fields are valid:
+
+- `facility_code`
+- `lat`
+- `lng`
+- `power_value`
+
+If any of these are missing or malformed, the message is discarded.
+
+Optional metrics remain optional:
+
+- `emission_value`
+- `price_per_mwh`
+- `demand_mw`
+
+### 6.2 Cache Model
+
+The dashboard keeps the latest messages in an in-memory bounded cache:
+
+- the cache is keyed by `facility_code`
+- the latest message per facility overwrites older values
+- the cache size is bounded
+- the cache can be soft-reset on a timer
+
+This cache is the source for:
+
+- metric cards
+- the data table
+- the trend chart
+- the map
+
+## 7. Dashboard Rendering
+
+### 7.1 Metric Cards
+
+The top cards show aggregated values from the current snapshot:
+
+- total power output
+- total CO2 emissions
+- median price
+- median grid demand
+
+Missing optional values are not treated as zero:
+
+- if no valid samples exist, the card shows `N/A`
+- if valid samples exist, the aggregate is computed only from those samples
+
+### 7.2 Table View
+
+The table shows the latest record per facility and includes the core operational columns.
+
+For missing optional values:
+
+- they remain blank or missing in the underlying data
+- they are not fabricated as zeros
+
+### 7.3 Trend Chart
+
+The trend chart is built from recent MQTT messages.
+
+Missing values are handled as gaps:
+
+- numeric conversion uses missing markers instead of zero-fill
+- the SVG line breaks at missing points
+- absent data does not draw a fake flat line at zero
+
+### 7.4 Map View
+
+The map shows facility markers with a popup and tooltip.
+
+The cache signature now includes the fields that affect what the user sees:
+
+- coordinates
+- facility name
+- state
+- fuel type
+- timestamp
+- power value
+- emission value
+- price
+- demand
+
+This ensures the map refreshes when a facility’s displayed values change, even if the coordinates do not.
+
+Missing display values are shown as `N/A` in the popup instead of `0`.
+
+## 8. Missing-Value Policy by Stage
+
+| Stage | Required fields | Optional fields | Behavior |
+| --- | --- | --- | --- |
+| Raw API ingestion | `facility_code`, `lat`, `lng`, `power_value` for dashboard acceptance | `emission_value`, `price_per_mwh`, `demand_mw` | Accept required fields, preserve optional missing values |
+| Cleaning | Valid timestamps, stable schema, non-negative core metrics | Optional market metrics | Preserve `NaN` for genuinely missing data |
+| Publishing | Core payload fields and coordinates | Optional metrics | Publish `None`/missing optional metrics as-is |
+| Subscription | `facility_code`, `lat`, `lng`, `power_value` | Optional metrics | Skip invalid records, keep optional fields missing |
+| Dashboard rendering | Snapshot must contain at least one valid facility row | Optional metrics | Show `N/A`, ignore missing values in aggregates |
+
+## 9. Report vs Current Code
+
+The report describes the intended pipeline and the current code follows that overall design, with one important clarification:
+
+- the dashboard currently preserves missing optional metrics as missing values rather than converting them to zero
+
+That clarification is important because it keeps these two cases separate:
+
+- actual measured zero
+- no data available
+
+This is the correct interpretation for downstream charts, summary cards, and map popups.
+
+## 10. Practical Notes
+
+- `data/data_for_publish.csv` is the cleaned publish-ready artifact.
+- `nem_facility_data.csv` is not used as live dashboard storage anymore; the dashboard relies on MQTT plus in-memory cache.
+- The system is designed to keep running even if the MQTT broker drops temporarily, but publish confirmation is required before advancing the data cursor.
+
+## 11. Files to Read Next
+
+- `Task1-3_data&MQTT.py`
+- `Task4_appStreamlit.py`
+- `README.md`
+- `tests/test_dashboard_logic.py`
+
