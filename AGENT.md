@@ -7,12 +7,13 @@ This file is for future Codex agents working in this repository. The goal is not
 - This repository reproduces the NEM monitoring dashboard data flow locally: fetch and prepare data, publish over MQTT, subscribe in Streamlit, and render from an in-memory stream cache.
 - Only the MQTT broker is containerized locally. `docker-compose.yml` starts Mosquitto only. It does not start the Python services.
 - The publisher has two practical entrypoints:
-  - Direct script: `python3 "Task1-3_data&MQTT.py"`
+  - Direct module entrypoint: `python3 -m src.publisher.cli`
   - Render-friendly wrapper: `python scripts/run_publisher.py`
 - The dashboard also has two practical entrypoints:
   - Wrapper entrypoint: `streamlit run app/streamlit_app.py`
   - Equivalent explicit form: `python3 -m streamlit run app/streamlit_app.py --server.port 8501`
-- `scripts/run_publisher.py` is only a wrapper and executes `Task1-3_data&MQTT.py`.
+- `src/publisher/` contains the real publisher implementation.
+- `scripts/run_publisher.py` is only a wrapper and executes `src.publisher.cli`.
 - `app/streamlit_app.py` is also a wrapper and executes `Task4_appStreamlit.py`.
 - The publisher generates and reuses CSV and JSON artifacts under `data/`. Treat those files as run artifacts, not as the source of truth for code behavior.
 - The dashboard consumes MQTT live data and stores a bounded in-memory cache via `src/stream_cache.py`. It does not write the live stream back into a durable CSV history.
@@ -139,7 +140,7 @@ python scripts/run_publisher.py
 Equivalent direct entrypoint:
 
 ```bash
-python3 "Task1-3_data&MQTT.py"
+python3 -m src.publisher.cli
 ```
 
 Behavior to remember:
@@ -336,7 +337,7 @@ Before changing behavior, read these files first:
 - `README.md`
 - `render.yaml`
 - `docker-compose.yml`
-- `Task1-3_data&MQTT.py`
+- `src/publisher/`
 - `Task4_appStreamlit.py`
 - `tests/test_dashboard_logic.py`
 

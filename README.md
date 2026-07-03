@@ -13,11 +13,12 @@ The repository includes a local `.venv` for convenience. You can use that enviro
 
 - Python 3.10+ recommended
 - Docker Desktop or Docker Engine with Docker Compose
-- Internet access for the Open Electricity API used by `Task1-3_data&MQTT.py`
+- Internet access for the Open Electricity API used by `src/publisher/cli.py`
 
 ## Project Layout
 
-- `Task1-3_data&MQTT.py`: downloads and cleans data, creates `data/data_for_publish.csv`, then publishes MQTT messages
+- `src/publisher/`: fetch, cleaning, alignment, and MQTT publishing modules
+- `Task1-3_data&MQTT.py`: legacy thin wrapper around `src/publisher/cli.py`
 - `Task4_appStreamlit.py`: subscribes to MQTT, keeps a bounded in-memory cache, and renders the dashboard
 - `scripts/run_publisher.py`: Render-friendly wrapper for the publisher entrypoint
 - `app/streamlit_app.py`: Render-friendly wrapper for the Streamlit entrypoint
@@ -108,7 +109,7 @@ colima stop
 Run the data preparation script from the repository root:
 
 ```bash
-python3 "Task1-3_data&MQTT.py"
+python3 -m src.publisher.cli
 ```
 
 What it does:
@@ -203,14 +204,14 @@ These files are generated during normal execution:
 - `data/consolidated_data_cleaned.csv`
 - `data/data_for_publish.csv`
 
-If you need a clean rerun, delete the generated files above and run `Task1-3_data&MQTT.py` again.
+If you need a clean rerun, delete the generated files above and run `python3 -m src.publisher.cli` again.
 
 Live dashboard output is not written to CSV anymore. The bounded MQTT cache lives only in memory.
 
 ## Common Issues
 
 - Broker connection fails: confirm Docker is running and port `1883` is free.
-- Dashboard shows no live data: make sure `Task1-3_data&MQTT.py` is still running and the broker is reachable.
+- Dashboard shows no live data: make sure the publisher is still running and the broker is reachable.
 - Dashboard says waiting for MQTT messages: verify the publisher is sending to the same topic the dashboard subscribes to.
 - Old data is being reused: remove the generated CSVs if you want to regenerate the publisher input data.
 - API requests fail: the data preparation step needs outbound network access.

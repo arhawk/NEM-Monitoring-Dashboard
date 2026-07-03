@@ -22,7 +22,7 @@ The project follows a simple pipeline:
 
 The two main code entry points are:
 
-- `Task1-3_data&MQTT.py`: data retrieval, cleaning, integration, and MQTT publishing
+- `src/publisher/`: data retrieval, cleaning, integration, and MQTT publishing
 - `Task4_appStreamlit.py`: MQTT subscription, in-memory caching, and Streamlit visualization
 
 ## 2. Data Retrieval
@@ -105,10 +105,10 @@ The important distinction is:
 
 The repository matches that policy:
 
-- `Task1-3_data&MQTT.py` replaces negative core values with `0`
-- `Task1-3_data&MQTT.py` drops facilities where both `Power (MW)` and `Emissions (tonnes)` are fully missing
-- `Task1-3_data&MQTT.py` preserves partial gaps in core series using the split fill strategy
-- `Task1-3_data&MQTT.py` keeps optional market fields as `NaN` / `None`
+- `src/publisher/cleaning.py` replaces negative core values with `0`
+- `src/publisher/cleaning.py` drops facilities where both `Power (MW)` and `Emissions (tonnes)` are fully missing
+- `src/publisher/cleaning.py` preserves partial gaps in core series using the split fill strategy
+- `src/publisher/cleaning.py` keeps optional market fields as `NaN` / `None`
 - `Task4_appStreamlit.py` keeps optional metrics missing and shows them as `N/A`
 
 This means the live system keeps missing data visible as missing, rather than silently turning it into a fabricated numeric value.
@@ -331,7 +331,7 @@ This is the correct interpretation for downstream charts, summary cards, and map
 
 ## 11. Files to Read Next
 
-- `Task1-3_data&MQTT.py`
+- `src/publisher/`
 - `Task4_appStreamlit.py`
 - `README.md`
 - `tests/test_dashboard_logic.py`

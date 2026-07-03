@@ -27,15 +27,29 @@ def load_module(module_name: str, relative_path: str):
     return module
 
 
-task13 = load_module("task13_module", "Task1-3_data&MQTT.py")
+from src.publisher import cleaning as task13_cleaning
+from src.publisher import mqtt_publish as task13_mqtt
+
 task4 = load_module("task4_module", "Task4_appStreamlit.py")
 stream_cache = load_module("stream_cache_module", "src/stream_cache.py")
 
 
 class PublishLogicTests(TestCase):
+    def test_legacy_publisher_wrapper_import_is_side_effect_free(self) -> None:
+        module_path = ROOT / "Task1-3_data&MQTT.py"
+        with patch("src.publisher.cli.main") as main_mock:
+            spec = importlib.util.spec_from_file_location("legacy_publisher_wrapper", module_path)
+            if spec is None or spec.loader is None:
+                self.fail(f"Unable to load module from {module_path}")
+            module = importlib.util.module_from_spec(spec)
+            sys.modules["legacy_publisher_wrapper"] = module
+            spec.loader.exec_module(module)
+
+        main_mock.assert_not_called()
+
     def test_normalize_non_negative_replaces_negative_values_only(self) -> None:
         series = pd.Series([5.0, -3.0, None, 0.0, -1.5], name="Power (MW)")
-        cleaned = task13.normalize_non_negative(series)
+        cleaned = task13_cleaning.normalize_non_negative(series)
         self.assertEqual(cleaned.iloc[0], 5.0)
         self.assertEqual(cleaned.iloc[1], 0.0)
         self.assertTrue(pd.isna(cleaned.iloc[2]))
@@ -50,12 +64,12 @@ class PublishLogicTests(TestCase):
                 "Emissions (tonnes)": [None, None],
             }
         )
-        result = task13.handle_missing_values_fast(group)
+        result = task13_cleaning.handle_missing_values_fast(group)
         self.assertTrue(result.empty)
 
     def test_fill_missing_half_ffill_bfill_keeps_partial_gap_semantics(self) -> None:
         series = pd.Series([1.0, None, None, 4.0], name="Power (MW)")
-        cleaned = task13.fill_missing_half_ffill_bfill(series)
+        cleaned = task13_cleaning.fill_missing_half_ffill_bfill(series)
         self.assertEqual(cleaned.iloc[1], 1.0)
         self.assertEqual(cleaned.iloc[2], 4.0)
 
@@ -73,10 +87,10 @@ class PublishLogicTests(TestCase):
                 return self._published
 
         client = Mock()
-        client.publish.return_value = DummyInfo(task13.mqtt.MQTT_ERR_SUCCESS, True)
-        self.assertTrue(task13.safe_publish_stream(client, "topic", {"x": 1}))
-        client.publish.return_value = DummyInfo(task13.mqtt.MQTT_ERR_SUCCESS, False)
-        self.assertFalse(task13.safe_publish_stream(client, "topic", {"x": 1}))
+        client.publish.return_value = DummyInfo(task13_mqtt.mqtt.MQTT_ERR_SUCCESS, True)
+        self.assertTrue(task13_mqtt.safe_publish_stream(client, "topic", {"x": 1}))
+        client.publish.return_value = DummyInfo(task13_mqtt.mqtt.MQTT_ERR_SUCCESS, False)
+        self.assertFalse(task13_mqtt.safe_publish_stream(client, "topic", {"x": 1}))
 
     def test_publish_new_since_stops_on_failed_publish(self) -> None:
         rows = [
@@ -113,10 +127,10 @@ class PublishLogicTests(TestCase):
         ]
         state = {"seq": 0, "last_ts": None, "last_fac": ""}
 
-        with patch.object(task13, "safe_publish_stream", return_value=False) as publish_mock, \
-            patch.object(task13, "sleep_until_ns", return_value=None), \
-            patch.object(task13, "perf_counter_ns", return_value=0):
-            task13.publish_new_since(Mock(), rows, state)
+        with patch.object(task13_mqtt, "safe_publish_stream", return_value=False) as publish_mock, \
+            patch.object(task13_mqtt, "sleep_until_ns", return_value=None), \
+            patch.object(task13_mqtt, "perf_counter_ns", return_value=0):
+            task13_mqtt.publish_new_since(Mock(), rows, state)
 
         self.assertEqual(state, {"seq": 0, "last_ts": None, "last_fac": ""})
         self.assertEqual(publish_mock.call_count, 1)
@@ -141,10 +155,10 @@ class PublishLogicTests(TestCase):
         ]
         state = {"seq": 0, "last_ts": None, "last_fac": ""}
 
-        with patch.object(task13, "safe_publish_stream", return_value=True), \
-            patch.object(task13, "sleep_until_ns", return_value=None), \
-            patch.object(task13, "perf_counter_ns", return_value=0):
-            task13.publish_new_since(Mock(), rows, state)
+        with patch.object(task13_mqtt, "safe_publish_stream", return_value=True), \
+            patch.object(task13_mqtt, "sleep_until_ns", return_value=None), \
+            patch.object(task13_mqtt, "perf_counter_ns", return_value=0):
+            task13_mqtt.publish_new_since(Mock(), rows, state)
 
         self.assertEqual(state["seq"], 1)
         self.assertEqual(state["last_fac"], "A1")
