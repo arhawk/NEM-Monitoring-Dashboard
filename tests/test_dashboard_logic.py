@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 import sys
 from unittest import TestCase
@@ -153,13 +154,35 @@ class DashboardLogicTests(TestCase):
         runtime = Mock()
         runtime.status = status
         runtime.last_error = None
+        runtime.last_soft_reset_at = datetime(2026, 7, 3, 23, 56, 37, tzinfo=timezone.utc)
         runtime.cache.messages_since_reset.return_value = 3
-        runtime.cache.get_latest_message.return_value = None
         runtime.cache.size.return_value = 2
         runtime.cache.max_size.return_value = 100
         runtime.cache.last_updated_at.return_value = None
         runtime.cache.last_reset_at.return_value = None
         return runtime
+
+    def test_soft_reset_clears_current_cache_and_updates_timestamp(self) -> None:
+        runtime = Mock()
+        runtime.status = "Connected"
+        runtime.last_error = "stale error"
+        runtime.last_soft_reset_at = datetime(2026, 7, 3, 23, 56, 37, tzinfo=timezone.utc)
+        runtime.cache = stream_cache.StreamCache(maxlen=10)
+        runtime._set_status = Mock()
+        runtime._schedule_connect = Mock()
+
+        runtime.cache.add_message({"facility_code": "A1"})
+        previous_reset_at = runtime.cache.last_reset_at()
+        task4._soft_reset_runtime(runtime)
+
+        self.assertEqual(runtime.cache.size(), 0)
+        self.assertEqual(runtime.cache.messages_since_reset(), 0)
+        self.assertIsNone(runtime.cache.last_updated_at())
+        self.assertGreater(runtime.cache.last_reset_at(), previous_reset_at)
+        self.assertIsNone(runtime.last_error)
+        self.assertGreater(runtime.last_soft_reset_at.timestamp(), datetime(2026, 7, 3, 23, 56, 37, tzinfo=timezone.utc).timestamp())
+        runtime._set_status.assert_not_called()
+        runtime._schedule_connect.assert_not_called()
 
     def test_normalize_message_preserves_missing_optional_metrics(self) -> None:
         payload = {
@@ -673,7 +696,6 @@ class DashboardLogicTests(TestCase):
                 "Grid Region Filter",
                 "Fuel Type Filter",
                 "Data Statistics",
-                "Latest message",
             ],
         )
         write_lines = [str(call.args[0]) for call in write_mock.call_args_list]
@@ -687,17 +709,8 @@ class DashboardLogicTests(TestCase):
         warning_mock.assert_not_called()
         error_mock.assert_not_called()
 
-    def test_render_sidebar_hides_last_message_timestamps(self) -> None:
+    def test_render_sidebar_no_longer_renders_latest_message_block(self) -> None:
         runtime = self._build_sidebar_runtime(status="Connected")
-        runtime.cache.get_latest_message.return_value = {
-            "facility_code": "A1",
-            "facility_name": "Alpha",
-            "state": "NSW",
-            "fuel_list": "Gas",
-            "fuel_group": "Fossil / Non-renewable",
-            "timestamp": "2026-07-03T23:43:39+10:00",
-            "received_at_iso": "2026-07-03T23:43:39+10:00",
-        }
         filtered_snapshot = {
             "A1": {"facility_code": "A1"},
             "A2": {"facility_code": "A2"},
@@ -710,17 +723,50 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "selectbox"), \
             patch.object(task4.st, "write") as write_mock, \
             patch.object(task4.st, "caption") as caption_mock, \
-            patch.object(task4.st, "json"), \
+            patch.object(task4.st, "json") as json_mock, \
             patch.object(task4.st, "info"), \
             patch.object(task4.st, "success"), \
             patch.object(task4.st, "warning"), \
             patch.object(task4.st, "error"):
             task4._render_sidebar(runtime, {}, filtered_snapshot, "live", ["All", "Gas"])
 
-        self.assertFalse(any(str(call.args[0]).startswith("Last message:") for call in write_mock.call_args_list))
-        self.assertFalse(any("Filtered Facilities:" in str(call.args[0]) for call in write_mock.call_args_list))
+        runtime.cache.get_latest_message.assert_not_called()
+        json_mock.assert_not_called()
+        self.assertFalse(any("No MQTT messages have arrived yet." in str(call.args[0]) for call in write_mock.call_args_list))
         caption_mock.assert_any_call("2 facilities selected")
         self.assertTrue(any(str(call.args[0]) == "2 facilities selected" for call in caption_mock.call_args_list))
+
+    def test_render_sidebar_reset_button_triggers_soft_reset_and_shows_timestamp_after_button(self) -> None:
+        runtime = self._build_sidebar_runtime(status="Connected")
+        updated_reset_at = datetime(2026, 7, 4, 1, 2, 3, tzinfo=timezone.utc)
+
+        def soft_reset_side_effect(runtime_obj):
+            runtime.last_soft_reset_at = updated_reset_at
+            runtime_obj.last_soft_reset_at = updated_reset_at
+
+        with patch.dict(task4.st.session_state, {"display_mode": "power_value", "selected_fuel": "All", "selected_region": "All"}, clear=True), \
+            patch.object(task4.st, "header"), \
+            patch.object(task4.st, "subheader"), \
+            patch.object(task4.st, "button", return_value=True) as button_mock, \
+            patch.object(task4.st, "selectbox"), \
+            patch.object(task4.st, "write") as write_mock, \
+            patch.object(task4.st, "caption"), \
+            patch.object(task4.st, "json"), \
+            patch.object(task4.st, "info"), \
+            patch.object(task4.st, "success"), \
+            patch.object(task4.st, "warning"), \
+            patch.object(task4.st, "error"), \
+            patch.object(task4, "_soft_reset_runtime", side_effect=soft_reset_side_effect) as soft_reset_mock, \
+            patch.object(task4.st, "rerun") as rerun_mock:
+            task4._render_sidebar(runtime, {}, {}, "live", ["All", "Gas"])
+
+        button_mock.assert_called_once_with("Reset Cache", key="reset_cache")
+        soft_reset_mock.assert_called_once()
+        rerun_mock.assert_not_called()
+        self.assertIn(
+            f"Last soft reset: {task4._format_ts(updated_reset_at.timestamp())}",
+            [str(call.args[0]) for call in write_mock.call_args_list],
+        )
 
     def test_render_sidebar_shows_ready_notice_once_after_fallback(self) -> None:
         runtime = self._build_sidebar_runtime(status="Connected")

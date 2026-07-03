@@ -619,11 +619,7 @@ class DashboardRuntime:
             return
         self._schedule_connect(initial=False)
 
-    def maybe_soft_reset(self) -> bool:
-        if RESET_INTERVAL_HOURS <= 0:
-            return False
-        if self.cache.uptime_seconds() < (RESET_INTERVAL_HOURS * 3600):
-            return False
+    def soft_reset(self) -> None:
         current_status = self.status
         self.cache.clear()
         self.last_soft_reset_at = datetime.now(timezone.utc)
@@ -632,12 +628,38 @@ class DashboardRuntime:
         if current_status != "Connected":
             self._set_status("Connecting", None)
             self._schedule_connect(initial=False)
+
+    def maybe_soft_reset(self) -> bool:
+        if RESET_INTERVAL_HOURS <= 0:
+            return False
+        if self.cache.uptime_seconds() < (RESET_INTERVAL_HOURS * 3600):
+            return False
+        _soft_reset_runtime(self)
         return True
 
 
 @st.cache_resource(show_spinner=False)
 def get_runtime() -> DashboardRuntime:
     return DashboardRuntime()
+
+
+def _soft_reset_runtime(runtime: Any) -> None:
+    current_status = getattr(runtime, "status", None)
+    cache = getattr(runtime, "cache", None)
+    if cache is None:
+        return
+    cache.clear()
+    if hasattr(runtime, "last_soft_reset_at"):
+        runtime.last_soft_reset_at = datetime.now(timezone.utc)
+    if hasattr(runtime, "last_error"):
+        runtime.last_error = None
+    if hasattr(cache, "set_last_error"):
+        cache.set_last_error(None)
+    if current_status != "Connected":
+        if hasattr(runtime, "_set_status"):
+            runtime._set_status("Connecting", None)
+        if hasattr(runtime, "_schedule_connect"):
+            runtime._schedule_connect(initial=False)
 
 
 def _ensure_session_defaults() -> None:
@@ -702,32 +724,21 @@ def _render_sidebar(
     st.selectbox("Select Region", DISPLAY_REGION_OPTIONS, key="selected_region")
 
     st.subheader("Fuel Type Filter")
-    selected_count = len(filtered_snapshot)
-    selected_label = "facility selected" if selected_count == 1 else "facilities selected"
-    st.caption(f"{selected_count} {selected_label}")
     if st.session_state.get("selected_fuel") not in fuel_options:
         st.session_state.selected_fuel = "All"
     st.selectbox("Select Fuel Type", fuel_options, key="selected_fuel")
+    selected_count = len(filtered_snapshot)
+    selected_label = "facility selected" if selected_count == 1 else "facilities selected"
+    st.caption(f"{selected_count} {selected_label}")
 
     st.subheader("Data Statistics")
     st.write(f"Facilities in snapshot: {len(snapshot)}")
-    st.write(f"Last soft reset: {_format_ts(runtime.cache.last_reset_at())}")
     st.write(f"MQTT cache size: {runtime.cache.size()} / {runtime.cache.max_size()}")
 
-    st.subheader("Latest message")
-    latest = runtime.cache.get_latest_message()
-    if latest:
-        st.json(
-            {
-                "facility_code": latest.get("facility_code"),
-                "facility_name": latest.get("facility_name"),
-                "state": latest.get("state"),
-                "fuel_list": latest.get("fuel_list"),
-                "fuel_group": latest.get("fuel_group"),
-            }
-        )
-    else:
-        st.write("No MQTT messages have arrived yet.")
+    if st.button("Reset Cache", key="reset_cache"):
+        _soft_reset_runtime(runtime)
+
+    st.write(f"Last soft reset: {_format_ts(runtime.last_soft_reset_at.timestamp())}")
 
 
 def _render_table(filtered_snapshot: Dict[str, Dict[str, Any]]) -> None:
