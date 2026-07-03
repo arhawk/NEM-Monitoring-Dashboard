@@ -71,6 +71,9 @@ class _DummyStreamlit(SimpleNamespace):
     def markdown(self, *args, **kwargs):
         return None
 
+    def badge(self, *args, **kwargs):
+        return None
+
     def dataframe(self, *args, **kwargs):
         return None
 

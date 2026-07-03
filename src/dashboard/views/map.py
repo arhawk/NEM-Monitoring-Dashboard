@@ -161,7 +161,6 @@ def _get_cached_marker_payload(
 
 def _render_map(filtered_snapshot: Dict[str, Dict[str, str]], display_mode: str) -> None:
     st.subheader("Facility Map")
-    st.caption("Green = Renewable | Red = Fossil / Non-renewable | Blue = Storage | Orange = Mixed / Other")
     if not filtered_snapshot:
         st.info("No matching facility data in cache.")
         return

@@ -77,8 +77,8 @@ def _render_current_trend(messages: List[Dict[str, Any]]) -> None:
 
 
 def _render_header(runtime: DashboardRuntime, stats: Dict[str, Any], snapshot: Dict[str, Dict[str, Any]]) -> None:
-    st.title("⚡ National Electricity Market (NEM) Facility Real-time Monitoring Dashboard")
-    st.caption("Live MQTT stream with bounded in-memory cache. No live CSV storage is used.")
+    st.title("⚡ National Electricity Market (NEM) Facility Monitoring Dashboard")
+    st.badge("Real-time Update", icon=":material/arrow_upward:", color="green")
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:

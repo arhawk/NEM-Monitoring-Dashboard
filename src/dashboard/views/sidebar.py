@@ -117,7 +117,32 @@ def _render_sidebar(
     st.write(f"Facilities in snapshot: {len(snapshot)}")
     st.write(f"MQTT cache size: {runtime.cache.size()} / {runtime.cache.max_size()}")
 
-    if st.button("Reset Cache", key="reset_cache"):
+    st.markdown(
+        textwrap.dedent(
+            """
+            <style>
+              div[data-testid="stButton"] > button[kind="primary"] {
+                background: #dc2626;
+                border: 1px solid #b91c1c;
+                color: #ffffff;
+              }
+
+              div[data-testid="stButton"] > button[kind="primary"]:hover {
+                background: #b91c1c;
+                border-color: #991b1b;
+                color: #ffffff;
+              }
+
+              div[data-testid="stButton"] > button[kind="primary"]:focus:not(:active) {
+                border-color: #fca5a5;
+                box-shadow: 0 0 0 0.15rem rgba(220, 38, 38, 0.25);
+              }
+            </style>
+            """
+        ).strip(),
+        unsafe_allow_html=True,
+    )
+    if st.button("Reset Cache", key="reset_cache", type="primary"):
         _soft_reset_runtime(runtime)
 
     st.write(f"Last soft reset: {_format_ts(runtime.last_soft_reset_at.timestamp())}")
