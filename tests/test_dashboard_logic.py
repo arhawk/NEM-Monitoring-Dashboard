@@ -321,33 +321,101 @@ class DashboardLogicTests(TestCase):
         self.assertEqual(payload["markers"][0]["fingerprint"][0], "power_value")
         self.assertGreater(payload["markers"][0]["radius"], 5.5)
 
-    def test_build_trend_frame_keeps_missing_values_as_nan(self) -> None:
+    def test_get_latest_trend_message_prefers_latest_valid_record(self) -> None:
         messages = [
             {
-                "received_at": 1,
                 "facility_code": "A1",
-                "state": "NSW",
+                "facility_name": "Alpha",
                 "power_value": 10.0,
-                "emission_value": None,
-                "price_per_mwh": None,
-                "demand_mw": None,
             },
             {
-                "received_at": 2,
-                "facility_code": "A1",
-                "state": "NSW",
+                "facility_code": "",
+                "facility_name": "Broken",
+                "power_value": 11.0,
+            },
+            {
+                "facility_code": "A2",
+                "facility_name": "Beta",
                 "power_value": 12.0,
-                "emission_value": 4.0,
-                "price_per_mwh": 20.0,
-                "demand_mw": 30.0,
             },
         ]
 
-        frame = task4._build_trend_frame(messages)
-        self.assertTrue(pd.isna(frame.loc[0, "emission_value"]))
-        self.assertTrue(pd.isna(frame.loc[0, "price_per_mwh"]))
-        self.assertTrue(pd.isna(frame.loc[0, "demand_mw"]))
-        self.assertEqual(frame.loc[1, "emission_value"], 4.0)
+        latest = task4._get_latest_trend_message(messages)
+        self.assertIsNotNone(latest)
+        self.assertEqual(latest["facility_code"], "A2")
+        self.assertEqual(latest["facility_name"], "Beta")
+
+    def test_build_current_trend_cards_formats_latest_metrics(self) -> None:
+        message = {
+            "facility_code": "A1",
+            "facility_name": "Alpha",
+            "power_value": 12.345,
+            "emission_value": 6.789,
+            "price_per_mwh": 101.234,
+            "demand_mw": 21993.5,
+        }
+
+        cards = task4._build_current_trend_cards(message)
+        self.assertEqual(
+            [card["label"] for card in cards],
+            [
+                "Power Output MW",
+                "CO2 Emissions tCO2e",
+                "Price $/MWh",
+                "Grid Demand MW",
+            ],
+        )
+        self.assertEqual(cards[0]["value"], "12.35 MW")
+        self.assertEqual(cards[1]["value"], "6.79 tCO2e")
+        self.assertEqual(cards[2]["value"], "101.23 $/MWh")
+        self.assertEqual(cards[3]["value"], "21993.5 MW")
+
+    def test_build_current_trend_html_wraps_content_in_small_box(self) -> None:
+        message = {
+            "facility_code": "WOOLGSF",
+            "facility_name": "Woolooga",
+            "timestamp": "2025-10-25T08:50:00",
+            "power_value": 0.0,
+            "emission_value": 0.0,
+            "price_per_mwh": 102.16,
+            "demand_mw": 23448.02,
+        }
+
+        html = task4._build_current_trend_html(message)
+        self.assertIn("Current Facility: Woolooga", html)
+        self.assertIn("WOOLGSF | 2025-10-25T08:50:00", html)
+        self.assertIn("border: 1px solid #dbe4ee", html)
+        self.assertIn("font-size: 0.92rem", html)
+        self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr))", html)
+
+    def test_render_current_trend_shows_empty_state_when_no_messages(self) -> None:
+        with patch.object(task4.st, "subheader") as subheader_mock, \
+            patch.object(task4.st, "info") as info_mock:
+            task4._render_current_trend([])
+
+        subheader_mock.assert_called_once_with("Current Facility")
+        info_mock.assert_called_once_with("No MQTT messages available for current trend yet.")
+
+    def test_render_current_trend_uses_html_component_for_latest_record(self) -> None:
+        messages = [
+            {
+                "facility_code": "WOOLGSF",
+                "facility_name": "Woolooga",
+                "timestamp": "2025-10-25T08:50:00",
+                "power_value": 0.0,
+                "emission_value": 0.0,
+                "price_per_mwh": 102.16,
+                "demand_mw": 23448.02,
+            }
+        ]
+
+        with patch.object(task4.components, "html") as html_mock:
+            task4._render_current_trend(messages)
+
+        html_mock.assert_called_once()
+        self.assertIn("Current Facility: Woolooga", html_mock.call_args.args[0])
+        self.assertEqual(html_mock.call_args.kwargs["height"], 220)
+        self.assertFalse(html_mock.call_args.kwargs["scrolling"])
 
     def test_refresh_interval_defaults_to_one_second(self) -> None:
         with patch.dict(os.environ, {}, clear=True):
@@ -356,83 +424,6 @@ class DashboardLogicTests(TestCase):
     def test_refresh_interval_prefers_environment_override(self) -> None:
         with patch.dict(os.environ, {"REFRESH_INTERVAL_SECONDS": "7"}, clear=True):
             self.assertEqual(stream_cache.get_refresh_interval_seconds(), 7)
-
-    def test_build_trend_svg_uses_fixed_top_y_axis_label(self) -> None:
-        messages = [
-            {
-                "received_at": 1,
-                "facility_code": "A1",
-                "state": "NSW",
-                "power_value": 1200.0,
-                "emission_value": 400.0,
-                "price_per_mwh": 80.0,
-                "demand_mw": 900.0,
-            },
-            {
-                "received_at": 2,
-                "facility_code": "A1",
-                "state": "NSW",
-                "power_value": 1800.0,
-                "emission_value": 500.0,
-                "price_per_mwh": 90.0,
-                "demand_mw": 1100.0,
-            },
-        ]
-
-        svg = task4._build_trend_svg(messages)
-        self.assertIn('>20000</text>', svg)
-
-    def test_build_trend_svg_keeps_fixed_upper_bound_when_values_below_cap(self) -> None:
-        messages = [
-            {
-                "received_at": 1,
-                "facility_code": "A1",
-                "state": "NSW",
-                "power_value": 100.0,
-                "emission_value": 200.0,
-                "price_per_mwh": 300.0,
-                "demand_mw": 400.0,
-            },
-            {
-                "received_at": 2,
-                "facility_code": "A1",
-                "state": "NSW",
-                "power_value": 150.0,
-                "emission_value": 250.0,
-                "price_per_mwh": 350.0,
-                "demand_mw": 450.0,
-            },
-        ]
-
-        svg = task4._build_trend_svg(messages)
-        self.assertIn('>20000</text>', svg)
-        self.assertNotIn('>450</text>', svg)
-
-    def test_build_trend_svg_handles_values_above_fixed_cap(self) -> None:
-        messages = [
-            {
-                "received_at": 1,
-                "facility_code": "A1",
-                "state": "NSW",
-                "power_value": 20200.0,
-                "emission_value": 20100.0,
-                "price_per_mwh": 20050.0,
-                "demand_mw": 20300.0,
-            },
-            {
-                "received_at": 2,
-                "facility_code": "A1",
-                "state": "NSW",
-                "power_value": 20400.0,
-                "emission_value": 20150.0,
-                "price_per_mwh": 20075.0,
-                "demand_mw": 20500.0,
-            },
-        ]
-
-        svg = task4._build_trend_svg(messages)
-        self.assertIn('>20000</text>', svg)
-        self.assertIn('points="55.0,28.0 1145.0,28.0"', svg)
 
     def test_optional_market_fields_keep_missing_semantics(self) -> None:
         payload = {

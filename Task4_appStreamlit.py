@@ -4,12 +4,14 @@ import json
 import os
 import time
 import html
+import textwrap
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
 import paho.mqtt.client as mqtt
 import streamlit as st
+import streamlit.components.v1 as components
 
 from src.nem_map_component import render_nem_facility_map
 from src.stream_cache import (
@@ -335,129 +337,97 @@ def _build_marker_payload(
     }
 
 
-def _build_trend_frame(messages: List[Dict[str, Any]]) -> pd.DataFrame:
-    if not messages:
-        return pd.DataFrame()
-    df = pd.DataFrame(messages)
-    if "received_at" not in df.columns:
-        return pd.DataFrame()
-    df = df.copy()
-    df["received_at"] = pd.to_datetime(df["received_at"], unit="s", utc=True)
-    numeric_cols = ["power_value", "emission_value", "price_per_mwh", "demand_mw"]
-    for col in numeric_cols:
-        if col not in df.columns:
-            df[col] = pd.NA
-        df[col] = pd.to_numeric(df[col], errors="coerce")
-    return df[["received_at", "facility_code", "state", *numeric_cols]]
+def _get_latest_trend_message(messages: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    for message in reversed(messages):
+        if message.get("facility_code"):
+            return message
+    return None
 
 
-def _build_trend_svg(messages: List[Dict[str, Any]]) -> str:
-    df = _build_trend_frame(messages)
-    if df.empty:
-        return ""
-
-    trend_max_y = 20000.0
-    df = df.tail(120).copy()
-    width = 1200
-    height = 300
-    padding_x = 55
-    padding_y = 28
-    plot_w = width - padding_x * 2
-    plot_h = height - padding_y * 2
-    metrics = [
-        ("power_value", "#0f766e", "Power"),
-        ("emission_value", "#b45309", "Emissions"),
-        ("price_per_mwh", "#2563eb", "Price"),
-        ("demand_mw", "#7c3aed", "Demand"),
+def _build_current_trend_cards(message: Dict[str, Any]) -> List[Dict[str, str]]:
+    return [
+        {
+            "label": "Power Output MW",
+            "value": _format_optional_metric(message.get("power_value"), "MW"),
+        },
+        {
+            "label": "CO2 Emissions tCO2e",
+            "value": _format_optional_metric(message.get("emission_value"), "tCO2e"),
+        },
+        {
+            "label": "Price $/MWh",
+            "value": _format_optional_metric(message.get("price_per_mwh"), "$/MWh"),
+        },
+        {
+            "label": "Grid Demand MW",
+            "value": _format_optional_metric(message.get("demand_mw"), "MW"),
+        },
     ]
-    all_values = []
-    for metric, _, _ in metrics:
-        all_values.extend([float(v) for v in df[metric].tolist() if pd.notna(v)])
-    if not all_values:
-        return ""
 
-    min_y = min(all_values)
-    max_y = trend_max_y
-    if min_y >= max_y:
-        min_y = max_y - 1.0
 
-    def scale_x(index: int, total: int) -> float:
-        if total <= 1:
-            return padding_x
-        return padding_x + (plot_w * index / (total - 1))
-
-    def scale_y(value: float) -> float:
-        normalized = (value - min_y) / (max_y - min_y)
-        normalized = min(max(normalized, 0.0), 1.0)
-        return padding_y + plot_h - normalized * plot_h
-
-    def polyline_segments(metric: str) -> List[str]:
-        segments: List[str] = []
-        current: List[str] = []
-        values = df[metric].tolist()
-        total = len(values)
-        for idx, value in enumerate(values):
-            if pd.isna(value):
-                if current:
-                    segments.append(" ".join(current))
-                    current = []
-                continue
-            current.append(f"{scale_x(idx, total):.1f},{scale_y(float(value)):.1f}")
-        if current:
-            segments.append(" ".join(current))
-        return segments
-
-    grid_lines = []
-    for step in range(5):
-        y = padding_y + plot_h * step / 4
-        grid_lines.append(f'<line x1="{padding_x}" y1="{y:.1f}" x2="{width - padding_x}" y2="{y:.1f}" stroke="#e5e7eb" stroke-width="1" />')
-
-    legend_items = []
-    legend_x = padding_x
-    legend_y = 18
-    for metric, color, label in metrics:
-        legend_items.append(
-            f'<rect x="{legend_x}" y="{legend_y - 10}" width="10" height="10" fill="{color}" />'
-            f'<text x="{legend_x + 14}" y="{legend_y}" font-size="12" fill="#334155">{html.escape(label)}</text>'
+def _build_current_trend_html(message: Dict[str, Any]) -> str:
+    facility_name = html.escape(str(message.get("facility_name") or message.get("facility_code") or "Unknown Facility"))
+    facility_code = html.escape(str(message.get("facility_code") or ""))
+    timestamp = html.escape(str(message.get("timestamp") or ""))
+    details = " | ".join(part for part in (facility_code, timestamp) if part)
+    cards = _build_current_trend_cards(message)
+    card_items = []
+    for card in cards:
+        card_items.append(
+            f"""
+            <div style="
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 10px;
+                padding: 10px 12px;
+                min-width: 0;
+            ">
+              <div style="font-size: 0.74rem; color: #64748b; font-weight: 600; line-height: 1.2; margin-bottom: 4px;">
+                {html.escape(card["label"])}
+              </div>
+              <div style="font-size: 0.96rem; color: #0f172a; font-weight: 700; line-height: 1.2;">
+                {html.escape(card["value"])}
+              </div>
+            </div>
+            """
         )
-        legend_x += 120
 
-    y_labels = []
-    for step in range(5):
-        value = max_y - (max_y - min_y) * step / 4
-        y = padding_y + plot_h * step / 4 + 4
-        y_labels.append(f'<text x="8" y="{y:.1f}" font-size="11" fill="#64748b">{value:.0f}</text>')
+    detail_html = f'<div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">{details}</div>' if details else ""
+    return textwrap.dedent(
+        f"""
+        <div style="
+            border: 1px solid #dbe4ee;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            padding: 12px 14px 14px 14px;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+            margin-top: 2px;
+        ">
+          <div style="font-size: 0.92rem; color: #0f172a; font-weight: 700; line-height: 1.2;">
+            Current Facility: {facility_name}
+          </div>
+          {detail_html}
+          <div style="
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+          ">
+            {''.join(card_items)}
+          </div>
+        </div>
+        """
+    ).strip()
 
-    x_labels = []
-    if len(df) > 1:
-        positions = [0, len(df) // 2, len(df) - 1]
-        seen = set()
-        for pos in positions:
-            if pos in seen:
-                continue
-            seen.add(pos)
-            label = df.iloc[pos]["received_at"].strftime("%H:%M:%S")
-            x = scale_x(pos, len(df))
-            x_labels.append(f'<text x="{x:.1f}" y="{height - 6}" font-size="11" text-anchor="middle" fill="#64748b">{html.escape(label)}</text>')
 
-    path_elements = []
-    for metric, color, _ in metrics:
-        for segment in polyline_segments(metric):
-            path_elements.append(
-                f'<polyline fill="none" stroke="{color}" stroke-width="2.2" points="{segment}" />'
-            )
+def _render_current_trend(messages: List[Dict[str, Any]]) -> None:
+    latest = _get_latest_trend_message(messages)
+    if latest is None:
+        st.subheader("Current Facility")
+        st.info("No MQTT messages available for current trend yet.")
+        return
 
-    svg = f"""
-    <svg viewBox="0 0 {width} {height}" width="100%" height="{height}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Recent MQTT trend chart">
-      <rect x="0" y="0" width="{width}" height="{height}" rx="16" fill="#ffffff" stroke="#e2e8f0" />
-      {"".join(grid_lines)}
-      {"".join(y_labels)}
-      {"".join(x_labels)}
-      {"".join(legend_items)}
-      {"".join(path_elements)}
-    </svg>
-    """
-    return svg
+    components.html(_build_current_trend_html(latest), height=220, scrolling=False)
 
 
 class DashboardRuntime:
@@ -662,15 +632,6 @@ def _render_sidebar(
         st.caption(runtime.last_error)
 
 
-def _render_chart(messages: List[Dict[str, Any]]) -> None:
-    st.subheader("Recent Trend")
-    svg = _build_trend_svg(messages)
-    if not svg:
-        st.info("No MQTT messages available for trend chart yet.")
-        return
-    st.markdown(svg, unsafe_allow_html=True)
-
-
 def _render_table(filtered_snapshot: Dict[str, Dict[str, Any]]) -> None:
     st.subheader("Facility Data Preview")
     if not filtered_snapshot:
@@ -724,7 +685,7 @@ def render_dashboard() -> None:
     _render_header(runtime, stats, snapshot)
     with st.sidebar:
         _render_sidebar(runtime, snapshot, filtered_snapshot, data_source)
-    _render_chart(messages)
+    _render_current_trend(messages)
     _render_map(filtered_snapshot, st.session_state.display_mode)
     _render_table(filtered_snapshot)
 
