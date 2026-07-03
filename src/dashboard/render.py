@@ -31,6 +31,8 @@ from .settings import (
     SIDEBAR_HEADER_TITLE,
 )
 
+_DASHBOARD_CONTEXT_CACHE_KEY = "_dashboard_render_context"
+
 
 def configure_page() -> None:
     st.set_page_config(page_title="NEM Facility Real-time Monitoring Dashboard", layout="wide")
@@ -266,10 +268,25 @@ def _render_map(filtered_snapshot: Dict[str, Dict[str, Any]], display_mode: str)
             st.session_state.display_mode = next_display_mode
 
 
-def _build_dashboard_context() -> Dict[str, Any]:
-    runtime = get_active_runtime()
-    _ensure_session_defaults()
+def _build_dashboard_context_signature(runtime: DashboardRuntime) -> tuple:
+    cache = runtime.cache
+    last_updated_at = cache.last_updated_at()
+    last_reset_at = cache.last_reset_at()
+    return (
+        runtime.status,
+        runtime.last_error,
+        st.session_state.get("display_mode", "power_value"),
+        st.session_state.get("selected_fuel", "All"),
+        st.session_state.get("selected_region", "All"),
+        cache.messages_since_reset(),
+        cache.size(),
+        last_updated_at,
+        last_reset_at,
+        _should_use_fallback(runtime),
+    )
 
+
+def _build_dashboard_context_payload(runtime: DashboardRuntime) -> Dict[str, Any]:
     live_messages = runtime.cache.get_recent_messages()
     use_fallback = _should_use_fallback(runtime)
     fallback_messages = _load_fallback_messages() if use_fallback else []
@@ -290,6 +307,21 @@ def _build_dashboard_context() -> Dict[str, Any]:
         "fuel_options": fuel_options,
         "stats": stats,
     }
+
+
+def _build_dashboard_context() -> Dict[str, Any]:
+    runtime = get_active_runtime()
+    _ensure_session_defaults()
+    next_signature = _build_dashboard_context_signature(runtime)
+    cached = st.session_state.get(_DASHBOARD_CONTEXT_CACHE_KEY)
+    if isinstance(cached, dict) and cached.get("signature") == next_signature:
+        payload = cached.get("payload")
+        if isinstance(payload, dict):
+            return payload
+
+    payload = _build_dashboard_context_payload(runtime)
+    st.session_state[_DASHBOARD_CONTEXT_CACHE_KEY] = {"signature": next_signature, "payload": payload}
+    return payload
 
 
 def _ensure_session_defaults() -> None:

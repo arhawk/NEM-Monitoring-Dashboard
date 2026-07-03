@@ -18,13 +18,11 @@ The repository includes a local `.venv` for convenience. You can use that enviro
 ## Project Layout
 
 - `src/publisher/`: fetch, cleaning, alignment, and MQTT publishing modules
-- `Task1-3_data&MQTT.py`: legacy thin wrapper around `src/publisher/cli.py`
 - `src/dashboard/`: dashboard runtime, data shaping, render logic, and map payload generation
 - `src/shared/stream_cache.py`: shared bounded cache and environment helpers
-- `Task4_appStreamlit.py`: compatibility wrapper for the dashboard entrypoint
 - `scripts/run_publisher.py`: Render-friendly wrapper for the publisher entrypoint
 - `app/streamlit_app.py`: Render-friendly wrapper for the Streamlit entrypoint
-- `Task5_continousCheckReport.py`: optional MQTT timing check utility
+- `archive/`: historical Task-era scripts kept out of the active tree
 - `data/`: input CSV files and generated run artifacts
 - `broker/`: Mosquitto configuration and persistence directories
 - `docker-compose.yml`: starts the Mosquitto broker only
@@ -187,14 +185,6 @@ Suggested Render environment variables:
 - `MQTT_PORT=1883`
 - `MQTT_TOPIC=comp5339/task123/measurements/#`
 - For the Streamlit service, keep the default `$PORT` that Render provides.
-
-## Optional Timing Check
-
-`Task5_continousCheckReport.py` can be used to verify that the MQTT stream is arriving at the expected cadence:
-
-```bash
-python3 Task5_continousCheckReport.py --host localhost --port 1883
-```
 
 ## Run Artifacts
 

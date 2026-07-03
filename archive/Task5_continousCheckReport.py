@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 """
 COMP5339 MQTT Publisher (fixed)
@@ -20,12 +19,15 @@ import argparse, time, json, statistics
 from collections import defaultdict
 import paho.mqtt.client as mqtt
 
+
 def pct(sorted_list, q):
-    if not sorted_list: return None
+    if not sorted_list:
+        return None
     i = (len(sorted_list)-1)*q
     lo, hi = int(i), min(int(i)+1, len(sorted_list)-1)
     w = i - lo
     return sorted_list[lo]*(1-w) + sorted_list[hi]*w
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -134,7 +136,8 @@ def main():
     # 3) 报告“到达时间”的每主题节拍（对照）
     any_topic = False
     for t, lst in per_topic_deltas_arrival.items():
-        if not lst: continue
+        if not lst:
+            continue
         any_topic = True
         print(summarize(f"TOPIC {t} (arrival)", lst))
     if not any_topic:
@@ -148,9 +151,7 @@ def main():
         print("\nRESULT:", "PASS ✅" if ok else "FAIL ❌")
     else:
         print("\nRESULT: INDETERMINATE (没有可计算间隔的数据)")
-        
+
+
 if __name__ == "__main__":
     main()
-
-
-

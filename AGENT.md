@@ -14,9 +14,9 @@ This file is for future Codex agents working in this repository. The goal is not
   - Equivalent explicit form: `python3 -m streamlit run app/streamlit_app.py --server.port 8501`
 - `src/publisher/` contains the real publisher implementation.
 - `scripts/run_publisher.py` is only a wrapper and executes `src.publisher.cli`.
-- `app/streamlit_app.py` is also a wrapper and executes `Task4_appStreamlit.py`.
+- `app/streamlit_app.py` is also a wrapper and executes `src.dashboard.app`.
 - The publisher generates and reuses CSV and JSON artifacts under `data/`. Treat those files as run artifacts, not as the source of truth for code behavior.
-- The dashboard consumes MQTT live data and stores a bounded in-memory cache via `src/stream_cache.py`. It does not write the live stream back into a durable CSV history.
+- The dashboard consumes MQTT live data and stores a bounded in-memory cache via `src/shared/stream_cache.py`. It does not write the live stream back into a durable CSV history.
 
 ## 2. Required Tools and Secrets
 
@@ -338,7 +338,7 @@ Before changing behavior, read these files first:
 - `render.yaml`
 - `docker-compose.yml`
 - `src/publisher/`
-- `Task4_appStreamlit.py`
+- `src/dashboard/render.py`
 - `tests/test_dashboard_logic.py`
 
 Operating rules:
@@ -352,4 +352,4 @@ Operating rules:
 - When changing entrypoint behavior, remember external callers may use the wrapper entrypoints:
   - `python scripts/run_publisher.py`
   - `streamlit run app/streamlit_app.py`
-- If you are changing MQTT, cache, fallback, or deployment behavior, inspect the actual environment-variable reads in `Task4_appStreamlit.py` and `src/stream_cache.py` before updating code or docs.
+- If you are changing MQTT, cache, fallback, or deployment behavior, inspect the actual environment-variable reads in `src/dashboard/runtime.py`, `src/dashboard/settings.py`, and `src/shared/stream_cache.py` before updating code or docs.

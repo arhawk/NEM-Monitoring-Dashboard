@@ -1,3 +1,2 @@
-Historical implementation files are kept in git history.
-The active dashboard implementation now lives under `src/dashboard/`.
-
+Historical implementation files are kept here only as reference snapshots.
+The active dashboard and publisher implementations now live under `src/`.

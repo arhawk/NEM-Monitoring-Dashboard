@@ -6,6 +6,7 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 import sys
+from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
@@ -30,21 +31,51 @@ def load_module(module_name: str, relative_path: str):
 
 from src.publisher import cleaning as task13_cleaning
 from src.publisher import mqtt_publish as task13_mqtt
+from src.dashboard import app as dashboard_app
+from src.dashboard import data as dashboard_data
+from src.dashboard import map_payload as dashboard_map_payload
+from src.dashboard import render as dashboard_render
+from src.dashboard import runtime as dashboard_runtime
+from src.shared import stream_cache
 
-task4 = load_module("task4_module", "Task4_appStreamlit.py")
-stream_cache = load_module("stream_cache_module", "src/stream_cache.py")
-dashboard_render = importlib.import_module("src.dashboard.render")
+task4 = SimpleNamespace()
+for module in (dashboard_render, dashboard_data, dashboard_map_payload, dashboard_runtime):
+    for name in getattr(module, "__all__", []):
+        setattr(task4, name, getattr(module, name))
+task4.st = dashboard_render.st
+task4.pd = dashboard_render.pd
+task4.components = dashboard_render.components
+task4.time = dashboard_data.time
+task4.FALLBACK_STALE_SECONDS = dashboard_data.FALLBACK_STALE_SECONDS
+task4.READY_NOTICE_SESSION_KEY = dashboard_render.READY_NOTICE_SESSION_KEY
+task4.render_nem_facility_map = dashboard_render.render_nem_facility_map
+task4.get_runtime = dashboard_runtime.get_runtime
+task4.set_active_runtime = dashboard_runtime.set_active_runtime
+task4.render_dashboard = dashboard_render.render_dashboard
+task4.main = dashboard_app.main
 
 
 class PublishLogicTests(TestCase):
     def test_legacy_publisher_wrapper_import_is_side_effect_free(self) -> None:
-        module_path = ROOT / "Task1-3_data&MQTT.py"
+        module_path = ROOT / "scripts" / "run_publisher.py"
         with patch("src.publisher.cli.main") as main_mock:
-            spec = importlib.util.spec_from_file_location("legacy_publisher_wrapper", module_path)
+            spec = importlib.util.spec_from_file_location("publisher_wrapper", module_path)
             if spec is None or spec.loader is None:
                 self.fail(f"Unable to load module from {module_path}")
             module = importlib.util.module_from_spec(spec)
-            sys.modules["legacy_publisher_wrapper"] = module
+            sys.modules["publisher_wrapper"] = module
+            spec.loader.exec_module(module)
+
+        main_mock.assert_not_called()
+
+    def test_dashboard_wrapper_import_is_side_effect_free(self) -> None:
+        module_path = ROOT / "app" / "streamlit_app.py"
+        with patch("src.dashboard.app.main") as main_mock:
+            spec = importlib.util.spec_from_file_location("dashboard_wrapper", module_path)
+            if spec is None or spec.loader is None:
+                self.fail(f"Unable to load module from {module_path}")
+            module = importlib.util.module_from_spec(spec)
+            sys.modules["dashboard_wrapper"] = module
             spec.loader.exec_module(module)
 
         main_mock.assert_not_called()
@@ -310,7 +341,7 @@ class DashboardLogicTests(TestCase):
         }
 
         with patch.object(task4.st, "session_state", fake_state), \
-            patch.object(task4, "_build_marker_payload", wraps=task4._build_marker_payload) as build_mock:
+            patch.object(dashboard_map_payload, "_build_marker_payload", wraps=dashboard_map_payload._build_marker_payload) as build_mock:
             payload1 = task4._get_cached_marker_payload(records, "power_value", "All", "All")
             payload2 = task4._get_cached_marker_payload(records, "power_value", "All", "All")
 
@@ -343,7 +374,7 @@ class DashboardLogicTests(TestCase):
         fake_state = {}
 
         with patch.object(task4.st, "session_state", fake_state), \
-            patch.object(task4, "_build_marker_payload", wraps=task4._build_marker_payload) as build_mock:
+            patch.object(dashboard_map_payload, "_build_marker_payload", wraps=dashboard_map_payload._build_marker_payload) as build_mock:
             payload1 = task4._get_cached_marker_payload(base, "power_value", "All", "All")
             payload2 = task4._get_cached_marker_payload(updated, "power_value", "All", "All")
 
@@ -855,7 +886,7 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "success"), \
             patch.object(task4.st, "warning"), \
             patch.object(task4.st, "error"), \
-            patch.object(task4, "_soft_reset_runtime", side_effect=soft_reset_side_effect) as soft_reset_mock, \
+            patch.object(dashboard_render, "_soft_reset_runtime", side_effect=soft_reset_side_effect) as soft_reset_mock, \
             patch.object(task4.st, "rerun") as rerun_mock:
             task4._render_sidebar(runtime, {}, {}, "live", ["All", "Gas"])
 
@@ -932,9 +963,9 @@ class DashboardLogicTests(TestCase):
         error_mock.assert_not_called()
 
     def test_main_calls_render_dashboard_without_manual_rerun_loop(self) -> None:
-        with patch.object(task4, "get_runtime") as runtime_mock, \
-            patch.object(task4, "set_active_runtime") as set_runtime_mock, \
-            patch.object(task4, "render_dashboard") as render_mock, \
+        with patch.object(dashboard_app, "get_runtime") as runtime_mock, \
+            patch.object(dashboard_app, "set_active_runtime") as set_runtime_mock, \
+            patch.object(dashboard_app, "render_dashboard") as render_mock, \
             patch.object(task4.time, "sleep") as sleep_mock, \
             patch.object(task4.st, "rerun") as rerun_mock:
             runtime_mock.return_value = Mock()
@@ -1007,7 +1038,7 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "subheader"), \
             patch.object(task4.st, "caption"), \
             patch.object(task4.st, "info"), \
-            patch.object(task4, "render_nem_facility_map", return_value={"display_mode": "emission_value"}) as render_mock:
+            patch.object(dashboard_render, "render_nem_facility_map", return_value={"display_mode": "emission_value"}) as render_mock:
             task4._render_map(filtered_snapshot, "power_value")
 
         self.assertEqual(fake_state["display_mode"], "emission_value")
@@ -1048,7 +1079,7 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "subheader"), \
             patch.object(task4.st, "caption"), \
             patch.object(task4.st, "info"), \
-            patch.object(task4, "render_nem_facility_map", return_value={"center": {"lat": -33.0, "lng": 151.0}, "zoom": 6}) as render_mock:
+            patch.object(dashboard_render, "render_nem_facility_map", return_value={"center": {"lat": -33.0, "lng": 151.0}, "zoom": 6}) as render_mock:
             task4._render_map(filtered_snapshot, "power_value")
 
         self.assertEqual(fake_state["display_mode"], "power_value")

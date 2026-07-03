@@ -182,7 +182,7 @@ This prevents silent message loss when the broker is unavailable or temporarily 
 
 ## 6. Subscription and In-Memory Cache
 
-`src/dashboard/` subscribes to the MQTT wildcard topic and decodes each JSON payload; `Task4_appStreamlit.py` remains a compatibility wrapper.
+`src/dashboard/` subscribes to the MQTT wildcard topic and decodes each JSON payload.
 
 ### 6.1 Validation on Receive
 
@@ -334,6 +334,6 @@ This is the correct interpretation for downstream charts, summary cards, and map
 
 - `src/publisher/`
 - `src/dashboard/`
-- `Task4_appStreamlit.py`
+- `archive/`
 - `README.md`
 - `tests/test_dashboard_logic.py`
