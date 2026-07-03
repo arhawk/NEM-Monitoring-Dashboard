@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #f8fafc;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      position: relative;
+    }
+
+    #map {
+      width: 100%;
+      height: 730px;
+    }
+
+    .nem-map-loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #475569;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      font-size: 14px;
+      letter-spacing: 0.02em;
+      z-index: 500;
+      pointer-events: none;
+    }
+
+    .nem-map-legend {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 450;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+      backdrop-filter: blur(8px);
+      color: #0f172a;
+      font-size: 12px;
+      line-height: 1.2;
+      min-width: 170px;
+    }
+
+    .nem-map-legend__title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      font-weight: 700;
+    }
+
+    .nem-map-legend__item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .nem-map-legend__swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      flex: 0 0 auto;
+    }
+
+    .nem-map-controls {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      z-index: 460;
+      display: flex;
+      gap: 6px;
+      padding: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+      backdrop-filter: blur(8px);
+      transform: translateX(-50%);
+    }
+
+    .nem-map-control {
+      appearance: none;
+      border-radius: 999px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #0f172a;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      padding: 7px 10px;
+      transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+      white-space: nowrap;
+    }
+
+    .nem-map-control:hover {
+      transform: translateY(-1px);
+      border-color: #94a3b8;
+      background: #f8fafc;
+    }
+
+    .nem-map-control.is-active {
+      background: #16a34a;
+      border-color: #16a34a;
+      color: #ffffff;
+      box-shadow: 0 8px 18px rgba(22, 163, 74, 0.28);
+    }
+
+    .nem-map-control.is-active:hover {
+      background: #15803d;
+      border-color: #15803d;
+      color: #ffffff;
+    }
+
+    .nem-map-home-control {
+      margin-top: 6px;
+      overflow: hidden;
+    }
+
+    .nem-map-home-control__button {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      background: #ffffff;
+      color: #0f172a;
+      text-decoration: none;
+      line-height: 1;
+      text-indent: 0;
+      overflow: hidden;
+    }
+
+    .nem-map-home-control__button:hover {
+      background: #f8fafc;
+    }
+
+    .nem-map-home-control__button:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: -2px;
+    }
+
+    .nem-map-home-control__icon {
+      position: absolute;
+      inset: 0;
+      margin: auto;
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div id="map-loading" class="nem-map-loading">Loading map...</div>
+  <div id="map-controls" class="nem-map-controls" aria-label="Display mode controls"></div>
+  <div id="map-legend" class="nem-map-legend" aria-label="Map legend"></div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script>
+    const StreamlitBridge = (() => {
+      const RENDER_EVENT = "streamlit:render";
+      const COMPONENT_READY = "streamlit:componentReady";
+      const SET_FRAME_HEIGHT = "streamlit:setFrameHeight";
+      const SET_COMPONENT_VALUE = "streamlit:setComponentValue";
+      const events = new EventTarget();
+      let lastFrameHeight = 0;
+      let lastComponentValue = null;
+
+      function send(type, payload) {
+        window.parent.postMessage(
+          Object.assign({ isStreamlitMessage: true, type }, payload || {}),
+          "*"
+        );
+      }
+
+      function setComponentReady() {
+        window.addEventListener("message", onMessageEvent);
+        send(COMPONENT_READY, { apiVersion: 1 });
+      }
+
+      function setFrameHeight(height) {
+        const nextHeight = height || document.body.scrollHeight;
+        if (nextHeight !== lastFrameHeight) {
+          lastFrameHeight = nextHeight;
+          send(SET_FRAME_HEIGHT, { height: nextHeight });
+        }
+      }
+
+      function setComponentValue(value) {
+        const serialized = JSON.stringify(value || {});
+        if (serialized === lastComponentValue) {
+          return;
+        }
+        lastComponentValue = serialized;
+        send(SET_COMPONENT_VALUE, { value, dataType: "json" });
+      }
+
+      function onMessageEvent(event) {
+        if (!event.data || event.data.type !== RENDER_EVENT) {
+          return;
+        }
+        const detail = {
+          args: event.data.args || {},
+          disabled: Boolean(event.data.disabled),
+          theme: event.data.theme || null,
+        };
+        events.dispatchEvent(new CustomEvent(RENDER_EVENT, { detail }));
+      }
+
+      return {
+        RENDER_EVENT,
+        events,
+        setComponentReady,
+        setComponentValue,
+        setFrameHeight,
+      };
+    })();
+
+    const loadingEl = document.getElementById("map-loading");
+    const controlsEl = document.getElementById("map-controls");
+    const legendEl = document.getElementById("map-legend");
+    const mapHeight = 730;
+    document.getElementById("map").style.height = `${mapHeight}px`;
+
+    const map = L.map("map", {
+      zoomControl: true,
+      preferCanvas: true,
+      zoomAnimation: false,
+      markerZoomAnimation: false,
+      zoomSnap: 0.25,
+      zoomDelta: 0.25,
+      wheelDebounceTime: 80,
+      wheelPxPerZoomLevel: 90,
+    }).setView([-27.5, 133.8], 4);
+    const canvasRenderer = L.canvas({ padding: 0.5 });
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18,
+      attribution: "&copy; OpenStreetMap contributors",
+    }).addTo(map);
+
+    const markerLayer = L.layerGroup().addTo(map);
+    const state = {
+      staticSignature: null,
+      operationalSignature: null,
+      displayMode: null,
+      renderedSignature: null,
+      isInteracting: false,
+      suppressViewSync: false,
+      pendingPayload: null,
+      markersByCode: Object.create(null),
+      openFacilityCode: null,
+      defaultView: null,
+    };
+    let viewSyncTimer = null;
+
+    const VALID_DISPLAY_MODES = {
+      power_value: true,
+      emission_value: true,
+    };
+
+    function formatOptionalMetric(value, unit) {
+      if (value === null || value === undefined || value === "") {
+        return "N/A";
+      }
+
+      const numericValue = Number(value);
+      if (!Number.isFinite(numericValue)) {
+        return "N/A";
+      }
+
+      return `${Math.round(numericValue * 100) / 100} ${unit}`.trim();
+    }
+
+    function getDisplayModeLabel(mode) {
+      return mode === "emission_value" ? "Emissions" : "Power";
+    }
+
+    function getDisplayModeUnit(mode) {
+      return mode === "emission_value" ? "tCO2e" : "MW";
+    }
+
+    function getActiveDisplayMode() {
+      return VALID_DISPLAY_MODES[state.displayMode] ? state.displayMode : "power_value";
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function setActiveButtonState() {
+      const activeMode = getActiveDisplayMode();
+      controlsEl.querySelectorAll("[data-mode]").forEach((button) => {
+        const isActive = button.getAttribute("data-mode") === activeMode;
+        button.classList.toggle("is-active", isActive);
+        button.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+    }
+
+    function renderModeControls() {
+      if (!controlsEl.childElementCount) {
+        controlsEl.innerHTML = `
+          <button type="button" class="nem-map-control" data-mode="power_value">Show Power</button>
+          <button type="button" class="nem-map-control" data-mode="emission_value">Show Emissions</button>
+        `;
+        controlsEl.querySelectorAll("[data-mode]").forEach((button) => {
+          button.addEventListener("click", () => {
+            setDisplayMode(button.getAttribute("data-mode"), true);
+          });
+        });
+      }
+      setActiveButtonState();
+    }
+
+    function applyMarkerPresentation(marker) {
+      const markerData = marker && marker._markerData;
+      if (!markerData) {
+        return;
+      }
+
+      const mode = getActiveDisplayMode();
+      const value = markerData[mode];
+      const label = getDisplayModeLabel(mode);
+      const unit = getDisplayModeUnit(mode);
+      const numericValue = Number(value);
+      const radius = Number.isFinite(numericValue)
+        ? Math.max(5.5, Math.min(16.0, 6.0 + Math.sqrt(Math.abs(numericValue))))
+        : 6.0;
+
+      marker.setRadius(radius);
+      setTooltip(marker, `${markerData.facility_name || markerData.facility_code} | ${label}: ${formatOptionalMetric(value, unit)}`);
+    }
+
+    function refreshMarkerPresentation() {
+      Object.values(state.markersByCode).forEach((marker) => {
+        applyMarkerPresentation(marker);
+      });
+    }
+
+    function setDisplayMode(nextMode, notifyPython) {
+      if (!VALID_DISPLAY_MODES[nextMode]) {
+        return;
+      }
+
+      state.displayMode = nextMode;
+      setActiveButtonState();
+      refreshMarkerPresentation();
+
+      if (notifyPython) {
+        StreamlitBridge.setComponentValue({
+          display_mode: state.displayMode,
+        });
+      }
+    }
+
+    function serializeViewState() {
+      const center = map.getCenter();
+      return {
+        center: {
+          lat: center.lat,
+          lng: center.lng,
+        },
+        zoom: map.getZoom(),
+      };
+    }
+
+    function cancelViewStateSync() {
+      if (viewSyncTimer !== null) {
+        window.clearTimeout(viewSyncTimer);
+        viewSyncTimer = null;
+      }
+    }
+
+    function setViewState(viewState) {
+      if (!viewState) {
+        return;
+      }
+
+      cancelViewStateSync();
+      state.suppressViewSync = true;
+      map.setView([viewState.center.lat, viewState.center.lng], viewState.zoom, {
+        animate: false,
+      });
+    }
+
+    function resetHomeView() {
+      setViewState(state.defaultView);
+    }
+
+    function syncViewState() {
+      const currentView = serializeViewState();
+      StreamlitBridge.setComponentValue({
+        center: currentView.center,
+        zoom: currentView.zoom,
+      });
+    }
+
+    function scheduleViewStateSync() {
+      if (viewSyncTimer !== null) {
+        cancelViewStateSync();
+      }
+      viewSyncTimer = window.setTimeout(() => {
+        viewSyncTimer = null;
+        syncViewState();
+      }, 350);
+    }
+
+    function setTooltip(marker, tooltipText) {
+      if (marker.getTooltip()) {
+        marker.unbindTooltip();
+      }
+      marker.bindTooltip(tooltipText, { direction: "top", sticky: true });
+    }
+
+    function buildPopupHtml(markerData) {
+      const facilityName = escapeHtml(markerData.facility_name || markerData.facility_code || "Unknown");
+      const facilityCode = escapeHtml(markerData.facility_code || "");
+      const region = escapeHtml(markerData.state || "Unknown Region");
+      const fuelGroup = escapeHtml(markerData.fuel_group || "Mixed / Other");
+      const fuelType = escapeHtml(markerData.fuel_list || "Unknown");
+      const timestamp = escapeHtml(markerData.timestamp || "Unknown");
+      const power = escapeHtml(formatOptionalMetric(markerData.power_value, "MW"));
+      const emission = escapeHtml(formatOptionalMetric(markerData.emission_value, "tCO2e"));
+      const price = escapeHtml(formatOptionalMetric(markerData.price_per_mwh, "$/MWh"));
+      const demand = escapeHtml(formatOptionalMetric(markerData.demand_mw, "MW"));
+
+      return [
+        `<b>${facilityName}</b><br>`,
+        `Facility Code: ${facilityCode}<br>`,
+        `Region: ${region}<br>`,
+        `Fuel Group: ${fuelGroup}<br>`,
+        `Fuel Type: ${fuelType}<br>`,
+        `Last Payload Time: ${timestamp}<br>`,
+        `Power Output: ${power}<br>`,
+        `CO2 Emissions: ${emission}<br>`,
+        `Current Price: ${price}<br>`,
+        `Grid Demand: ${demand}`,
+      ].join("");
+    }
+
+    function setPopup(marker, popupHtml, facilityCode) {
+      if (marker.getPopup()) {
+        marker.unbindPopup();
+      }
+      marker.bindPopup(popupHtml, { maxWidth: 320 });
+      marker.off("popupopen");
+      marker.off("popupclose");
+      marker.on("popupopen", () => {
+        state.openFacilityCode = facilityCode;
+      });
+      marker.on("popupclose", () => {
+        if (state.openFacilityCode === facilityCode) {
+          state.openFacilityCode = null;
+        }
+      });
+    }
+
+    function createMarker(markerData) {
+      const marker = L.circleMarker([markerData.lat, markerData.lng], {
+        radius: markerData.radius,
+        color: markerData.color,
+        fillColor: markerData.color,
+        fillOpacity: 0.9,
+        weight: 2,
+        renderer: canvasRenderer,
+      });
+      setPopup(marker, buildPopupHtml(markerData), markerData.facility_code);
+      marker.addTo(markerLayer);
+      marker._markerData = markerData;
+      marker._nemFingerprint = JSON.stringify(markerData.fingerprint);
+      marker._facilityCode = markerData.facility_code;
+      applyMarkerPresentation(marker);
+      return marker;
+    }
+
+    function updateMarker(marker, markerData) {
+      const wasOpen = typeof marker.isPopupOpen === "function" && marker.isPopupOpen();
+      marker.setLatLng([markerData.lat, markerData.lng]);
+      if (typeof marker.setRadius === "function") {
+        marker.setRadius(markerData.radius);
+      }
+      marker.setStyle({
+        color: markerData.color,
+        fillColor: markerData.color,
+        fillOpacity: 0.9,
+        weight: 2,
+      });
+      setPopup(marker, buildPopupHtml(markerData), markerData.facility_code);
+      marker._markerData = markerData;
+      marker._nemFingerprint = JSON.stringify(markerData.fingerprint);
+      marker._facilityCode = markerData.facility_code;
+      applyMarkerPresentation(marker);
+      if (wasOpen || state.openFacilityCode === markerData.facility_code) {
+        marker.openPopup();
+      }
+    }
+
+    function clearMarkers() {
+      markerLayer.clearLayers();
+      state.markersByCode = Object.create(null);
+      state.openFacilityCode = null;
+    }
+
+    function renderLegend(payload) {
+      const entries = Array.isArray(payload && payload.legend) ? payload.legend : [];
+      if (!entries.length) {
+        legendEl.innerHTML = "";
+        legendEl.style.display = "none";
+        return;
+      }
+
+      legendEl.style.display = "flex";
+      legendEl.innerHTML = `
+        <div class="nem-map-legend__title">Fuel Group</div>
+        ${entries
+          .map(
+            (entry) => `
+              <div class="nem-map-legend__item">
+                <span class="nem-map-legend__swatch" style="background:${entry.color}"></span>
+                <span>${entry.label}</span>
+              </div>
+            `
+          )
+          .join("")}
+      `;
+    }
+
+    function startInteraction() {
+      state.isInteracting = true;
+    }
+
+    function flushPendingPayload() {
+      if (!state.pendingPayload) {
+        return;
+      }
+      const pending = state.pendingPayload;
+      state.pendingPayload = null;
+      renderMarkers(pending);
+    }
+
+    function endInteraction() {
+      state.isInteracting = false;
+      flushPendingPayload();
+      if (state.suppressViewSync) {
+        state.suppressViewSync = false;
+        return;
+      }
+      scheduleViewStateSync();
+    }
+
+    function renderMarkers(payload) {
+      if (!payload) {
+        loadingEl.style.display = "none";
+        legendEl.style.display = "none";
+        controlsEl.style.display = "flex";
+        if (!controlsEl.childElementCount) {
+          renderModeControls();
+        }
+        return;
+      }
+
+      if (state.isInteracting) {
+        state.pendingPayload = payload;
+        return;
+      }
+
+      const nextStatic = JSON.stringify(payload.static_signature || null);
+      const nextOperational = JSON.stringify(payload.operational_signature || null);
+      const nextMarkers = Array.isArray(payload.markers) ? payload.markers : [];
+      const nextDisplayMode = VALID_DISPLAY_MODES[payload.display_mode] ? payload.display_mode : "power_value";
+      const nextSignature = JSON.stringify({
+        static: nextStatic,
+        operational: nextOperational,
+        displayMode: nextDisplayMode,
+        selectedFuel: payload.selected_fuel || null,
+        selectedRegion: payload.selected_region || null,
+      });
+
+      if (state.staticSignature !== nextStatic) {
+        clearMarkers();
+        state.staticSignature = nextStatic;
+      }
+
+      state.operationalSignature = nextOperational;
+      const previousDisplayMode = state.displayMode;
+      if (!VALID_DISPLAY_MODES[state.displayMode]) {
+        state.displayMode = nextDisplayMode;
+      }
+      const displayModeChanged = previousDisplayMode !== state.displayMode;
+      renderModeControls();
+      renderLegend(payload);
+
+      if (state.renderedSignature === nextSignature) {
+        loadingEl.style.display = "none";
+        controlsEl.style.display = "flex";
+        return;
+      }
+      state.renderedSignature = nextSignature;
+
+      const nextByCode = Object.create(null);
+
+      for (const markerData of nextMarkers) {
+        nextByCode[markerData.facility_code] = markerData;
+        const existing = state.markersByCode[markerData.facility_code];
+        const fingerprint = JSON.stringify(markerData.fingerprint);
+        if (!existing) {
+          state.markersByCode[markerData.facility_code] = createMarker(markerData);
+          continue;
+        }
+        if (existing._nemFingerprint !== fingerprint) {
+          updateMarker(existing, markerData);
+        }
+      }
+
+      for (const facilityCode of Object.keys(state.markersByCode)) {
+        if (!nextByCode[facilityCode]) {
+          if (state.openFacilityCode === facilityCode) {
+            state.openFacilityCode = null;
+          }
+          markerLayer.removeLayer(state.markersByCode[facilityCode]);
+          delete state.markersByCode[facilityCode];
+        }
+      }
+
+      if (displayModeChanged) {
+        refreshMarkerPresentation();
+      }
+
+      loadingEl.style.display = "none";
+      controlsEl.style.display = "flex";
+      StreamlitBridge.setFrameHeight(mapHeight);
+    }
+
+    const HomeViewControl = L.Control.extend({
+      options: {
+        position: "topleft",
+      },
+      onAdd: () => {
+        const container = L.DomUtil.create("div", "leaflet-bar leaflet-control nem-map-home-control");
+        const button = L.DomUtil.create("a", "nem-map-home-control__button", container);
+        button.href = "#";
+        button.title = "Reset to default view";
+        button.setAttribute("role", "button");
+        button.setAttribute("aria-label", "Reset to default view");
+        button.innerHTML = `
+          <svg class="nem-map-home-control__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="7"></circle>
+            <path d="M12 5v3"></path>
+            <path d="M12 16v3"></path>
+            <path d="M5 12h3"></path>
+            <path d="M16 12h3"></path>
+            <path d="M12 12m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path>
+          </svg>
+        `;
+
+        L.DomEvent.disableClickPropagation(container);
+        L.DomEvent.disableScrollPropagation(container);
+        L.DomEvent.on(button, "click", L.DomEvent.preventDefault);
+        L.DomEvent.on(button, "click", resetHomeView);
+
+        return container;
+      },
+    });
+
+    map.addControl(new HomeViewControl());
+    state.defaultView = serializeViewState();
+
+    map.on("movestart zoomstart", startInteraction);
+    map.on("moveend zoomend", endInteraction);
+    window.addEventListener("resize", () => {
+      map.invalidateSize(false);
+      StreamlitBridge.setFrameHeight(mapHeight);
+    });
+
+    StreamlitBridge.events.addEventListener(StreamlitBridge.RENDER_EVENT, (event) => {
+      const args = event.detail.args || {};
+      const nextHeight = Number(args.height) || mapHeight;
+      document.getElementById("map").style.height = `${nextHeight}px`;
+      map.invalidateSize(false);
+      renderMarkers(args.marker_payload || null);
+      StreamlitBridge.setFrameHeight(nextHeight);
+    });
+
+    StreamlitBridge.setComponentReady();
+    StreamlitBridge.setFrameHeight(mapHeight);
+  </script>
+</body>
+</html>

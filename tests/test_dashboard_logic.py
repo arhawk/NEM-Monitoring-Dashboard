@@ -32,9 +32,12 @@ def load_module(module_name: str, relative_path: str):
 from src.publisher import cleaning as task13_cleaning
 from src.publisher import mqtt_publish as task13_mqtt
 from src.dashboard import app as dashboard_app
+from src.dashboard import context as dashboard_context
 from src.dashboard import data as dashboard_data
+from src.dashboard.components import nem_map_component as dashboard_nem_map_component
 from src.dashboard import map_payload as dashboard_map_payload
 from src.dashboard import render as dashboard_render
+from src.dashboard.views import sidebar as dashboard_sidebar_view
 from src.dashboard import runtime as dashboard_runtime
 from src.shared import stream_cache
 
@@ -222,14 +225,60 @@ class DashboardLogicTests(TestCase):
             def __setattr__(self, key: str, value):
                 self[key] = value
 
-        with patch.object(dashboard_render, "get_active_runtime", return_value=runtime), \
-            patch.object(dashboard_render, "_load_fallback_messages", return_value=[]), \
-            patch.object(dashboard_render.st, "session_state", FakeSessionState()):
+        with patch.object(dashboard_context, "get_active_runtime", return_value=runtime), \
+            patch.object(dashboard_context, "_load_fallback_messages", return_value=[]), \
+            patch.object(dashboard_context.st, "session_state", FakeSessionState()):
             context = dashboard_render._build_dashboard_context()
 
         runtime.maybe_soft_reset.assert_not_called()
         runtime.ensure_connection.assert_not_called()
         self.assertEqual(context["data_source"], "fallback")
+
+    def test_build_dashboard_context_prefers_fallback_when_live_cache_is_stale(self) -> None:
+        runtime = self._build_sidebar_runtime(status="Connected")
+        runtime.cache.get_recent_messages.return_value = [
+            {
+                "facility_code": "LIVE1",
+                "facility_name": "Live Facility",
+                "lat": -33.0,
+                "lng": 151.0,
+                "timestamp": "2026-07-03T00:00:00+10:00",
+                "power_value": 11.0,
+                "state": "NSW",
+                "fuel_list": "Gas",
+            }
+        ]
+        runtime.cache.last_updated_at.return_value = 100.0
+
+        fallback_messages = [
+            {
+                "facility_code": "FB1",
+                "facility_name": "Fallback Facility",
+                "lat": -34.0,
+                "lng": 150.0,
+                "timestamp": "2026-07-03T00:05:00+10:00",
+                "power_value": 22.0,
+                "state": "QLD",
+                "fuel_list": "Solar",
+            }
+        ]
+
+        class FakeSessionState(dict):
+            def __getattr__(self, key: str):
+                return self[key]
+
+            def __setattr__(self, key: str, value):
+                self[key] = value
+
+        with patch.object(dashboard_context, "get_active_runtime", return_value=runtime), \
+            patch.object(dashboard_context, "_load_fallback_messages", return_value=fallback_messages), \
+            patch.object(dashboard_data.time, "time", return_value=100.0 + dashboard_data.FALLBACK_STALE_SECONDS + 1), \
+            patch.object(dashboard_context.st, "session_state", FakeSessionState()):
+            context = dashboard_render._build_dashboard_context()
+
+        self.assertEqual(context["data_source"], "fallback")
+        self.assertEqual(list(context["snapshot"].keys()), ["FB1"])
+        self.assertEqual(context["messages"], fallback_messages)
 
     def test_soft_reset_clears_current_cache_and_updates_timestamp(self) -> None:
         runtime = Mock()
@@ -443,21 +492,20 @@ class DashboardLogicTests(TestCase):
         self.assertEqual(task4._build_static_signature(base), task4._build_static_signature(updated))
         self.assertNotEqual(task4._build_operational_signature(base), task4._build_operational_signature(updated))
 
-    def test_resolve_data_source_defaults_to_fallback_without_live_or_fallback(self) -> None:
-        self.assertEqual(task4._resolve_data_source([]), "fallback")
-
-    def test_resolve_data_source_uses_fallback_before_live_messages_arrive(self) -> None:
-        self.assertEqual(task4._resolve_data_source([]), "fallback")
-
     def test_resolve_data_source_uses_live_only_when_live_messages_exist(self) -> None:
         live_messages = [{"facility_code": "A1"}]
         self.assertEqual(task4._resolve_data_source(live_messages), "live")
 
-    def test_resolve_data_source_transitions_to_live_after_first_message(self) -> None:
-        self.assertEqual(task4._resolve_data_source([]), "fallback")
+    def test_resolve_data_source_distinguishes_empty_and_fallback_states(self) -> None:
+        self.assertEqual(task4._resolve_data_source([]), "empty")
+        self.assertEqual(task4._resolve_data_source([], use_fallback=True), "fallback")
 
+    def test_resolve_data_source_marks_stale_live_as_replaced(self) -> None:
         live_messages = [{"facility_code": "A1"}]
-        self.assertEqual(task4._resolve_data_source(live_messages), "live")
+        self.assertEqual(
+            task4._resolve_data_source(live_messages, use_fallback=True, fallback_messages=[]),
+            "stale_live_replaced",
+        )
 
     def test_should_use_fallback_immediately_before_first_live_message(self) -> None:
         runtime = Mock()
@@ -753,6 +801,9 @@ class DashboardLogicTests(TestCase):
         with patch.object(task4.time, "time", return_value=10_100.0):
             self.assertTrue(task4._should_use_fallback(runtime))
 
+    def test_resolve_data_source_defaults_to_empty_without_live_messages(self) -> None:
+        self.assertEqual(task4._resolve_data_source([]), "empty")
+
     def test_load_fallback_messages_skips_sort_when_timestamps_are_all_invalid(self) -> None:
         sample = pd.DataFrame(
             [
@@ -886,7 +937,7 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "success"), \
             patch.object(task4.st, "warning"), \
             patch.object(task4.st, "error"), \
-            patch.object(dashboard_render, "_soft_reset_runtime", side_effect=soft_reset_side_effect) as soft_reset_mock, \
+            patch.object(dashboard_sidebar_view, "_soft_reset_runtime", side_effect=soft_reset_side_effect) as soft_reset_mock, \
             patch.object(task4.st, "rerun") as rerun_mock:
             task4._render_sidebar(runtime, {}, {}, "live", ["All", "Gas"])
 
@@ -1038,7 +1089,7 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "subheader"), \
             patch.object(task4.st, "caption"), \
             patch.object(task4.st, "info"), \
-            patch.object(dashboard_render, "render_nem_facility_map", return_value={"display_mode": "emission_value"}) as render_mock:
+            patch.object(dashboard_nem_map_component, "render_nem_facility_map", return_value={"display_mode": "emission_value"}) as render_mock:
             task4._render_map(filtered_snapshot, "power_value")
 
         self.assertEqual(fake_state["display_mode"], "emission_value")
@@ -1079,7 +1130,7 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "subheader"), \
             patch.object(task4.st, "caption"), \
             patch.object(task4.st, "info"), \
-            patch.object(dashboard_render, "render_nem_facility_map", return_value={"center": {"lat": -33.0, "lng": 151.0}, "zoom": 6}) as render_mock:
+            patch.object(dashboard_nem_map_component, "render_nem_facility_map", return_value={"center": {"lat": -33.0, "lng": 151.0}, "zoom": 6}) as render_mock:
             task4._render_map(filtered_snapshot, "power_value")
 
         self.assertEqual(fake_state["display_mode"], "power_value")

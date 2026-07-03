@@ -11,7 +11,20 @@ from pathlib import Path
 from time import perf_counter_ns
 from typing import Any
 
-import paho.mqtt.client as mqtt
+from types import SimpleNamespace
+
+try:
+    import paho.mqtt.client as mqtt
+except ImportError:  # pragma: no cover - exercised in dependency-light test envs
+    class _MissingMQTTClient:
+        def __init__(self, *args, **kwargs):
+            raise ModuleNotFoundError("paho-mqtt is required for MQTT publishing")
+
+    mqtt = SimpleNamespace(
+        Client=_MissingMQTTClient,
+        MQTT_ERR_SUCCESS=0,
+        CallbackAPIVersion=SimpleNamespace(VERSION1=1),
+    )
 
 from .paths import data_path
 

@@ -1,12 +1,8 @@
 from __future__ import annotations
 
 import ast
-import json
 import math
-import os
 import time
-import html
-import textwrap
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -145,12 +141,8 @@ def _build_latest_snapshot(messages: List[Dict[str, Any]]) -> Dict[str, Dict[str
     return snapshot
 
 
-def _fallback_enabled() -> bool:
-    return ENABLE_FALLBACK_REPLAY
-
-
 def _should_use_fallback(runtime: Any) -> bool:
-    if not _fallback_enabled():
+    if not ENABLE_FALLBACK_REPLAY:
         return False
     last_updated_at = runtime.cache.last_updated_at()
     if last_updated_at is None:
@@ -196,10 +188,19 @@ def _load_fallback_messages(limit: int = 200) -> List[Dict[str, Any]]:
     return fallback_messages
 
 
-def _resolve_data_source(live_messages: List[Dict[str, Any]]) -> str:
-    if live_messages:
-        return "live"
-    return "fallback"
+def _resolve_data_source(
+    live_messages: List[Dict[str, Any]],
+    *,
+    use_fallback: bool = False,
+    fallback_messages: List[Dict[str, Any]] | None = None,
+) -> str:
+    if use_fallback:
+        if fallback_messages:
+            return "fallback"
+        if live_messages:
+            return "stale_live_replaced"
+        return "fallback"
+    return "live" if live_messages else "empty"
 
 
 def _calculate_snapshot_stats(snapshot: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
@@ -258,11 +259,7 @@ __all__ = [
     "ast",
     "pd",
     "math",
-    "os",
     "time",
-    "html",
-    "textwrap",
-    "json",
     "_coerce_float",
     "_format_ts",
     "_reason_is_success",
@@ -273,7 +270,6 @@ __all__ = [
     "_classify_fuel_group",
     "_normalize_message",
     "_build_latest_snapshot",
-    "_fallback_enabled",
     "_should_use_fallback",
     "_load_fallback_messages",
     "_resolve_data_source",

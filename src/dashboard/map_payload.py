@@ -3,14 +3,13 @@ from __future__ import annotations
 import html
 from typing import Any, Dict
 
-import streamlit as st
-
 from .data import (
     _classify_fuel_group,
     _coerce_float,
     _format_optional_metric,
     _signature_metric_value,
 )
+from ._compat import st
 from .settings import FUEL_GROUP_COLORS
 
 
@@ -25,13 +24,6 @@ def _marker_radius(info: Dict[str, Any], display_mode: str) -> float:
     if value is None:
         return 6.0
     return max(5.5, min(16.0, 6.0 + abs(value) ** 0.5))
-
-
-def _marker_tooltip_text(info: Dict[str, Any], fac_code: str, display_mode: str) -> str:
-    value = info.get(display_mode)
-    unit = "MW" if display_mode == "power_value" else "tCO2e"
-    label = "Power" if display_mode == "power_value" else "Emissions"
-    return f"{info.get('facility_name', fac_code)} | {label}: {_format_optional_metric(value, unit)}".strip()
 
 
 def _marker_popup_html(info: Dict[str, Any], fac_code: str) -> str:
@@ -173,7 +165,6 @@ def _get_cached_marker_payload(
 __all__ = [
     "_marker_color",
     "_marker_radius",
-    "_marker_tooltip_text",
     "_marker_popup_html",
     "_marker_fingerprint",
     "_build_static_signature",
