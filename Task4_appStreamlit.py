@@ -40,6 +40,7 @@ FALLBACK_SAMPLE_PATH = os.getenv("FALLBACK_SAMPLE_PATH", "data/data_for_publish.
 FALLBACK_STALE_SECONDS = max(1, int(os.getenv("FALLBACK_STALE_SECONDS", "30")))
 ENABLE_FALLBACK_REPLAY = os.getenv("ENABLE_FALLBACK_REPLAY", "true").strip().lower() not in {"0", "false", "no", "off"}
 DISPLAY_REGION_OPTIONS = ["All", "ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
+READY_NOTICE_SESSION_KEY = "_cache_ready_notice_pending"
 FUEL_GROUP_COLORS = {
     "Renewable": "#16a34a",
     "Fossil / Non-renewable": "#dc2626",
@@ -646,6 +647,8 @@ def _ensure_session_defaults() -> None:
         st.session_state.selected_fuel = "All"
     if "selected_region" not in st.session_state:
         st.session_state.selected_region = "All"
+    if READY_NOTICE_SESSION_KEY not in st.session_state:
+        st.session_state[READY_NOTICE_SESSION_KEY] = False
 
 
 def _render_header(
@@ -675,10 +678,26 @@ def _render_sidebar(
     fuel_options: List[str],
 ) -> None:
     st.header("🔧 Control Center")
+    st.subheader("MQTT Status")
+    if runtime.status == "Connected":
+        st.success("Connected")
+    elif runtime.status == "Connecting":
+        st.info("Connecting")
+    elif runtime.status == "Disconnected":
+        st.warning("Disconnected")
+    else:
+        st.error("Error")
+    st.write(f"Cache size: {runtime.cache.size()} / {runtime.cache.max_size()}")
+    st.write(f"Last soft reset: {_format_ts(runtime.cache.last_reset_at())}")
+    if runtime.last_error:
+        st.caption(runtime.last_error)
+
     if data_source == "fallback":
-        st.info("Waiting for MQTT messages. Showing sample replay fallback.")
-    elif data_source == "live":
-        st.success("Live MQTT stream active")
+        st.info("Waiting for cache messages. Showing sample replay fallback.")
+        st.session_state[READY_NOTICE_SESSION_KEY] = True
+    elif st.session_state.get(READY_NOTICE_SESSION_KEY):
+        st.success("Real-time data ready")
+        st.session_state[READY_NOTICE_SESSION_KEY] = False
 
     st.subheader("Fuel Type Filter")
     if st.session_state.get("selected_fuel") not in fuel_options:
@@ -707,23 +726,9 @@ def _render_sidebar(
                 "received_at": latest.get("received_at_iso"),
             }
         )
+        st.caption(f"Timestamp: {_format_ts(runtime.cache.last_updated_at())}")
     else:
         st.write("No MQTT messages have arrived yet.")
-
-    st.subheader("Stream Status")
-    if runtime.status == "Connected":
-        st.success("Connected")
-    elif runtime.status == "Connecting":
-        st.info("Connecting")
-    elif runtime.status == "Disconnected":
-        st.warning("Disconnected")
-    else:
-        st.error("Error")
-    st.write(f"Cache size: {runtime.cache.size()} / {runtime.cache.max_size()}")
-    st.write(f"Last message: {_format_ts(runtime.cache.last_updated_at())}")
-    st.write(f"Last soft reset: {_format_ts(runtime.cache.last_reset_at())}")
-    if runtime.last_error:
-        st.caption(runtime.last_error)
 
 
 def _render_table(filtered_snapshot: Dict[str, Dict[str, Any]]) -> None:

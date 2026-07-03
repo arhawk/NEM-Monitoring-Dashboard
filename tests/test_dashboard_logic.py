@@ -653,7 +653,7 @@ class DashboardLogicTests(TestCase):
 
         with patch.dict(task4.st.session_state, {"display_mode": "power_value"}, clear=True), \
             patch.object(task4.st, "header"), \
-            patch.object(task4.st, "subheader"), \
+            patch.object(task4.st, "subheader") as subheader_mock, \
             patch.object(task4.st, "button", return_value=False), \
             patch.object(task4.st, "selectbox"), \
             patch.object(task4.st, "write"), \
@@ -665,16 +665,62 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "error") as error_mock:
             task4._render_sidebar(runtime, {}, {}, "fallback", ["All", "Gas"])
 
-        info_mock.assert_any_call("Waiting for MQTT messages. Showing sample replay fallback.")
+        self.assertGreaterEqual(len(subheader_mock.call_args_list), 1)
+        self.assertEqual(subheader_mock.call_args_list[0].args[0], "MQTT Status")
+        info_mock.assert_any_call("Waiting for cache messages. Showing sample replay fallback.")
         info_mock.assert_any_call("Connecting")
         success_mock.assert_not_called()
         warning_mock.assert_not_called()
         error_mock.assert_not_called()
 
-    def test_render_sidebar_emits_live_status_and_keeps_transport_status(self) -> None:
+    def test_render_sidebar_places_last_message_timestamp_under_latest_message(self) -> None:
+        runtime = self._build_sidebar_runtime(status="Connected")
+        runtime.cache.get_latest_message.return_value = {
+            "facility_code": "A1",
+            "facility_name": "Alpha",
+            "state": "NSW",
+            "fuel_list": "Gas",
+            "fuel_group": "Fossil / Non-renewable",
+            "timestamp": "2026-07-03T23:43:39+10:00",
+            "received_at_iso": "2026-07-03T23:43:39+10:00",
+        }
+        runtime.cache.last_updated_at.return_value = 1_720_000_000.0
+
+        with patch.dict(task4.st.session_state, {"display_mode": "power_value", "selected_fuel": "All", "selected_region": "All"}, clear=True), \
+            patch.object(task4.st, "header"), \
+            patch.object(task4.st, "subheader"), \
+            patch.object(task4.st, "button", return_value=False), \
+            patch.object(task4.st, "selectbox"), \
+            patch.object(task4.st, "write") as write_mock, \
+            patch.object(task4.st, "json"), \
+            patch.object(task4.st, "caption") as caption_mock, \
+            patch.object(task4.st, "info"), \
+            patch.object(task4.st, "success"), \
+            patch.object(task4.st, "warning"), \
+            patch.object(task4.st, "error"):
+            task4._render_sidebar(runtime, {}, {}, "live", ["All", "Gas"])
+
+        self.assertFalse(any(str(call.args[0]).startswith("Last message:") for call in write_mock.call_args_list))
+        caption_mock.assert_any_call(f"Timestamp: {task4._format_ts(1_720_000_000.0)}")
+
+    def test_render_sidebar_shows_ready_notice_once_after_fallback(self) -> None:
         runtime = self._build_sidebar_runtime(status="Connected")
 
-        with patch.dict(task4.st.session_state, {"display_mode": "power_value"}, clear=True), \
+        class FakeSessionState(dict):
+            def __getattr__(self, key: str):
+                return self[key]
+
+            def __setattr__(self, key: str, value):
+                self[key] = value
+
+        state = FakeSessionState(
+            display_mode="power_value",
+            selected_fuel="All",
+            selected_region="All",
+            **{task4.READY_NOTICE_SESSION_KEY: True},
+        )
+
+        with patch.object(task4.st, "session_state", state), \
             patch.object(task4.st, "header"), \
             patch.object(task4.st, "subheader"), \
             patch.object(task4.st, "button", return_value=False), \
@@ -688,8 +734,33 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "error") as error_mock:
             task4._render_sidebar(runtime, {}, {}, "live", ["All", "Gas"])
 
-        success_mock.assert_any_call("Live MQTT stream active")
+        success_mock.assert_any_call("Real-time data ready")
+        self.assertFalse(state[task4.READY_NOTICE_SESSION_KEY])
+        info_mock.assert_not_called()
+        warning_mock.assert_not_called()
+        error_mock.assert_not_called()
+
+        success_mock.reset_mock()
+        info_mock.reset_mock()
+        warning_mock.reset_mock()
+        error_mock.reset_mock()
+
+        with patch.object(task4.st, "session_state", state), \
+            patch.object(task4.st, "header"), \
+            patch.object(task4.st, "subheader"), \
+            patch.object(task4.st, "button", return_value=False), \
+            patch.object(task4.st, "selectbox"), \
+            patch.object(task4.st, "write"), \
+            patch.object(task4.st, "json"), \
+            patch.object(task4.st, "caption"), \
+            patch.object(task4.st, "info") as info_mock, \
+            patch.object(task4.st, "success") as success_mock, \
+            patch.object(task4.st, "warning") as warning_mock, \
+            patch.object(task4.st, "error") as error_mock:
+            task4._render_sidebar(runtime, {}, {}, "live", ["All", "Gas"])
+
         success_mock.assert_any_call("Connected")
+        self.assertNotIn("Real-time data ready", [call.args[0] for call in success_mock.call_args_list])
         info_mock.assert_not_called()
         warning_mock.assert_not_called()
         error_mock.assert_not_called()
