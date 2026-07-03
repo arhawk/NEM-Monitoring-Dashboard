@@ -5,6 +5,7 @@ import os
 import time
 import html
 import textwrap
+import ast
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -37,8 +38,36 @@ RECONNECT_COOLDOWN_SECONDS = 5
 FALLBACK_SAMPLE_PATH = os.getenv("FALLBACK_SAMPLE_PATH", "data/data_for_publish.csv")
 FALLBACK_STALE_SECONDS = max(1, int(os.getenv("FALLBACK_STALE_SECONDS", "30")))
 ENABLE_FALLBACK_REPLAY = os.getenv("ENABLE_FALLBACK_REPLAY", "true").strip().lower() not in {"0", "false", "no", "off"}
-DISPLAY_FUEL_OPTIONS = ["All", "Solar", "Wind", "Hydro", "Gas", "Coal", "Battery", "Biomass"]
+DISPLAY_FUEL_OPTIONS = ["All", "Renewable", "Fossil / Non-renewable", "Storage", "Mixed / Other"]
 DISPLAY_REGION_OPTIONS = ["All", "ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
+FUEL_GROUP_COLORS = {
+    "Renewable": "#16a34a",
+    "Fossil / Non-renewable": "#dc2626",
+    "Storage": "#2563eb",
+    "Mixed / Other": "#f59e0b",
+}
+RENEWABLE_FUEL_TOKENS = {
+    "solar",
+    "wind",
+    "hydro",
+    "biomass",
+    "bagasse",
+    "wood",
+    "landfill gas",
+}
+FOSSIL_FUEL_TOKENS = {
+    "coal",
+    "black coal",
+    "brown coal",
+    "gas",
+    "gas/diesel",
+    "diesel",
+    "kerosene",
+    "liquid fuel",
+    "coal seam methane",
+    "waste coal mine gas",
+}
+STORAGE_FUEL_TOKENS = {"battery"}
 
 
 def _coerce_float(value: Any) -> Optional[float]:
@@ -82,13 +111,51 @@ def _signature_metric_value(value: Any) -> Optional[float]:
     return round(coerced, 2)
 
 
+def _extract_fuel_tokens(fuel_list: Any) -> List[str]:
+    if fuel_list is None:
+        return []
+    if isinstance(fuel_list, (list, tuple, set)):
+        return [str(token).strip() for token in fuel_list if str(token).strip()]
+
+    fuel_text = str(fuel_list).strip()
+    if not fuel_text:
+        return []
+
+    try:
+        parsed = ast.literal_eval(fuel_text)
+    except (ValueError, SyntaxError):
+        return [fuel_text]
+
+    if isinstance(parsed, (list, tuple, set)):
+        return [str(token).strip() for token in parsed if str(token).strip()]
+    parsed_text = str(parsed).strip()
+    return [parsed_text] if parsed_text else []
+
+
+def _classify_fuel_group(fuel_list: Any) -> str:
+    tokens = _extract_fuel_tokens(fuel_list)
+    if not tokens:
+        return "Mixed / Other"
+
+    normalized = {token.casefold() for token in tokens}
+    group_matches = []
+
+    if normalized <= RENEWABLE_FUEL_TOKENS:
+        group_matches.append("Renewable")
+    if normalized <= FOSSIL_FUEL_TOKENS:
+        group_matches.append("Fossil / Non-renewable")
+    if normalized <= STORAGE_FUEL_TOKENS:
+        group_matches.append("Storage")
+
+    if len(group_matches) == 1:
+        return group_matches[0]
+    return "Mixed / Other"
+
+
 def _marker_color(fuel_list: Any) -> str:
-    fuel_text = str(fuel_list or "")
-    if any(token in fuel_text for token in ("Solar", "Wind", "Hydro")):
-        return "#16a34a"
-    if "Gas" in fuel_text:
-        return "#f59e0b"
-    return "#dc2626"
+    if fuel_list in FUEL_GROUP_COLORS:
+        return FUEL_GROUP_COLORS[str(fuel_list)]
+    return FUEL_GROUP_COLORS[_classify_fuel_group(fuel_list)]
 
 
 def _marker_radius(info: Dict[str, Any], display_mode: str) -> float:
@@ -110,6 +177,7 @@ def _marker_popup_html(info: Dict[str, Any], fac_code: str) -> str:
     <b>{html.escape(str(info.get('facility_name', fac_code)))}</b><br>
     Facility Code: {html.escape(str(fac_code))}<br>
     Region: {html.escape(str(info.get('state', 'Unknown Region')))}<br>
+    Fuel Group: {html.escape(str(info.get('fuel_group', _classify_fuel_group(info.get('fuel_list')))))}<br>
     Fuel Type: {html.escape(str(info.get('fuel_list', 'Unknown')))}<br>
     Last Payload Time: {html.escape(str(info.get('timestamp', 'Unknown')))}<br>
     Power Output: {_format_optional_metric(info.get('power_value'), 'MW')}<br>
@@ -184,6 +252,7 @@ def _normalize_message(payload: Dict[str, Any], topic: str) -> Optional[Dict[str
         "demand_mw": _signature_metric_value(payload.get("demand_mw")),
         "state": payload.get("state") or "Unknown Region",
         "fuel_list": payload.get("fuel_list") or "Unknown",
+        "fuel_group": _classify_fuel_group(payload.get("fuel_list")),
         "topic": topic,
     }
     return record
@@ -290,7 +359,7 @@ def _filter_snapshot(
 ) -> Dict[str, Dict[str, Any]]:
     filtered: Dict[str, Dict[str, Any]] = {}
     for fac_code, record in snapshot.items():
-        fuel_match = selected_fuel == "All" or selected_fuel in str(record.get("fuel_list", ""))
+        fuel_match = selected_fuel == "All" or selected_fuel == record.get("fuel_group")
         region_match = selected_region == "All" or selected_region == record.get("state")
         if fuel_match and region_match:
             filtered[fac_code] = record
@@ -319,7 +388,8 @@ def _build_marker_payload(
                 "facility_code": fac_code,
                 "lat": float(info["lat"]),
                 "lng": float(info["lng"]),
-                "color": _marker_color(info.get("fuel_list")),
+                "fuel_group": info.get("fuel_group") or _classify_fuel_group(info.get("fuel_list")),
+                "color": _marker_color(info.get("fuel_group") or info.get("fuel_list")),
                 "radius": round(_marker_radius(info, display_mode), 2),
                 "tooltip": _marker_tooltip_text(info, fac_code, display_mode),
                 "popup_html": _marker_popup_html(info, fac_code),
@@ -333,6 +403,10 @@ def _build_marker_payload(
         "display_mode": display_mode,
         "selected_fuel": selected_fuel,
         "selected_region": selected_region,
+        "legend": [
+            {"label": label, "color": color}
+            for label, color in FUEL_GROUP_COLORS.items()
+        ],
         "markers": markers,
     }
 
@@ -546,7 +620,7 @@ def get_runtime() -> DashboardRuntime:
 def _ensure_session_defaults() -> None:
     if "display_mode" not in st.session_state:
         st.session_state.display_mode = "power_value"
-    if "selected_fuel" not in st.session_state:
+    if "selected_fuel" not in st.session_state or st.session_state.selected_fuel not in DISPLAY_FUEL_OPTIONS:
         st.session_state.selected_fuel = "All"
     if "selected_region" not in st.session_state:
         st.session_state.selected_region = "All"
@@ -590,7 +664,7 @@ def _render_sidebar(
         st.session_state.display_mode = "emission_value"
 
     st.subheader("Fuel Type Filter")
-    st.selectbox("Select Fuel Type", DISPLAY_FUEL_OPTIONS, key="selected_fuel")
+    st.selectbox("Select Fuel Group", DISPLAY_FUEL_OPTIONS, key="selected_fuel")
 
     st.subheader("Grid Region Filter")
     st.selectbox("Select Region", DISPLAY_REGION_OPTIONS, key="selected_region")
@@ -609,6 +683,7 @@ def _render_sidebar(
                 "facility_name": latest.get("facility_name"),
                 "state": latest.get("state"),
                 "fuel_list": latest.get("fuel_list"),
+                "fuel_group": latest.get("fuel_group"),
                 "timestamp": latest.get("timestamp"),
                 "received_at": latest.get("received_at_iso"),
             }
@@ -642,6 +717,7 @@ def _render_table(filtered_snapshot: Dict[str, Dict[str, Any]]) -> None:
         "facility_code",
         "facility_name",
         "state",
+        "fuel_group",
         "fuel_list",
         "power_value",
         "emission_value",
@@ -655,6 +731,7 @@ def _render_table(filtered_snapshot: Dict[str, Dict[str, Any]]) -> None:
 
 def _render_map(filtered_snapshot: Dict[str, Dict[str, Any]], display_mode: str) -> None:
     st.subheader("Facility Map")
+    st.caption("Green = Renewable | Red = Fossil / Non-renewable | Blue = Storage | Orange = Mixed / Other")
     if not filtered_snapshot:
         st.info("No matching facility data in cache.")
         return

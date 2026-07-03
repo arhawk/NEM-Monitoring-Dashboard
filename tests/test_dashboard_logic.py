@@ -176,9 +176,16 @@ class DashboardLogicTests(TestCase):
         record = task4._normalize_message(payload, "topic/test")
         self.assertIsNotNone(record)
         self.assertEqual(record["power_value"], 12.35)
+        self.assertEqual(record["fuel_group"], "Fossil / Non-renewable")
         self.assertIsNone(record["emission_value"])
         self.assertIsNone(record["price_per_mwh"])
         self.assertIsNone(record["demand_mw"])
+
+    def test_classify_fuel_group_covers_four_way_mapping(self) -> None:
+        self.assertEqual(task4._classify_fuel_group("['Solar', 'Wind', 'Solar']"), "Renewable")
+        self.assertEqual(task4._classify_fuel_group("['Black Coal']"), "Fossil / Non-renewable")
+        self.assertEqual(task4._classify_fuel_group("['Battery']"), "Storage")
+        self.assertEqual(task4._classify_fuel_group("['Gas', 'Solar']"), "Mixed / Other")
 
     def test_build_map_signature_changes_with_metric_values(self) -> None:
         base = {
@@ -206,6 +213,23 @@ class DashboardLogicTests(TestCase):
         sig1 = task4._build_map_signature(base, "power_value", "All", "All")
         sig2 = task4._build_map_signature(updated, "power_value", "All", "All")
         self.assertNotEqual(sig1, sig2)
+
+    def test_filter_snapshot_uses_fuel_group_not_raw_fuel_text(self) -> None:
+        snapshot = {
+            "A1": {
+                "state": "NSW",
+                "fuel_list": "['Gas', 'Solar']",
+                "fuel_group": "Mixed / Other",
+            },
+            "A2": {
+                "state": "NSW",
+                "fuel_list": "['Solar']",
+                "fuel_group": "Renewable",
+            },
+        }
+
+        filtered = task4._filter_snapshot(snapshot, "Mixed / Other", "NSW")
+        self.assertEqual(list(filtered.keys()), ["A1"])
 
     def test_static_signature_ignores_operational_changes(self) -> None:
         base = {
@@ -318,6 +342,7 @@ class DashboardLogicTests(TestCase):
         self.assertEqual(payload["static_signature"], task4._build_static_signature(records))
         self.assertEqual(payload["operational_signature"], task4._build_operational_signature(records))
         self.assertEqual(payload["markers"][0]["facility_code"], "A1")
+        self.assertEqual(payload["markers"][0]["fuel_group"], "Fossil / Non-renewable")
         self.assertEqual(payload["markers"][0]["fingerprint"][0], "power_value")
         self.assertGreater(payload["markers"][0]["radius"], 5.5)
 

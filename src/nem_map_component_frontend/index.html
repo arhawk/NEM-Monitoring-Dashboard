@@ -37,11 +37,56 @@
       z-index: 500;
       pointer-events: none;
     }
+
+    .nem-map-legend {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 450;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+      backdrop-filter: blur(8px);
+      color: #0f172a;
+      font-size: 12px;
+      line-height: 1.2;
+      min-width: 170px;
+    }
+
+    .nem-map-legend__title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      font-weight: 700;
+    }
+
+    .nem-map-legend__item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .nem-map-legend__swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      flex: 0 0 auto;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
   <div id="map-loading" class="nem-map-loading">Loading map...</div>
+  <div id="map-legend" class="nem-map-legend" aria-label="Map legend"></div>
 
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -103,6 +148,7 @@
     })();
 
     const loadingEl = document.getElementById("map-loading");
+    const legendEl = document.getElementById("map-legend");
     const mapHeight = 730;
     document.getElementById("map").style.height = `${mapHeight}px`;
 
@@ -206,9 +252,34 @@
       state.openFacilityCode = null;
     }
 
+    function renderLegend(payload) {
+      const entries = Array.isArray(payload && payload.legend) ? payload.legend : [];
+      if (!entries.length) {
+        legendEl.innerHTML = "";
+        legendEl.style.display = "none";
+        return;
+      }
+
+      legendEl.style.display = "flex";
+      legendEl.innerHTML = `
+        <div class="nem-map-legend__title">Fuel Group</div>
+        ${entries
+          .map(
+            (entry) => `
+              <div class="nem-map-legend__item">
+                <span class="nem-map-legend__swatch" style="background:${entry.color}"></span>
+                <span>${entry.label}</span>
+              </div>
+            `
+          )
+          .join("")}
+      `;
+    }
+
     function renderMarkers(payload) {
       if (!payload) {
         loadingEl.style.display = "none";
+        legendEl.style.display = "none";
         return;
       }
 
@@ -225,6 +296,7 @@
 
       state.operationalSignature = nextOperational;
       state.displayMode = nextDisplayMode;
+      renderLegend(payload);
 
       for (const markerData of nextMarkers) {
         nextByCode[markerData.facility_code] = markerData;
