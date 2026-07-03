@@ -656,7 +656,7 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "subheader") as subheader_mock, \
             patch.object(task4.st, "button", return_value=False), \
             patch.object(task4.st, "selectbox"), \
-            patch.object(task4.st, "write"), \
+            patch.object(task4.st, "write") as write_mock, \
             patch.object(task4.st, "json"), \
             patch.object(task4.st, "caption"), \
             patch.object(task4.st, "info") as info_mock, \
@@ -666,14 +666,28 @@ class DashboardLogicTests(TestCase):
             task4._render_sidebar(runtime, {}, {}, "fallback", ["All", "Gas"])
 
         self.assertGreaterEqual(len(subheader_mock.call_args_list), 1)
-        self.assertEqual(subheader_mock.call_args_list[0].args[0], "MQTT Status")
+        self.assertEqual(
+            [call.args[0] for call in subheader_mock.call_args_list[:5]],
+            [
+                "MQTT Status",
+                "Grid Region Filter",
+                "Fuel Type Filter",
+                "Data Statistics",
+                "Latest message",
+            ],
+        )
+        write_lines = [str(call.args[0]) for call in write_mock.call_args_list]
+        self.assertLess(
+            next(i for i, line in enumerate(write_lines) if line.startswith("Messages since reset:")),
+            next(i for i, line in enumerate(write_lines) if line.startswith("MQTT cache size:")),
+        )
         info_mock.assert_any_call("Waiting for cache messages. Showing sample replay fallback.")
         info_mock.assert_any_call("Connecting")
         success_mock.assert_not_called()
         warning_mock.assert_not_called()
         error_mock.assert_not_called()
 
-    def test_render_sidebar_places_last_message_timestamp_under_latest_message(self) -> None:
+    def test_render_sidebar_hides_last_message_timestamps(self) -> None:
         runtime = self._build_sidebar_runtime(status="Connected")
         runtime.cache.get_latest_message.return_value = {
             "facility_code": "A1",
@@ -684,7 +698,10 @@ class DashboardLogicTests(TestCase):
             "timestamp": "2026-07-03T23:43:39+10:00",
             "received_at_iso": "2026-07-03T23:43:39+10:00",
         }
-        runtime.cache.last_updated_at.return_value = 1_720_000_000.0
+        filtered_snapshot = {
+            "A1": {"facility_code": "A1"},
+            "A2": {"facility_code": "A2"},
+        }
 
         with patch.dict(task4.st.session_state, {"display_mode": "power_value", "selected_fuel": "All", "selected_region": "All"}, clear=True), \
             patch.object(task4.st, "header"), \
@@ -692,16 +709,18 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "button", return_value=False), \
             patch.object(task4.st, "selectbox"), \
             patch.object(task4.st, "write") as write_mock, \
-            patch.object(task4.st, "json"), \
             patch.object(task4.st, "caption") as caption_mock, \
+            patch.object(task4.st, "json"), \
             patch.object(task4.st, "info"), \
             patch.object(task4.st, "success"), \
             patch.object(task4.st, "warning"), \
             patch.object(task4.st, "error"):
-            task4._render_sidebar(runtime, {}, {}, "live", ["All", "Gas"])
+            task4._render_sidebar(runtime, {}, filtered_snapshot, "live", ["All", "Gas"])
 
         self.assertFalse(any(str(call.args[0]).startswith("Last message:") for call in write_mock.call_args_list))
-        caption_mock.assert_any_call(f"Timestamp: {task4._format_ts(1_720_000_000.0)}")
+        self.assertFalse(any("Filtered Facilities:" in str(call.args[0]) for call in write_mock.call_args_list))
+        caption_mock.assert_any_call("2 facilities selected")
+        self.assertTrue(any(str(call.args[0]) == "2 facilities selected" for call in caption_mock.call_args_list))
 
     def test_render_sidebar_shows_ready_notice_once_after_fallback(self) -> None:
         runtime = self._build_sidebar_runtime(status="Connected")

@@ -687,8 +687,7 @@ def _render_sidebar(
         st.warning("Disconnected")
     else:
         st.error("Error")
-    st.write(f"Cache size: {runtime.cache.size()} / {runtime.cache.max_size()}")
-    st.write(f"Last soft reset: {_format_ts(runtime.cache.last_reset_at())}")
+    st.write(f"Messages since reset: {runtime.cache.messages_since_reset()}")
     if runtime.last_error:
         st.caption(runtime.last_error)
 
@@ -699,18 +698,21 @@ def _render_sidebar(
         st.success("Real-time data ready")
         st.session_state[READY_NOTICE_SESSION_KEY] = False
 
+    st.subheader("Grid Region Filter")
+    st.selectbox("Select Region", DISPLAY_REGION_OPTIONS, key="selected_region")
+
     st.subheader("Fuel Type Filter")
+    selected_count = len(filtered_snapshot)
+    selected_label = "facility selected" if selected_count == 1 else "facilities selected"
+    st.caption(f"{selected_count} {selected_label}")
     if st.session_state.get("selected_fuel") not in fuel_options:
         st.session_state.selected_fuel = "All"
     st.selectbox("Select Fuel Type", fuel_options, key="selected_fuel")
 
-    st.subheader("Grid Region Filter")
-    st.selectbox("Select Region", DISPLAY_REGION_OPTIONS, key="selected_region")
-
     st.subheader("Data Statistics")
     st.write(f"Facilities in snapshot: {len(snapshot)}")
-    st.write(f"Filtered Facilities: {len(filtered_snapshot)}")
-    st.write(f"Messages since reset: {runtime.cache.messages_since_reset()}")
+    st.write(f"Last soft reset: {_format_ts(runtime.cache.last_reset_at())}")
+    st.write(f"MQTT cache size: {runtime.cache.size()} / {runtime.cache.max_size()}")
 
     st.subheader("Latest message")
     latest = runtime.cache.get_latest_message()
@@ -722,11 +724,8 @@ def _render_sidebar(
                 "state": latest.get("state"),
                 "fuel_list": latest.get("fuel_list"),
                 "fuel_group": latest.get("fuel_group"),
-                "timestamp": latest.get("timestamp"),
-                "received_at": latest.get("received_at_iso"),
             }
         )
-        st.caption(f"Timestamp: {_format_ts(runtime.cache.last_updated_at())}")
     else:
         st.write("No MQTT messages have arrived yet.")
 
