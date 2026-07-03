@@ -836,6 +836,16 @@ class DashboardLogicTests(TestCase):
         warning_mock.assert_not_called()
         error_mock.assert_not_called()
 
+    def test_main_calls_render_dashboard_without_manual_rerun_loop(self) -> None:
+        with patch.object(task4, "render_dashboard") as render_mock, \
+            patch.object(task4.time, "sleep") as sleep_mock, \
+            patch.object(task4.st, "rerun") as rerun_mock:
+            task4.main()
+
+        render_mock.assert_called_once()
+        sleep_mock.assert_not_called()
+        rerun_mock.assert_not_called()
+
     def test_render_sidebar_injects_compact_header_css(self) -> None:
         runtime = self._build_sidebar_runtime(status="Connected")
 

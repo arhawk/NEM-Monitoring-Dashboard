@@ -843,7 +843,7 @@ def _render_map(filtered_snapshot: Dict[str, Dict[str, Any]], display_mode: str)
             st.session_state.display_mode = next_display_mode
 
 
-def render_dashboard() -> None:
+def _build_dashboard_context() -> Dict[str, Any]:
     runtime = get_runtime()
     _ensure_session_defaults()
     runtime.maybe_soft_reset()
@@ -860,19 +860,46 @@ def render_dashboard() -> None:
         st.session_state.selected_fuel = "All"
     filtered_snapshot = _filter_snapshot(snapshot, st.session_state.selected_fuel, st.session_state.selected_region)
     stats = _calculate_snapshot_stats(snapshot)
+    return {
+        "runtime": runtime,
+        "data_source": data_source,
+        "messages": messages,
+        "snapshot": snapshot,
+        "filtered_snapshot": filtered_snapshot,
+        "fuel_options": fuel_options,
+        "stats": stats,
+    }
 
-    _render_header(runtime, stats, snapshot)
+
+@st.fragment(run_every=REFRESH_INTERVAL_SECONDS)
+def _render_dashboard_main() -> None:
+    context = _build_dashboard_context()
+    _render_header(context["runtime"], context["stats"], context["snapshot"])
+    _render_current_trend(context["messages"])
+    _render_map(context["filtered_snapshot"], st.session_state.display_mode)
+    _render_table(context["filtered_snapshot"])
+
+
+@st.fragment(run_every=REFRESH_INTERVAL_SECONDS)
+def _render_dashboard_sidebar() -> None:
+    context = _build_dashboard_context()
+    _render_sidebar(
+        context["runtime"],
+        context["snapshot"],
+        context["filtered_snapshot"],
+        context["data_source"],
+        context["fuel_options"],
+    )
+
+
+def render_dashboard() -> None:
+    _render_dashboard_main()
     with st.sidebar:
-        _render_sidebar(runtime, snapshot, filtered_snapshot, data_source, fuel_options)
-    _render_current_trend(messages)
-    _render_map(filtered_snapshot, st.session_state.display_mode)
-    _render_table(filtered_snapshot)
+        _render_dashboard_sidebar()
 
 
 def main() -> None:
     render_dashboard()
-    time.sleep(REFRESH_INTERVAL_SECONDS)
-    st.rerun()
 
 
 if __name__ == "__main__":
