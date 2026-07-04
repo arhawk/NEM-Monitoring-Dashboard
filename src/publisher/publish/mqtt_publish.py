@@ -228,7 +228,11 @@ def run_publisher_loop(
     effective_duration_seconds = PUBLISH_DURATION_SECONDS if duration_seconds is None else max(0, duration_seconds)
     deadline_ns = None if effective_duration_seconds <= 0 else perf_counter_ns() + int(effective_duration_seconds * 1e9)
     try:
-        client = make_client()
+        try:
+            client = make_client()
+        except OSError as exc:
+            print(f"[Main] MQTT connect failed for {BROKER}:{PORT}: {exc}")
+            raise SystemExit(1) from exc
         if not wait_for_connection(client):
             print("[Main] MQTT connect timeout, please check broker.")
             raise SystemExit

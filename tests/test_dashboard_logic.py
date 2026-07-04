@@ -385,6 +385,17 @@ class PublishLogicTests(TestCase):
         client.disconnect.assert_called_once()
         client.loop_stop.assert_called_once()
 
+    def test_run_publisher_loop_reports_broker_refusal_without_traceback(self) -> None:
+        with patch.object(task13_mqtt, "make_client", side_effect=ConnectionRefusedError("refused")), \
+            patch.object(task13_mqtt, "wait_for_connection") as wait_mock, \
+            patch.object(task13_mqtt, "print") as print_mock:
+            with self.assertRaises(SystemExit) as ctx:
+                task13_mqtt.run_publisher_loop(Mock(), poll_seconds=5, duration_seconds=1)
+
+        self.assertEqual(ctx.exception.code, 1)
+        wait_mock.assert_not_called()
+        print_mock.assert_any_call("[Main] MQTT connect failed for 127.0.0.1:1883: refused")
+
 
 class GitHubActionsControlTests(TestCase):
     def _response(self, status_code: int, payload: dict | None = None, text: str = "") -> Mock:
