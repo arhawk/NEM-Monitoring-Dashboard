@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 
+from src.shared.mqtt_topics import MQTT_SUBSCRIBE_TOPIC_FILTER as DEFAULT_SUBSCRIBE_TOPIC_FILTER
 from src.shared.stream_cache import (
     get_max_stream_rows,
     get_refresh_interval_seconds,
@@ -11,7 +12,7 @@ from src.shared.stream_cache import (
 
 BROKER = os.getenv("MQTT_BROKER") or os.getenv("MQTT_BROKER_HOST", "127.0.0.1")
 PORT = int(os.getenv("MQTT_PORT") or os.getenv("MQTT_BROKER_PORT", "1883"))
-TOPIC = os.getenv("MQTT_TOPIC", "comp5339/task123/measurements/#")
+SUBSCRIBE_TOPIC_FILTER = os.getenv("MQTT_SUBSCRIBE_TOPIC_FILTER") or DEFAULT_SUBSCRIBE_TOPIC_FILTER
 USERNAME = os.getenv("MQTT_USERNAME") or None
 PASSWORD = os.getenv("MQTT_PASSWORD") or None
 MAX_STREAM_ROWS = get_max_stream_rows()

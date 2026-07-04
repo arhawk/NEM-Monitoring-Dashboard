@@ -141,9 +141,13 @@ Published measurement messages use:
 
 - `comp5339/task123/measurements/{facility_code}`
 
+This is configured via the publisher's `MQTT_PUBLISH_TOPIC_TEMPLATE`.
+
 This allows the dashboard to subscribe with:
 
 - `comp5339/task123/measurements/#`
+
+This is configured via the dashboard's `MQTT_SUBSCRIBE_TOPIC_FILTER`.
 
 ### 5.2 Message Payload
 

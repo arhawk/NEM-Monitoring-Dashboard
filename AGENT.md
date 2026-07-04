@@ -50,9 +50,9 @@ Important environment variables:
   - Default fallback is `127.0.0.1` and `1883`.
 - `MQTT_BROKER_HOST` / `MQTT_BROKER_PORT`
   - Older compatible fallback names supported by both publisher and dashboard.
-- `MQTT_TOPIC`
+- `MQTT_SUBSCRIBE_TOPIC_FILTER`
   - The dashboard default subscription is `comp5339/task123/measurements/#`.
-- `MQTT_TOPIC_TEMPLATE`
+- `MQTT_PUBLISH_TOPIC_TEMPLATE`
   - Provided in `.env.example` for publisher topic formatting, default `comp5339/task123/measurements/{facility_code}`.
 - `MQTT_USERNAME` / `MQTT_PASSWORD`
   - Only needed if the broker requires authentication.
@@ -233,8 +233,8 @@ Deployment sequence:
 4. Set at least this variable on `nem-publisher`:
    - `OPEN_ELECTRICITY_API_KEY`
 5. If topic settings must be explicit, configure:
-   - `MQTT_TOPIC`
-   - `MQTT_TOPIC_TEMPLATE`
+   - `MQTT_SUBSCRIBE_TOPIC_FILTER`
+   - `MQTT_PUBLISH_TOPIC_TEMPLATE`
 6. Keep the dashboard Streamlit bind behavior as `0.0.0.0:$PORT`, which is already defined in `render.yaml`.
 
 Deployment boundary to remember:
@@ -300,8 +300,8 @@ Fix:
 
 - Verify the publisher is running.
 - Then verify:
-  - `MQTT_TOPIC`
-  - `MQTT_TOPIC_TEMPLATE`
+  - `MQTT_SUBSCRIBE_TOPIC_FILTER`
+  - `MQTT_PUBLISH_TOPIC_TEMPLATE`
   - `FALLBACK_SAMPLE_PATH`
   - `FALLBACK_STALE_SECONDS`
 

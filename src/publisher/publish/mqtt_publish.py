@@ -24,6 +24,7 @@ except ImportError:  # pragma: no cover - exercised in dependency-light test env
         CallbackAPIVersion=SimpleNamespace(VERSION1=1),
     )
 
+from src.shared.mqtt_topics import MQTT_PUBLISH_TOPIC_TEMPLATE as DEFAULT_PUBLISH_TOPIC_TEMPLATE
 from src.shared.paths import data_path
 
 
@@ -46,7 +47,7 @@ PORT = int(os.getenv("MQTT_PORT") or os.getenv("MQTT_BROKER_PORT", "1883"))
 USERNAME = os.getenv("MQTT_USERNAME") or None
 PASSWORD = os.getenv("MQTT_PASSWORD") or None
 CLIENT_ID = "comp5339-publisher"
-TOPIC_MEAS = os.getenv("MQTT_TOPIC_TEMPLATE", "comp5339/task123/measurements/{facility_code}")
+PUBLISH_TOPIC_TEMPLATE = os.getenv("MQTT_PUBLISH_TOPIC_TEMPLATE") or DEFAULT_PUBLISH_TOPIC_TEMPLATE
 TICK = 0.100
 TICK_NS = int(TICK * 1e9)
 POLL_SECONDS = 5
@@ -177,7 +178,7 @@ def publish_new_since(client, all_rows, state):
             "sent_mono_ns": perf_counter_ns(),
             "slot_mono_ns": target_ns,
         }
-        topic = TOPIC_MEAS.format(facility_code=code)
+        topic = PUBLISH_TOPIC_TEMPLATE.format(facility_code=code)
         if not safe_publish_stream(client, topic, payload, qos=1, retain=False):
             print(f"[STREAM] Publish failed for {code}, will retry on next poll.")
             break

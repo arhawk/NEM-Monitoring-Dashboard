@@ -141,6 +141,12 @@ class PublishLogicTests(TestCase):
         client.publish.return_value = DummyInfo(task13_mqtt.mqtt.MQTT_ERR_SUCCESS, False)
         self.assertFalse(task13_mqtt.safe_publish_stream(client, "topic", {"x": 1}))
 
+    def test_publish_topic_template_defaults_to_measurements_path(self) -> None:
+        self.assertEqual(
+            task13_mqtt.PUBLISH_TOPIC_TEMPLATE,
+            "comp5339/task123/measurements/{facility_code}",
+        )
+
     def test_publish_new_since_stops_on_failed_publish(self) -> None:
         rows = [
             {
@@ -212,6 +218,33 @@ class PublishLogicTests(TestCase):
         self.assertEqual(state["seq"], 1)
         self.assertEqual(state["last_fac"], "A1")
         self.assertEqual(state["last_ts"], rows[0]["_ts_dt"])
+
+    def test_publish_new_since_formats_concrete_topic_from_template(self) -> None:
+        rows = [
+            {
+                "_ts_dt": pd.Timestamp("2026-07-03T00:00:00+10:00"),
+                "_ts_iso": "2026-07-03T00:00:00+10:00",
+                "facility_code": "A1",
+                "facility_name": "Alpha",
+                "state": "NSW",
+                "fuel_list": "Gas",
+                "power_value": 10.0,
+                "emission_value": None,
+                "price_per_mwh": None,
+                "demand_mw": None,
+                "lat": -33.0,
+                "lng": 151.0,
+                "unit": "MW",
+            }
+        ]
+        state = {"seq": 0, "last_ts": None, "last_fac": ""}
+
+        with patch.object(task13_mqtt, "safe_publish_stream", return_value=True) as publish_mock, \
+            patch.object(task13_mqtt, "sleep_until_ns", return_value=None), \
+            patch.object(task13_mqtt, "perf_counter_ns", return_value=0):
+            task13_mqtt.publish_new_since(Mock(), rows, state)
+
+        self.assertEqual(publish_mock.call_args[0][1], "comp5339/task123/measurements/A1")
 
 
 class DashboardLogicTests(TestCase):
@@ -292,6 +325,16 @@ class DashboardLogicTests(TestCase):
         self.assertEqual(context["data_source"], "fallback")
         self.assertEqual(list(context["snapshot"].keys()), ["FB1"])
         self.assertEqual(context["messages"], fallback_messages)
+
+    def test_mqtt_manager_subscribes_with_explicit_topic_filter(self) -> None:
+        runtime = self._build_sidebar_runtime(status="Disconnected")
+        client = Mock()
+        with patch.object(dashboard_runtime.mqtt.mqtt, "Client", return_value=client):
+            manager = dashboard_runtime.MqttConnectionManager(runtime)
+
+        manager._on_connect(client, None, None, 0)
+
+        client.subscribe.assert_called_once_with(dashboard_settings.SUBSCRIBE_TOPIC_FILTER, qos=0)
 
     def test_soft_reset_clears_current_cache_and_updates_timestamp(self) -> None:
         runtime = Mock()

@@ -122,6 +122,8 @@ What it does:
 - connects to MQTT broker at `127.0.0.1:1883`
 - begins publishing rows to `comp5339/task123/measurements/{facility_code}`
 
+The publisher uses `MQTT_PUBLISH_TOPIC_TEMPLATE`, defaulting to `comp5339/task123/measurements/{facility_code}`.
+
 If `data/consolidated_data_total.csv` already exists, the script reuses it instead of fetching again.
 
 ### 2. Start the dashboard
@@ -161,7 +163,7 @@ The dashboard uses these environment variables:
 
 - `MQTT_BROKER`
 - `MQTT_PORT`
-- `MQTT_TOPIC`
+- `MQTT_SUBSCRIBE_TOPIC_FILTER`
 - `MQTT_USERNAME`
 - `MQTT_PASSWORD`
 - `MAX_STREAM_ROWS`
@@ -183,7 +185,7 @@ Suggested Render environment variables:
 
 - `MQTT_BROKER=<your broker host>`
 - `MQTT_PORT=1883`
-- `MQTT_TOPIC=comp5339/task123/measurements/#`
+- `MQTT_SUBSCRIBE_TOPIC_FILTER=comp5339/task123/measurements/#`
 - For the Streamlit service, keep the default `$PORT` that Render provides.
 
 ## Run Artifacts

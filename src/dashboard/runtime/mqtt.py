@@ -18,7 +18,7 @@ except ImportError:  # pragma: no cover - exercised in dependency-light test env
     )
 
 from ..data import _normalize_message, _reason_is_success
-from ..settings import BROKER, PASSWORD, PORT, TOPIC, USERNAME
+from ..settings import BROKER, PASSWORD, PORT, SUBSCRIBE_TOPIC_FILTER, USERNAME
 
 
 class MqttConnectionManager:
@@ -61,7 +61,7 @@ class MqttConnectionManager:
             self.runtime.cache.set_last_error(None)
             self.runtime._set_status("Connected", None)
             try:
-                client.subscribe(TOPIC, qos=0)
+                client.subscribe(SUBSCRIBE_TOPIC_FILTER, qos=0)
             except Exception as exc:
                 self.runtime._set_status("Error", f"Subscription failed: {exc}")
         else:
