@@ -5,7 +5,8 @@ import os
 from src.shared.mqtt_topics import MQTT_SUBSCRIBE_TOPIC_FILTER as DEFAULT_SUBSCRIBE_TOPIC_FILTER
 from src.shared.stream_cache import (
     get_max_stream_rows,
-    get_refresh_interval_seconds,
+    get_main_refresh_interval_seconds,
+    get_sidebar_refresh_interval_seconds,
     get_reset_interval_hours,
 )
 
@@ -18,7 +19,8 @@ PASSWORD = os.getenv("MQTT_PASSWORD") or None
 MQTT_TLS = os.getenv("MQTT_TLS", "false").strip().lower() in {"1", "true", "yes", "on"}
 MAX_STREAM_ROWS = get_max_stream_rows()
 RESET_INTERVAL_HOURS = get_reset_interval_hours()
-REFRESH_INTERVAL_SECONDS = get_refresh_interval_seconds()
+MAIN_REFRESH_INTERVAL_SECONDS = get_main_refresh_interval_seconds()
+SIDEBAR_REFRESH_INTERVAL_SECONDS = get_sidebar_refresh_interval_seconds()
 CONNECTION_TIMEOUT_SECONDS = 10
 RECONNECT_COOLDOWN_SECONDS = 5
 MONITOR_INTERVAL_SECONDS = max(1, int(os.getenv("MQTT_MONITOR_INTERVAL_SECONDS", "5")))

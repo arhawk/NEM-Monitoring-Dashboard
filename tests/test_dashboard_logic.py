@@ -314,6 +314,28 @@ class DashboardLogicTests(TestCase):
         runtime.ensure_connection.assert_not_called()
         self.assertEqual(context["data_source"], "fallback")
 
+    def test_build_dashboard_context_signature_ignores_messages_since_reset(self) -> None:
+        runtime = self._build_sidebar_runtime(status="Connected")
+        runtime.cache.size.return_value = 2
+        runtime.cache.last_updated_at.return_value = 100.0
+        runtime.cache.last_reset_at.return_value = 456.0
+
+        class FakeSessionState(dict):
+            def __getattr__(self, key: str):
+                return self[key]
+
+            def __setattr__(self, key: str, value):
+                self[key] = value
+
+        with patch.object(dashboard_render_context.compat_st, "session_state", FakeSessionState(display_mode="power_value", selected_fuel="All", selected_region="All")), \
+            patch.object(dashboard_data_fallback.time, "time", return_value=120.0):
+            runtime.cache.messages_since_reset.return_value = 3
+            baseline = dashboard_render_context._build_dashboard_context_signature(runtime)
+            runtime.cache.messages_since_reset.return_value = 99
+            updated = dashboard_render_context._build_dashboard_context_signature(runtime)
+
+        self.assertEqual(baseline, updated)
+
     def test_build_dashboard_context_prefers_fallback_when_live_cache_is_stale(self) -> None:
         runtime = self._build_sidebar_runtime(status="Connected")
         runtime.cache.get_recent_messages.return_value = [
@@ -816,6 +838,22 @@ class DashboardLogicTests(TestCase):
     def test_refresh_interval_prefers_environment_override(self) -> None:
         with patch.dict(os.environ, {"REFRESH_INTERVAL_SECONDS": "7"}, clear=True):
             self.assertEqual(stream_cache.get_refresh_interval_seconds(), 7)
+
+    def test_main_refresh_interval_defaults_to_one_second(self) -> None:
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(stream_cache.get_main_refresh_interval_seconds(), 1)
+
+    def test_main_refresh_interval_prefers_environment_override(self) -> None:
+        with patch.dict(os.environ, {"MAIN_REFRESH_INTERVAL_SECONDS": "5"}, clear=True):
+            self.assertEqual(stream_cache.get_main_refresh_interval_seconds(), 5)
+
+    def test_sidebar_refresh_interval_defaults_to_one_second(self) -> None:
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(stream_cache.get_sidebar_refresh_interval_seconds(), 1)
+
+    def test_sidebar_refresh_interval_prefers_environment_override(self) -> None:
+        with patch.dict(os.environ, {"SIDEBAR_REFRESH_INTERVAL_SECONDS": "4"}, clear=True):
+            self.assertEqual(stream_cache.get_sidebar_refresh_interval_seconds(), 4)
 
     def test_max_stream_rows_defaults_to_five_thousand_five_hundred_twenty(self) -> None:
         with patch.dict(os.environ, {}, clear=True):

@@ -6,14 +6,14 @@ from .views.header import _render_current_trend, _render_header
 from .views.map import _render_map
 from .views.sidebar import _render_sidebar
 from .views.table import _render_table
-from .settings import REFRESH_INTERVAL_SECONDS
+from .settings import MAIN_REFRESH_INTERVAL_SECONDS, SIDEBAR_REFRESH_INTERVAL_SECONDS
 
 
 def configure_page() -> None:
     st.set_page_config(page_title="NEM Facility Real-time Monitoring Dashboard", layout="wide")
 
 
-@st.fragment(run_every=REFRESH_INTERVAL_SECONDS)
+@st.fragment(run_every=MAIN_REFRESH_INTERVAL_SECONDS)
 def _render_dashboard_main() -> None:
     context = _build_dashboard_context()
     map_model = _build_map_model(context)
@@ -23,7 +23,7 @@ def _render_dashboard_main() -> None:
     _render_table(context.filtered_snapshot)
 
 
-@st.fragment(run_every=REFRESH_INTERVAL_SECONDS)
+@st.fragment(run_every=SIDEBAR_REFRESH_INTERVAL_SECONDS)
 def _render_dashboard_sidebar() -> None:
     context = _build_dashboard_context()
     sidebar_model = _build_sidebar_model(context)

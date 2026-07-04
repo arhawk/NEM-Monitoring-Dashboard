@@ -91,7 +91,6 @@ def _build_dashboard_context_signature(runtime: Any) -> tuple:
         compat_st.session_state.get("display_mode", "power_value"),
         compat_st.session_state.get("selected_fuel", "All"),
         compat_st.session_state.get("selected_region", "All"),
-        cache.messages_since_reset(),
         cache.size(),
         last_updated_at,
         last_reset_at,

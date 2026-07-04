@@ -170,7 +170,8 @@ The dashboard uses these environment variables:
 - `MQTT_PASSWORD`
 - `MAX_STREAM_ROWS`
 - `RESET_INTERVAL_HOURS`
-- `REFRESH_INTERVAL_SECONDS`
+- `MAIN_REFRESH_INTERVAL_SECONDS`
+- `SIDEBAR_REFRESH_INTERVAL_SECONDS`
 
 ## Render Deployment
 
@@ -220,6 +221,9 @@ Live dashboard output is not written to CSV anymore. The bounded MQTT cache live
 ## Environment File
 
 Copy `.env.example` to `.env` if you want local environment overrides for broker settings, cache size, refresh cadence, or soft reset cadence.
+
+`MAIN_REFRESH_INTERVAL_SECONDS` controls the main dashboard heartbeat for the metrics cards, current facility panel, map, and table.
+`SIDEBAR_REFRESH_INTERVAL_SECONDS` controls the lightweight sidebar heartbeat that keeps `Messages since reset` current even when MQTT traffic is slow.
 
 For cloud brokers that require encrypted transport, set:
 
