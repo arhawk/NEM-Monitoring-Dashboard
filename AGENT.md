@@ -8,7 +8,7 @@ This file is for future Codex agents working in this repository. The goal is not
 - Only the MQTT broker is containerized locally. `docker-compose.yml` starts Mosquitto only. It does not start the Python services.
 - The publisher has two practical entrypoints:
   - Direct module entrypoint: `python3 -m src.publisher.cli`
-  - Render-friendly wrapper: `python scripts/run_publisher.py`
+  - Deployment-friendly wrapper: `python scripts/run_publisher.py`
 - The dashboard also has two practical entrypoints:
   - Wrapper entrypoint: `streamlit run app/streamlit_app.py`
   - Equivalent explicit form: `python3 -m streamlit run app/streamlit_app.py --server.port 8501`
@@ -218,38 +218,53 @@ Useful extra checks:
 
 ## 5. Deployment Procedure
 
-This repository already includes `render.yaml`, which defines one Python service:
+This repository supports two frontend-only cloud targets for the dashboard:
 
-- `nem-dashboard`: web, start command `streamlit run app/streamlit_app.py --server.address 0.0.0.0 --server.port $PORT`
+- Render: `https://nem-monitoring-dashboard.onrender.com`
+- Streamlit Cloud: `https://nem-monitoring-dashboard.streamlit.app`
 
-Deployment sequence:
+Both targets host only the Streamlit dashboard frontend. The publisher still runs through GitHub Actions, and MQTT traffic is relayed through an external HiveMQ broker.
 
-1. Use the existing `render.yaml`. Do not convert deployment to `docker-compose`.
-2. Provision an external MQTT broker separately. HiveMQ is the intended cloud broker for the demo path.
-3. Set broker connection variables on the Render dashboard service:
-   - `MQTT_BROKER`
-   - `MQTT_PORT`
-   - `MQTT_USERNAME` / `MQTT_PASSWORD` if authentication is required
-   - `MQTT_TLS=true` for the HiveMQ TLS port
-   - `MQTT_SUBSCRIBE_TOPIC_FILTER=comp5339/task123/measurements/#`
-4. Set GitHub Actions control variables on the Render dashboard service:
-   - `ENABLE_GITHUB_ACTIONS_CONTROL=true`
-   - `AUTO_START_PUBLISHER=true`
-   - `AUTO_START_COOLDOWN_SECONDS=600`
-   - `GITHUB_TOKEN`
-   - `GITHUB_OWNER`
-   - `GITHUB_REPO`
-   - `GITHUB_WORKFLOW_FILE=publish-mqtt-on-demand.yml`
-   - `GITHUB_REF=main`
-5. Keep the dashboard Streamlit bind behavior as `0.0.0.0:$PORT`, which is already defined in `render.yaml`.
-6. In GitHub Actions, keep the publisher workflow on `workflow_dispatch` and pass `PUBLISH_DURATION_SECONDS=600` so it exits naturally after 10 minutes.
+Render deployment:
+
+- `render.yaml` defines one Python service:
+  - `nem-dashboard`: web, start command `streamlit run app/streamlit_app.py --server.address 0.0.0.0 --server.port $PORT`
+- Use the existing `render.yaml`. Do not convert deployment to `docker-compose`.
+- Provision an external MQTT broker separately. HiveMQ is the intended cloud broker for the demo path.
+- Set broker connection variables on the Render dashboard service:
+  - `MQTT_BROKER`
+  - `MQTT_PORT`
+  - `MQTT_USERNAME` / `MQTT_PASSWORD` if authentication is required
+  - `MQTT_TLS=true` for the HiveMQ TLS port
+  - `MQTT_SUBSCRIBE_TOPIC_FILTER=comp5339/task123/measurements/#`
+- Set GitHub Actions control variables on the Render dashboard service:
+  - `ENABLE_GITHUB_ACTIONS_CONTROL=true`
+  - `AUTO_START_PUBLISHER=true`
+  - `AUTO_START_COOLDOWN_SECONDS=600`
+  - `GITHUB_TOKEN`
+  - `GITHUB_OWNER`
+  - `GITHUB_REPO`
+  - `GITHUB_WORKFLOW_FILE=publish-mqtt-on-demand.yml`
+  - `GITHUB_REF=main`
+- Keep the dashboard Streamlit bind behavior as `0.0.0.0:$PORT`, which is already defined in `render.yaml`.
+
+Streamlit Cloud deployment:
+
+- Use the same Streamlit entrypoint: `app/streamlit_app.py`
+- Set the same MQTT and GitHub Actions environment variables as above
+- Point `MQTT_BROKER` at the external HiveMQ host and keep `MQTT_TLS=true` for the cloud broker
+
+GitHub Actions:
+
+- Keep the publisher workflow on `workflow_dispatch`
+- Pass `PUBLISH_DURATION_SECONDS=600` so it exits naturally after 10 minutes
 
 Deployment boundary to remember:
 
-- `render.yaml` does not provision Mosquitto.
-- Render deploys only the dashboard web service.
-- The dashboard subscribes directly to the external HiveMQ broker.
-- Do not transplant the local `docker compose up -d` workflow into Render.
+- `render.yaml` does not provision Mosquitto
+- Neither Render nor Streamlit Cloud deploys the publisher worker
+- The dashboard subscribes directly to the external HiveMQ broker
+- Do not transplant the local `docker compose up -d` workflow into cloud deployment
 
 ## 6. Common Failure Modes and Fixes
 

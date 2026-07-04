@@ -195,7 +195,7 @@ def _render_sidebar(
     if not github_control_enabled:
         return
 
-    st.subheader("Cloud Demo Publisher")
+    st.subheader("Cloud Deployment Publisher")
     st.caption("The GitHub Actions publisher runs for 10 minutes and then stops automatically.")
 
     st.write(f"Auto-start: {'Enabled' if AUTO_START_PUBLISHER else 'Disabled'}")

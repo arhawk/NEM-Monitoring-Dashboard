@@ -19,10 +19,10 @@ The repository includes a local `.venv` for convenience. You can use that enviro
 
 - `src/publisher/`: fetch, cleaning, alignment, and MQTT publishing modules
 - `src/dashboard/`: dashboard runtime, data shaping, render logic, and map payload generation
-- `src/dashboard/actions.py`: optional GitHub Actions control layer for the cloud demo
+- `src/dashboard/actions.py`: optional GitHub Actions control layer for the cloud deployment
 - `src/shared/stream_cache.py`: shared bounded cache and environment helpers
-- `scripts/run_publisher.py`: Render-friendly wrapper for the publisher entrypoint
-- `app/streamlit_app.py`: Render-friendly wrapper for the Streamlit entrypoint
+- `scripts/run_publisher.py`: deployment-friendly wrapper for the publisher entrypoint
+- `app/streamlit_app.py`: deployment-friendly wrapper for the Streamlit entrypoint
 - `archive/`: historical Task-era scripts kept out of the active tree
 - `data/`: input CSV files and generated run artifacts
 - `broker/`: Mosquitto configuration and persistence directories
@@ -184,21 +184,26 @@ The dashboard uses these environment variables:
 - `MAIN_REFRESH_INTERVAL_SECONDS`
 - `SIDEBAR_REFRESH_INTERVAL_SECONDS`
 
-## Cloud Demo Mode
+## Cloud Deployment Mode
 
-Render should host only the Streamlit dashboard. The dashboard auto-triggers a GitHub Actions publisher workflow on first load, and that workflow publishes MQTT data to an external HiveMQ broker for 10 minutes before exiting naturally.
+Render and Streamlit Cloud both host only the Streamlit dashboard frontend. The publisher still runs through GitHub Actions, and the live data path goes through an external HiveMQ broker that forwards MQTT messages to the dashboard.
 
-The repository includes a `render.yaml` blueprint for the dashboard service only. Render does not deploy Mosquitto, and it does not run a publisher worker in this mode.
+Live deployment links:
 
-Cloud demo flow:
+- Render: https://nem-monitoring-dashboard.onrender.com
+- Streamlit Cloud: https://nem-monitoring-dashboard.streamlit.app
 
-1. Render starts the Streamlit dashboard service.
+Cloud deployment flow:
+
+1. Render or Streamlit Cloud starts the Streamlit dashboard service.
 2. On first load, the dashboard checks GitHub Actions for the configured publisher workflow.
 3. If no run is active and the cooldown window has expired, the dashboard dispatches the workflow once for the current browser session.
 4. GitHub Actions runs `python scripts/run_publisher.py` with `PUBLISH_DURATION_SECONDS=600`.
 5. The publisher sends MQTT data to the external HiveMQ broker.
-6. The dashboard subscribes directly to that HiveMQ MQTT topic and refreshes live.
+6. HiveMQ forwards MQTT messages to the Streamlit dashboard subscriber.
 7. When the publisher exits after 10 minutes, the dashboard stays up and either waits for the next run or falls back to cached/sample data.
+
+The repository includes a `render.yaml` blueprint for the Render deployment. Render does not deploy Mosquitto, and neither Render nor Streamlit Cloud runs a publisher worker in this mode.
 
 GitHub repository secrets required by the workflow:
 
@@ -208,7 +213,7 @@ GitHub repository secrets required by the workflow:
 - `MQTT_PASSWORD`
 - `OPEN_ELECTRICITY_API_KEY` if the workflow needs to rebuild publish data
 
-Render environment variables for the dashboard:
+Cloud environment variables for the dashboard:
 
 - `MQTT_BROKER=<your HiveMQ host>`
 - `MQTT_PORT=8883`
@@ -230,7 +235,7 @@ Render environment variables for the dashboard:
 - `ENABLE_FALLBACK_REPLAY=true`
 - `FALLBACK_STALE_SECONDS=30`
 
-The dashboard service command remains `streamlit run app/streamlit_app.py`, using the default `$PORT` provided by Render. There is no Render worker in this deployment path.
+The dashboard service command remains `streamlit run app/streamlit_app.py`, using the default `$PORT` provided by Render. Streamlit Cloud uses the same Streamlit entrypoint. There is no platform-hosted worker in this deployment path.
 
 ## Run Artifacts
 
