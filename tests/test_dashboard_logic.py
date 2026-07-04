@@ -992,6 +992,10 @@ class DashboardLogicTests(TestCase):
         with patch.dict(os.environ, {"MAIN_REFRESH_INTERVAL_SECONDS": "5"}, clear=True):
             self.assertEqual(stream_cache.get_main_refresh_interval_seconds(), 5)
 
+    def test_main_refresh_interval_ignores_generic_environment_override(self) -> None:
+        with patch.dict(os.environ, {"REFRESH_INTERVAL_SECONDS": "3"}, clear=True):
+            self.assertEqual(stream_cache.get_main_refresh_interval_seconds(), 1)
+
     def test_sidebar_refresh_interval_defaults_to_one_second(self) -> None:
         with patch.dict(os.environ, {}, clear=True):
             self.assertEqual(stream_cache.get_sidebar_refresh_interval_seconds(), 1)
@@ -999,6 +1003,10 @@ class DashboardLogicTests(TestCase):
     def test_sidebar_refresh_interval_prefers_environment_override(self) -> None:
         with patch.dict(os.environ, {"SIDEBAR_REFRESH_INTERVAL_SECONDS": "4"}, clear=True):
             self.assertEqual(stream_cache.get_sidebar_refresh_interval_seconds(), 4)
+
+    def test_sidebar_refresh_interval_ignores_generic_environment_override(self) -> None:
+        with patch.dict(os.environ, {"REFRESH_INTERVAL_SECONDS": "3"}, clear=True):
+            self.assertEqual(stream_cache.get_sidebar_refresh_interval_seconds(), 1)
 
     def test_max_stream_rows_defaults_to_five_thousand_five_hundred_twenty(self) -> None:
         with patch.dict(os.environ, {}, clear=True):

@@ -59,6 +59,7 @@ Important environment variables:
 - `MAX_STREAM_ROWS`
 - `RESET_INTERVAL_HOURS`
 - `REFRESH_INTERVAL_SECONDS`
+  - Legacy generic refresh helper defaulting to `1`; dashboard fragments use dedicated main/sidebar intervals.
 - `FALLBACK_SAMPLE_PATH`
   - Dashboard fallback sample source, default `data/data_for_publish.csv`.
 - `FALLBACK_STALE_SECONDS`
