@@ -277,6 +277,62 @@ Security note:
 - Grant `Metadata: Read`.
 - Do not commit the token.
 
-## Architecture Note
+## Pipeline Architecture
 
-This is a portfolio/demo architecture. If you later need durable history, the cache can be replaced with a proper storage layer such as PostgreSQL, TimescaleDB, or InfluxDB without changing the MQTT publishing model.
+This diagram reflects the current codebase, not a hypothetical warehouse design. The active pipeline uses CSV artifacts, MQTT, and an in-memory dashboard cache. Durable SQL or Parquet storage remains a future extension, not an implemented layer.
+
+```mermaid
+flowchart LR
+  subgraph Sources["External Sources"]
+    AEMO["AEMO / Open Electricity API\n- /v4/facilities/\n- /v4/data/facilities/NEM\n- /v4/market/network/NEM"]
+    STATIC["Assignment 1 static metadata\nNGER_data_aug.csv\nCER_data_aug.csv"]
+  end
+
+  subgraph Publisher["Data Ingestion + Preparation\nsrc/publisher"]
+    FETCH["Fetch + merge per facility\nfetch/orchestrator.py + fetch/transform.py"]
+    RAW["Raw layer\nconsolidated_data_total.csv\nfacility_list.csv"]
+    CLEAN["Cleaning + validation\ncleaning.py\nnormalize negatives, fill partial gaps, drop fully missing facilities"]
+    PROC["Processed layer\nconsolidated_data_cleaned.csv"]
+    ALIGN["Facility alignment + fuel enrichment\nalignment.py\nbuild fuel_list + join static metadata"]
+    READY["Publish-ready layer\ndata_for_publish.csv"]
+    PUB["MQTT publisher\nmqtt_publish.py\n0.1 s cadence + confirmed publish"]
+  end
+
+  subgraph Transport["Realtime Transport"]
+    BROKER["MQTT broker\ncomp5339/task123/measurements/{facility_code}"]
+  end
+
+  subgraph Dashboard["Streamlit Dashboard\nsrc/dashboard"]
+    SUB["MQTT subscriber + validation\nruntime/mqtt.py"]
+    CACHE["Bounded in-memory stream cache\nsrc/shared/stream_cache.py"]
+    CTX["Dashboard context + filters + aggregation\nrender_context.py"]
+    VIEWS["Metric cards\nTrend chart\nFacility map\nTable preview"]
+    FALLBACK["Fallback replay\nfallback.py\nreplay data_for_publish.csv when live cache is stale"]
+  end
+
+  subgraph Modes["Deployment Modes"]
+    LOCAL["Local mode\nMosquitto + manual publisher + Streamlit"]
+    CLOUD["Cloud demo mode\nRender Streamlit + GitHub Actions publisher + external MQTT broker"]
+  end
+
+  AEMO --> FETCH
+  FETCH --> RAW --> CLEAN --> PROC --> ALIGN
+  STATIC --> ALIGN
+  ALIGN --> READY --> PUB --> BROKER --> SUB --> CACHE --> CTX --> VIEWS
+  CACHE -. stale or empty .-> FALLBACK --> CTX
+  LOCAL -. uses .-> BROKER
+  CLOUD -. uses .-> BROKER
+  CLOUD -. can trigger .-> PUB
+
+  EXT["Optional future durable storage\nSQLite / PostgreSQL / Parquet"]:::future
+  CACHE -. replaceable with .-> EXT
+
+  classDef future stroke-dasharray: 5 5,fill:#fff,stroke:#999,color:#555;
+```
+
+Key points:
+
+- Raw data is fetched from Open Electricity / AEMO, then normalized into CSV artifacts inside `data/`.
+- The publish path is file-backed, not database-backed.
+- The dashboard consumes MQTT live updates and keeps only the latest stream state in memory.
+- When live data is stale or unavailable, the dashboard can replay the publish CSV as a fallback sample stream.

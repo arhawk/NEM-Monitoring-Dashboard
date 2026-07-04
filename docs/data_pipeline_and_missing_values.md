@@ -9,6 +9,8 @@ It is written against two sources of truth:
 
 Where the report and current code differ in wording or behavior, this document calls that out explicitly.
 
+The active implementation is CSV-artifact-backed plus MQTT-backed for live delivery. It does not currently persist the stream into SQLite, PostgreSQL, or Parquet; those are optional future extensions rather than part of the present pipeline.
+
 ## 1. End-to-End Flow
 
 The project follows a simple pipeline:
