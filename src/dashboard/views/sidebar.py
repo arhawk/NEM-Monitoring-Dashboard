@@ -15,8 +15,9 @@ from ..actions import (
     maybe_auto_start_publisher,
 )
 from ..render_context import SidebarModel
+from ..render_context import _update_ready_notice_state
 from ..runtime import DashboardRuntime, _soft_reset_runtime
-from ..settings import DISPLAY_REGION_OPTIONS, READY_NOTICE_SESSION_KEY, SIDEBAR_HEADER_TITLE
+from ..settings import DISPLAY_REGION_OPTIONS, SIDEBAR_HEADER_TITLE
 
 
 def _coerce_sidebar_model(
@@ -36,20 +37,7 @@ def _coerce_sidebar_model(
     fuel_options = fuel_options or ["All"]
     selected_fuel = st.session_state.get("selected_fuel", "All")
     selected_region = st.session_state.get("selected_region", "All")
-    notice_tone: str | None = None
-    notice_message: str | None = None
-    if data_source == "fallback":
-        notice_tone = "info"
-        notice_message = "Waiting for cache messages. Showing sample replay fallback."
-        st.session_state[READY_NOTICE_SESSION_KEY] = True
-    elif data_source == "stale_live_replaced":
-        notice_tone = "info"
-        notice_message = "Live cache is stale. Showing sample replay fallback."
-        st.session_state[READY_NOTICE_SESSION_KEY] = True
-    elif st.session_state.get(READY_NOTICE_SESSION_KEY):
-        notice_tone = "success"
-        notice_message = "Real-time data ready"
-        st.session_state[READY_NOTICE_SESSION_KEY] = False
+    notice_tone, notice_message = _update_ready_notice_state(data_source)
     return SidebarModel(
         runtime=runtime,
         data_source=data_source,

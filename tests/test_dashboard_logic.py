@@ -1039,14 +1039,6 @@ class DashboardLogicTests(TestCase):
         self.assertEqual(html_mock.call_args.kwargs["height"], 220)
         self.assertFalse(html_mock.call_args.kwargs["scrolling"])
 
-    def test_refresh_interval_defaults_to_one_second(self) -> None:
-        with patch.dict(os.environ, {}, clear=True):
-            self.assertEqual(stream_cache.get_refresh_interval_seconds(), 1)
-
-    def test_refresh_interval_prefers_environment_override(self) -> None:
-        with patch.dict(os.environ, {"REFRESH_INTERVAL_SECONDS": "7"}, clear=True):
-            self.assertEqual(stream_cache.get_refresh_interval_seconds(), 7)
-
     def test_main_refresh_interval_defaults_to_one_second(self) -> None:
         with patch.dict(os.environ, {}, clear=True):
             self.assertEqual(stream_cache.get_main_refresh_interval_seconds(), 1)
@@ -1054,10 +1046,6 @@ class DashboardLogicTests(TestCase):
     def test_main_refresh_interval_prefers_environment_override(self) -> None:
         with patch.dict(os.environ, {"MAIN_REFRESH_INTERVAL_SECONDS": "5"}, clear=True):
             self.assertEqual(stream_cache.get_main_refresh_interval_seconds(), 5)
-
-    def test_main_refresh_interval_ignores_generic_environment_override(self) -> None:
-        with patch.dict(os.environ, {"REFRESH_INTERVAL_SECONDS": "3"}, clear=True):
-            self.assertEqual(stream_cache.get_main_refresh_interval_seconds(), 1)
 
     def test_sidebar_refresh_interval_defaults_to_one_second(self) -> None:
         with patch.dict(os.environ, {}, clear=True):
@@ -1067,13 +1055,35 @@ class DashboardLogicTests(TestCase):
         with patch.dict(os.environ, {"SIDEBAR_REFRESH_INTERVAL_SECONDS": "4"}, clear=True):
             self.assertEqual(stream_cache.get_sidebar_refresh_interval_seconds(), 4)
 
-    def test_sidebar_refresh_interval_ignores_generic_environment_override(self) -> None:
-        with patch.dict(os.environ, {"REFRESH_INTERVAL_SECONDS": "3"}, clear=True):
-            self.assertEqual(stream_cache.get_sidebar_refresh_interval_seconds(), 1)
-
     def test_max_stream_rows_defaults_to_five_thousand_five_hundred_twenty(self) -> None:
         with patch.dict(os.environ, {}, clear=True):
             self.assertEqual(stream_cache.get_max_stream_rows(), 5520)
+
+    def test_main_refresh_interval_ignores_legacy_generic_override(self) -> None:
+        with patch.dict(os.environ, {"REFRESH_INTERVAL_SECONDS": "3"}, clear=True):
+            self.assertEqual(stream_cache.get_main_refresh_interval_seconds(), 1)
+
+    def test_sidebar_refresh_interval_ignores_legacy_generic_override(self) -> None:
+        with patch.dict(os.environ, {"REFRESH_INTERVAL_SECONDS": "3"}, clear=True):
+            self.assertEqual(stream_cache.get_sidebar_refresh_interval_seconds(), 1)
+
+    def test_dashboard_subscribe_topic_filter_ignores_legacy_topic_alias(self) -> None:
+        with patch.dict(
+            os.environ,
+            {"MQTT_TOPIC": "legacy/topic/#"},
+            clear=True,
+        ):
+            module = load_module("dashboard_settings_legacy_alias_test", "src/dashboard/settings.py")
+            self.assertEqual(module.SUBSCRIBE_TOPIC_FILTER, "comp5339/task123/measurements/#")
+
+    def test_publisher_topic_template_ignores_legacy_topic_alias(self) -> None:
+        with patch.dict(
+            os.environ,
+            {"MQTT_TOPIC_TEMPLATE": "legacy/topic/{facility_code}"},
+            clear=True,
+        ):
+            module = load_module("publisher_mqtt_legacy_alias_test", "src/publisher/publish/mqtt_publish.py")
+            self.assertEqual(module.PUBLISH_TOPIC_TEMPLATE, "comp5339/task123/measurements/{facility_code}")
 
     def test_optional_market_fields_keep_missing_semantics(self) -> None:
         payload = {

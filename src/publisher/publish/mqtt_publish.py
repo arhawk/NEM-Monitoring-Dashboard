@@ -50,7 +50,6 @@ MQTT_TLS = os.getenv("MQTT_TLS", "false").strip().lower() in {"1", "true", "yes"
 CLIENT_ID = "comp5339-publisher"
 PUBLISH_TOPIC_TEMPLATE = (
     os.getenv("MQTT_PUBLISH_TOPIC_TEMPLATE")
-    or os.getenv("MQTT_TOPIC_TEMPLATE")
     or DEFAULT_PUBLISH_TOPIC_TEMPLATE
 )
 PUBLISH_DURATION_SECONDS = max(0, int(os.getenv("PUBLISH_DURATION_SECONDS", "0")))

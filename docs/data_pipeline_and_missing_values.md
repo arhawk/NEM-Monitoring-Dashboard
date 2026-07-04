@@ -106,10 +106,10 @@ The important distinction is:
 
 The repository matches that policy:
 
-- `src/publisher/cleaning.py` replaces negative core values with `0`
-- `src/publisher/cleaning.py` drops facilities where both `Power (MW)` and `Emissions (tonnes)` are fully missing
-- `src/publisher/cleaning.py` preserves partial gaps in core series using the split fill strategy
-- `src/publisher/cleaning.py` keeps optional market fields as `NaN` / `None`
+- `src/publisher/data/cleaning.py` replaces negative core values with `0`
+- `src/publisher/data/cleaning.py` drops facilities where both `Power (MW)` and `Emissions (tonnes)` are fully missing
+- `src/publisher/data/cleaning.py` preserves partial gaps in core series using the split fill strategy
+- `src/publisher/data/cleaning.py` keeps optional market fields as `NaN` / `None`
 - `src/dashboard/` keeps optional metrics missing and shows them as `N/A`
 
 This means the live system keeps missing data visible as missing, rather than silently turning it into a fabricated numeric value.

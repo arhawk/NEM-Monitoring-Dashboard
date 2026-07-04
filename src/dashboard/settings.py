@@ -15,7 +15,6 @@ BROKER = os.getenv("MQTT_BROKER") or os.getenv("MQTT_BROKER_HOST", "127.0.0.1")
 PORT = int(os.getenv("MQTT_PORT") or os.getenv("MQTT_BROKER_PORT", "1883"))
 SUBSCRIBE_TOPIC_FILTER = (
     os.getenv("MQTT_SUBSCRIBE_TOPIC_FILTER")
-    or os.getenv("MQTT_TOPIC")
     or DEFAULT_SUBSCRIBE_TOPIC_FILTER
 )
 USERNAME = os.getenv("MQTT_USERNAME") or None

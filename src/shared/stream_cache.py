@@ -11,7 +11,6 @@ from typing import Any, Deque, Dict, List, Optional
 
 DEFAULT_MAX_STREAM_ROWS = 5520
 DEFAULT_RESET_INTERVAL_HOURS = 6
-DEFAULT_REFRESH_INTERVAL_SECONDS = 1
 DEFAULT_MAIN_REFRESH_INTERVAL_SECONDS = 1
 DEFAULT_SIDEBAR_REFRESH_INTERVAL_SECONDS = 1
 
@@ -42,10 +41,6 @@ def get_max_stream_rows() -> int:
 
 def get_reset_interval_hours() -> float:
     return max(0.0, _get_env_float("RESET_INTERVAL_HOURS", DEFAULT_RESET_INTERVAL_HOURS))
-
-
-def get_refresh_interval_seconds() -> int:
-    return max(1, _get_env_int("REFRESH_INTERVAL_SECONDS", DEFAULT_REFRESH_INTERVAL_SECONDS))
 
 
 def get_main_refresh_interval_seconds() -> int:

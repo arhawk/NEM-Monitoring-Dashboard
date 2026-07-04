@@ -126,7 +126,7 @@ What it does:
 - connects to MQTT broker at `127.0.0.1:1883`
 - begins publishing rows to `comp5339/task123/measurements/{facility_code}`
 
-The publisher uses `MQTT_PUBLISH_TOPIC_TEMPLATE` or `MQTT_TOPIC_TEMPLATE`, defaulting to `comp5339/task123/measurements/{facility_code}`.
+The publisher uses `MQTT_PUBLISH_TOPIC_TEMPLATE`, defaulting to `comp5339/task123/measurements/{facility_code}`.
 
 If `data/consolidated_data_total.csv` already exists, the script reuses it instead of fetching again.
 
@@ -176,7 +176,7 @@ The dashboard uses these environment variables:
 - `MQTT_PORT`
 - `MQTT_TLS`
 - `MQTT_SUBSCRIBE_TOPIC_FILTER`
-- `MQTT_TOPIC`
+- `MQTT_PUBLISH_TOPIC_TEMPLATE`
 - `MQTT_USERNAME`
 - `MQTT_PASSWORD`
 - `MAX_STREAM_ROWS`
@@ -216,6 +216,7 @@ Render environment variables for the dashboard:
 - `MQTT_PASSWORD=<your HiveMQ password>`
 - `MQTT_TLS=true`
 - `MQTT_SUBSCRIBE_TOPIC_FILTER=comp5339/task123/measurements/#`
+- `MQTT_PUBLISH_TOPIC_TEMPLATE=comp5339/task123/measurements/{facility_code}`
 - `ENABLE_GITHUB_ACTIONS_CONTROL=true`
 - `AUTO_START_PUBLISHER=true`
 - `AUTO_START_COOLDOWN_SECONDS=600`

@@ -68,6 +68,19 @@ def _ensure_session_defaults() -> None:
         compat_st.session_state[READY_NOTICE_SESSION_KEY] = False
 
 
+def _update_ready_notice_state(data_source: str) -> tuple[Optional[str], Optional[str]]:
+    if data_source == "fallback":
+        compat_st.session_state[READY_NOTICE_SESSION_KEY] = True
+        return "info", "Waiting for cache messages. Showing sample replay fallback."
+    if data_source == "stale_live_replaced":
+        compat_st.session_state[READY_NOTICE_SESSION_KEY] = True
+        return "info", "Live cache is stale. Showing sample replay fallback."
+    if compat_st.session_state.get(READY_NOTICE_SESSION_KEY):
+        compat_st.session_state[READY_NOTICE_SESSION_KEY] = False
+        return "success", "Real-time data ready"
+    return None, None
+
+
 def _resolve_data_source(
     live_messages: list[Dict[str, Any]],
     *,
@@ -135,21 +148,7 @@ def _build_sidebar_model(context: DashboardContext) -> SidebarModel:
     runtime = context.runtime
     selected_fuel = compat_st.session_state.get("selected_fuel", "All")
     selected_region = compat_st.session_state.get("selected_region", "All")
-    notice_tone: Optional[str] = None
-    notice_message: Optional[str] = None
-
-    if context.data_source == "fallback":
-        notice_tone = "info"
-        notice_message = "Waiting for cache messages. Showing sample replay fallback."
-        compat_st.session_state[READY_NOTICE_SESSION_KEY] = True
-    elif context.data_source == "stale_live_replaced":
-        notice_tone = "info"
-        notice_message = "Live cache is stale. Showing sample replay fallback."
-        compat_st.session_state[READY_NOTICE_SESSION_KEY] = True
-    elif compat_st.session_state.get(READY_NOTICE_SESSION_KEY):
-        notice_tone = "success"
-        notice_message = "Real-time data ready"
-        compat_st.session_state[READY_NOTICE_SESSION_KEY] = False
+    notice_tone, notice_message = _update_ready_notice_state(context.data_source)
 
     return SidebarModel(
         runtime=runtime,
@@ -203,6 +202,7 @@ __all__ = [
     "SidebarModel",
     "MapModel",
     "_ensure_session_defaults",
+    "_update_ready_notice_state",
     "_resolve_data_source",
     "_build_dashboard_context_signature",
     "_build_dashboard_context_payload",
