@@ -262,6 +262,54 @@ class PublishLogicTests(TestCase):
         self.assertEqual(state["last_fac"], "A1")
         self.assertEqual(state["last_ts"], rows[0]["_ts_dt"])
 
+    def test_publish_new_since_stops_when_deadline_hits_mid_batch(self) -> None:
+        rows = [
+            {
+                "_ts_dt": pd.Timestamp("2026-07-03T00:00:00+10:00"),
+                "_ts_iso": "2026-07-03T00:00:00+10:00",
+                "facility_code": "A1",
+                "facility_name": "Alpha",
+                "state": "NSW",
+                "fuel_list": "Gas",
+                "power_value": 10.0,
+                "emission_value": None,
+                "price_per_mwh": None,
+                "demand_mw": None,
+                "lat": -33.0,
+                "lng": 151.0,
+                "unit": "MW",
+            },
+            {
+                "_ts_dt": pd.Timestamp("2026-07-03T00:05:00+10:00"),
+                "_ts_iso": "2026-07-03T00:05:00+10:00",
+                "facility_code": "A2",
+                "facility_name": "Beta",
+                "state": "NSW",
+                "fuel_list": "Gas",
+                "power_value": 20.0,
+                "emission_value": None,
+                "price_per_mwh": None,
+                "demand_mw": None,
+                "lat": -33.1,
+                "lng": 151.1,
+                "unit": "MW",
+            },
+        ]
+        state = {"seq": 0, "last_ts": None, "last_fac": ""}
+
+        with patch.object(task13_mqtt, "safe_publish_stream", return_value=True) as publish_mock, \
+            patch.object(task13_mqtt, "sleep_until_ns", return_value=None), \
+            patch.object(task13_mqtt, "perf_counter_ns", side_effect=[
+                0, 0, 0, 0, 10, 120_000_000, 120_000_000,
+            ]):
+            keep_running = task13_mqtt.publish_new_since(Mock(), rows, state, deadline_ns=150_000_000)
+
+        self.assertFalse(keep_running)
+        self.assertEqual(state["seq"], 1)
+        self.assertEqual(state["last_fac"], "A1")
+        self.assertEqual(state["last_ts"], rows[0]["_ts_dt"])
+        self.assertEqual(publish_mock.call_count, 1)
+
     def test_publish_new_since_formats_concrete_topic_from_template(self) -> None:
         rows = [
             {
@@ -301,6 +349,22 @@ class PublishLogicTests(TestCase):
             task13_mqtt.run_publisher_loop(Mock(), poll_seconds=5, duration_seconds=1)
 
         self.assertGreaterEqual(publish_mock.call_count, 1)
+        client.disconnect.assert_called_once()
+        client.loop_stop.assert_called_once()
+
+    def test_run_publisher_loop_breaks_when_helper_reports_timeout(self) -> None:
+        client = Mock()
+
+        with patch.object(task13_mqtt, "make_client", return_value=client), \
+            patch.object(task13_mqtt, "wait_for_connection", return_value=True), \
+            patch.object(task13_mqtt, "load_measure_rows", return_value=[]), \
+            patch.object(task13_mqtt, "publish_new_since", return_value=False) as publish_mock, \
+            patch.object(task13_mqtt.time, "sleep", return_value=None) as sleep_mock, \
+            patch.object(task13_mqtt, "perf_counter_ns", side_effect=[0, 0]):
+            task13_mqtt.run_publisher_loop(Mock(), poll_seconds=5, duration_seconds=1)
+
+        publish_mock.assert_called_once()
+        sleep_mock.assert_not_called()
         client.disconnect.assert_called_once()
         client.loop_stop.assert_called_once()
 

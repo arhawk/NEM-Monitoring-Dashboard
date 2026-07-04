@@ -135,7 +135,7 @@ def safe_publish_stream(client, topic, payload, qos=1, retain=False):
     return info.is_published()
 
 
-def publish_new_since(client, all_rows, state):
+def publish_new_since(client, all_rows, state, deadline_ns: int | None = None):
     last_ts = state.get("last_ts")
     last_fac = state.get("last_fac", "")
 
@@ -158,6 +158,10 @@ def publish_new_since(client, all_rows, state):
     t0_ns, step = perf_counter_ns(), 0
 
     for r in cand:
+        if deadline_ns is not None and perf_counter_ns() >= deadline_ns:
+            print("[Main] Timed publisher deadline reached during batch.")
+            return False
+
         code = r["facility_code"]
         target_ns = t0_ns + (step + 1) * TICK_NS
         now_ns = perf_counter_ns()
@@ -165,8 +169,16 @@ def publish_new_since(client, all_rows, state):
             step = (now_ns - t0_ns) // TICK_NS
             target_ns = t0_ns + (step + 1) * TICK_NS
 
+        if deadline_ns is not None and target_ns >= deadline_ns:
+            print("[Main] Timed publisher deadline reached during batch.")
+            return False
+
         sleep_until_ns(target_ns)
         step += 1
+
+        if deadline_ns is not None and perf_counter_ns() >= deadline_ns:
+            print("[Main] Timed publisher deadline reached during batch.")
+            return False
 
         next_seq = state.get("seq", 0) + 1
         payload = {
@@ -194,6 +206,8 @@ def publish_new_since(client, all_rows, state):
         state["seq"] = next_seq
         state["last_ts"] = r["_ts_dt"]
         state["last_fac"] = code
+
+    return True
 
 
 def wait_for_connection(client, attempts: int = 30, delay_seconds: float = 0.5) -> bool:
@@ -232,7 +246,9 @@ def run_publisher_loop(
         state = {"seq": 0, "last_ts": None, "last_fac": ""}
 
         while True:
-            publish_new_since(client, rows, state)
+            keep_running = publish_new_since(client, rows, state, deadline_ns=deadline_ns)
+            if keep_running is False:
+                break
             if deadline_ns is None:
                 time.sleep(poll_seconds)
                 continue
