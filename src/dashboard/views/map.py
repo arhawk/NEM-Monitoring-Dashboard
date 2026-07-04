@@ -65,9 +65,6 @@ def _render_map(
 ) -> None:
     model = _coerce_map_model(model_or_records, display_mode=display_mode)
     st.subheader("Facility Map")
-    if not model.filtered_snapshot:
-        st.info("No matching facility data in cache.")
-        return
     marker_payload = _get_cached_marker_payload(
         model.filtered_snapshot,
         model.display_mode,

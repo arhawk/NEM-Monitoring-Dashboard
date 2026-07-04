@@ -18,7 +18,7 @@ def _render_dashboard_main() -> None:
     context = _build_dashboard_context()
     map_model = _build_map_model(context)
     _render_header(context.runtime, context.stats, context.snapshot)
-    _render_current_trend(context.messages)
+    _render_current_trend(context.runtime, context.messages)
     _render_map(map_model)
     _render_table(context.filtered_snapshot)
 

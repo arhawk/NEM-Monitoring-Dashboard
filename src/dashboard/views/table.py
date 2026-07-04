@@ -9,10 +9,6 @@ from .._compat import st
 
 def _render_table(filtered_snapshot: Dict[str, Dict[str, str]]) -> None:
     st.subheader("Facility Data Preview")
-    if not filtered_snapshot:
-        st.info("No matching records in the current cache.")
-        return
-    preview = pd.DataFrame(filtered_snapshot.values())
     cols = [
         "facility_code",
         "facility_name",
@@ -25,6 +21,7 @@ def _render_table(filtered_snapshot: Dict[str, Dict[str, str]]) -> None:
         "demand_mw",
         "timestamp",
     ]
+    preview = pd.DataFrame.from_records(list(filtered_snapshot.values()), columns=cols)
     existing = [col for col in cols if col in preview.columns]
     st.dataframe(preview[existing].sort_values("facility_code"), width="stretch", height=260)
 

@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import html
 import textwrap
+from time import time
 from typing import Any, Dict, List
 
 from ..data import _build_current_trend_cards, _format_optional_metric
 from .._compat import components, st
 from ..runtime import DashboardRuntime
+from ..settings import CACHE_FRESHNESS_STALE_AFTER_SECONDS
 
 
 def _build_current_trend_html(message: Dict[str, Any]) -> str:
@@ -64,8 +66,20 @@ def _build_current_trend_html(message: Dict[str, Any]) -> str:
     ).strip()
 
 
-def _render_current_trend(messages: List[Dict[str, Any]]) -> None:
+def _is_cache_fresh(runtime: DashboardRuntime) -> bool:
+    last_updated_at = runtime.cache.last_updated_at()
+    if last_updated_at is None:
+        return False
+    return (time() - float(last_updated_at)) <= CACHE_FRESHNESS_STALE_AFTER_SECONDS
+
+
+def _render_current_trend(runtime: DashboardRuntime, messages: List[Dict[str, Any]]) -> None:
     from ..data import _get_latest_trend_message
+
+    if not _is_cache_fresh(runtime):
+        st.subheader("Current Facility")
+        st.info("No MQTT messages available for current trend yet.")
+        return
 
     latest = _get_latest_trend_message(messages)
     if latest is None:
@@ -76,9 +90,22 @@ def _render_current_trend(messages: List[Dict[str, Any]]) -> None:
     components.html(_build_current_trend_html(latest), height=220, scrolling=False)
 
 
+def _build_cache_freshness_badge(runtime: DashboardRuntime) -> tuple[str, str, str]:
+    last_updated_at = runtime.cache.last_updated_at()
+    if last_updated_at is None:
+        return "blue", "Waiting for publish Message...", ":material/hourglass_empty:"
+
+    cache_age_seconds = time() - float(last_updated_at)
+    if cache_age_seconds > CACHE_FRESHNESS_STALE_AFTER_SECONDS:
+        return "blue", "Waiting for publish Message...", ":material/hourglass_empty:"
+
+    return "green", "Real-time Update", ":material/schedule:"
+
+
 def _render_header(runtime: DashboardRuntime, stats: Dict[str, Any], snapshot: Dict[str, Dict[str, Any]]) -> None:
     st.title("⚡ National Electricity Market (NEM) Facility Monitoring Dashboard")
-    st.badge("Real-time Update", icon=":material/arrow_upward:", color="green")
+    badge_color, badge_text, badge_icon = _build_cache_freshness_badge(runtime)
+    st.badge(badge_text, icon=badge_icon, color=badge_color)
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -93,6 +120,8 @@ def _render_header(runtime: DashboardRuntime, stats: Dict[str, Any], snapshot: D
 
 __all__ = [
     "_build_current_trend_html",
+    "_is_cache_fresh",
     "_render_current_trend",
+    "_build_cache_freshness_badge",
     "_render_header",
 ]

@@ -15,7 +15,6 @@ from ..actions import (
     maybe_auto_start_publisher,
 )
 from ..render_context import SidebarModel
-from ..render_context import _update_ready_notice_state
 from ..runtime import DashboardRuntime, _soft_reset_runtime
 from ..settings import DISPLAY_REGION_OPTIONS, SIDEBAR_HEADER_TITLE
 
@@ -37,7 +36,6 @@ def _coerce_sidebar_model(
     fuel_options = fuel_options or ["All"]
     selected_fuel = st.session_state.get("selected_fuel", "All")
     selected_region = st.session_state.get("selected_region", "All")
-    notice_tone, notice_message = _update_ready_notice_state(data_source)
     return SidebarModel(
         runtime=runtime,
         data_source=data_source,
@@ -52,8 +50,6 @@ def _coerce_sidebar_model(
         selected_fuel=selected_fuel,
         selected_region=selected_region,
         fuel_options=fuel_options,
-        notice_tone=notice_tone,
-        notice_message=notice_message,
     )
 
 
@@ -141,12 +137,6 @@ def _render_sidebar(
     st.write(f"Messages since reset: {model.messages_since_reset}")
     if model.last_error:
         st.caption(model.last_error)
-
-    if model.notice_message:
-        if model.notice_tone == "success":
-            st.success(model.notice_message)
-        else:
-            st.info(model.notice_message)
 
     st.subheader("Grid Region Filter")
     st.selectbox("Select Region", DISPLAY_REGION_OPTIONS, key="selected_region")

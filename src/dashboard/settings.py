@@ -46,7 +46,7 @@ GITHUB_REPO = os.getenv("GITHUB_REPO", "NEM-Monitoring-Dashboard")
 GITHUB_WORKFLOW_FILE = os.getenv("GITHUB_WORKFLOW_FILE", "publish-mqtt-on-demand.yml")
 GITHUB_REF = os.getenv("GITHUB_REF", "main")
 DISPLAY_REGION_OPTIONS = ["All", "ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
-READY_NOTICE_SESSION_KEY = "_cache_ready_notice_pending"
+CACHE_FRESHNESS_STALE_AFTER_SECONDS = 3
 SIDEBAR_HEADER_TITLE = "🔧 Control Center"
 FUEL_GROUP_COLORS = {
     "Renewable": "#16a34a",

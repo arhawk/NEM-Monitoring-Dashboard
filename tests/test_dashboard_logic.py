@@ -39,6 +39,7 @@ from src.dashboard import render_context as dashboard_render_context
 from src.dashboard import settings as dashboard_settings
 from src.dashboard.views import map as dashboard_map_payload
 from src.dashboard.views import sidebar as dashboard_sidebar_view
+from src.dashboard.views import table as dashboard_table_view
 from src.dashboard import runtime as dashboard_runtime
 from src.publisher import cli as publisher_cli
 from src.publisher.data import cleaning as task13_cleaning
@@ -54,13 +55,13 @@ for module in (
     dashboard_map_payload,
     dashboard_runtime,
     dashboard_render_context,
+    dashboard_table_view,
 ):
     for name in getattr(module, "__all__", []):
         setattr(task4, name, getattr(module, name))
 task4.st = dashboard_render_context.compat_st
 task4.pd = pd
 task4.components = dashboard_header_view.components
-task4.READY_NOTICE_SESSION_KEY = dashboard_settings.READY_NOTICE_SESSION_KEY
 task4.render_nem_facility_map = dashboard_nem_map_component.render_nem_facility_map
 task4.get_runtime = dashboard_runtime.get_runtime
 task4.set_active_runtime = dashboard_runtime.set_active_runtime
@@ -974,15 +975,31 @@ class DashboardLogicTests(TestCase):
         self.assertIn("font-size: 0.92rem", html)
         self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr))", html)
 
-    def test_render_current_trend_shows_empty_state_when_no_messages(self) -> None:
-        with patch.object(task4.st, "subheader") as subheader_mock, \
+    def test_render_current_trend_shows_empty_state_when_cache_is_stale(self) -> None:
+        runtime = Mock()
+        runtime.cache.last_updated_at.return_value = 100.0
+
+        with patch.object(dashboard_header_view, "time", return_value=104.5), \
+            patch.object(task4.st, "subheader") as subheader_mock, \
             patch.object(task4.st, "info") as info_mock:
-            task4._render_current_trend([])
+            task4._render_current_trend(runtime, [
+                {
+                    "facility_code": "WOOLGSF",
+                    "facility_name": "Woolooga",
+                    "timestamp": "2025-10-25T08:50:00",
+                    "power_value": 0.0,
+                    "emission_value": 0.0,
+                    "price_per_mwh": 102.16,
+                    "demand_mw": 23448.02,
+                }
+            ])
 
         subheader_mock.assert_called_once_with("Current Facility")
         info_mock.assert_called_once_with("No MQTT messages available for current trend yet.")
 
     def test_render_current_trend_uses_html_component_for_latest_record(self) -> None:
+        runtime = Mock()
+        runtime.cache.last_updated_at.return_value = 100.0
         messages = [
             {
                 "facility_code": "WOOLGSF",
@@ -995,8 +1012,9 @@ class DashboardLogicTests(TestCase):
             }
         ]
 
-        with patch.object(task4.components, "html") as html_mock:
-            task4._render_current_trend(messages)
+        with patch.object(dashboard_header_view, "time", return_value=102.5), \
+            patch.object(task4.components, "html") as html_mock:
+            task4._render_current_trend(runtime, messages)
 
         html_mock.assert_called_once()
         self.assertIn("Current Facility: Woolooga", html_mock.call_args.args[0])
@@ -1092,30 +1110,82 @@ class DashboardLogicTests(TestCase):
     def test_resolve_data_source_defaults_to_empty_without_live_messages(self) -> None:
         self.assertEqual(task4._resolve_data_source([]), "empty")
 
-    def test_render_header_no_longer_emits_data_source_status(self) -> None:
+    def test_render_header_uses_freshness_badge_for_empty_cache(self) -> None:
         stats = {
             "total_power": 30.0,
             "total_emission": 8.0,
             "median_price": 30.0,
             "median_demand": 5.0,
         }
+        runtime = Mock()
+        runtime.cache.last_updated_at.return_value = None
         column_mocks = [Mock(), Mock(), Mock(), Mock()]
         for column in column_mocks:
             column.__enter__ = Mock(return_value=column)
             column.__exit__ = Mock(return_value=None)
 
         with patch.object(task4.st, "title"), \
+            patch.object(task4.st, "badge") as badge_mock, \
             patch.object(task4.st, "caption"), \
             patch.object(task4.st, "info") as info_mock, \
             patch.object(task4.st, "success") as success_mock, \
             patch.object(task4.st, "columns", return_value=column_mocks), \
             patch.object(task4.st, "metric"):
-            task4._render_header(Mock(), stats, {})
+            task4._render_header(runtime, stats, {})
 
         info_mock.assert_not_called()
         success_mock.assert_not_called()
+        badge_mock.assert_called_once_with("Waiting for publish Message...", icon=":material/hourglass_empty:", color="blue")
 
-    def test_render_sidebar_emits_waiting_notice_and_keeps_transport_status(self) -> None:
+    def test_render_header_uses_freshness_badge_for_fresh_cache(self) -> None:
+        stats = {
+            "total_power": 30.0,
+            "total_emission": 8.0,
+            "median_price": 30.0,
+            "median_demand": 5.0,
+        }
+        runtime = Mock()
+        runtime.cache.last_updated_at.return_value = 100.0
+        column_mocks = [Mock(), Mock(), Mock(), Mock()]
+        for column in column_mocks:
+            column.__enter__ = Mock(return_value=column)
+            column.__exit__ = Mock(return_value=None)
+
+        with patch.object(task4.st, "title"), \
+            patch.object(dashboard_header_view, "time", return_value=102.5), \
+            patch.object(task4.st, "badge") as badge_mock, \
+            patch.object(task4.st, "caption"), \
+            patch.object(task4.st, "columns", return_value=column_mocks), \
+            patch.object(task4.st, "metric"):
+            task4._render_header(runtime, stats, {})
+
+        badge_mock.assert_called_once_with("Real-time Update", icon=":material/schedule:", color="green")
+
+    def test_render_header_uses_freshness_badge_for_stale_cache(self) -> None:
+        stats = {
+            "total_power": 30.0,
+            "total_emission": 8.0,
+            "median_price": 30.0,
+            "median_demand": 5.0,
+        }
+        runtime = Mock()
+        runtime.cache.last_updated_at.return_value = 100.0
+        column_mocks = [Mock(), Mock(), Mock(), Mock()]
+        for column in column_mocks:
+            column.__enter__ = Mock(return_value=column)
+            column.__exit__ = Mock(return_value=None)
+
+        with patch.object(task4.st, "title"), \
+            patch.object(dashboard_header_view, "time", return_value=104.1), \
+            patch.object(task4.st, "badge") as badge_mock, \
+            patch.object(task4.st, "caption"), \
+            patch.object(task4.st, "columns", return_value=column_mocks), \
+            patch.object(task4.st, "metric"):
+            task4._render_header(runtime, stats, {})
+
+        badge_mock.assert_called_once_with("Waiting for publish Message...", icon=":material/hourglass_empty:", color="blue")
+
+    def test_render_sidebar_keeps_transport_status_without_transient_notices(self) -> None:
         runtime = self._build_sidebar_runtime(status="Connecting")
 
         with patch.dict(task4.st.session_state, {"display_mode": "power_value"}, clear=True), \
@@ -1148,8 +1218,7 @@ class DashboardLogicTests(TestCase):
             next(i for i, line in enumerate(write_lines) if line.startswith("Messages since reset:")),
             next(i for i, line in enumerate(write_lines) if line.startswith("MQTT cache size:")),
         )
-        info_mock.assert_any_call("Waiting for publish Message.")
-        info_mock.assert_any_call("Connecting")
+        info_mock.assert_called_once_with("Connecting")
         success_mock.assert_not_called()
         warning_mock.assert_not_called()
         error_mock.assert_not_called()
@@ -1214,98 +1283,6 @@ class DashboardLogicTests(TestCase):
             f"Last soft reset: {task4._format_ts(updated_reset_at.timestamp())}",
             [str(call.args[0]) for call in write_mock.call_args_list],
         )
-
-    def test_render_sidebar_shows_ready_notice_once_after_first_live_message(self) -> None:
-        runtime = self._build_sidebar_runtime(status="Connected")
-
-        class FakeSessionState(dict):
-            def __getattr__(self, key: str):
-                return self[key]
-
-            def __setattr__(self, key: str, value):
-                self[key] = value
-
-        state = FakeSessionState(
-            display_mode="power_value",
-            selected_fuel="All",
-            selected_region="All",
-            **{task4.READY_NOTICE_SESSION_KEY: False},
-        )
-
-        with patch.object(task4.st, "session_state", state), \
-            patch.object(task4.st, "markdown"), \
-            patch.object(task4.st, "header"), \
-            patch.object(task4.st, "subheader"), \
-            patch.object(task4.st, "button", return_value=False), \
-            patch.object(task4.st, "selectbox"), \
-            patch.object(task4.st, "write"), \
-            patch.object(task4.st, "json"), \
-            patch.object(task4.st, "caption"), \
-            patch.object(task4.st, "info") as info_mock, \
-            patch.object(task4.st, "success") as success_mock, \
-            patch.object(task4.st, "warning") as warning_mock, \
-            patch.object(task4.st, "error") as error_mock:
-            task4._render_sidebar(runtime, {}, {}, "empty", ["All", "Gas"])
-
-        info_mock.assert_any_call("Waiting for publish Message.")
-        success_mock.assert_any_call("Connected")
-        self.assertTrue(state[task4.READY_NOTICE_SESSION_KEY])
-        self.assertNotIn("Real-time data ready", [call.args[0] for call in success_mock.call_args_list])
-        warning_mock.assert_not_called()
-        error_mock.assert_not_called()
-
-        success_mock.reset_mock()
-        info_mock.reset_mock()
-        warning_mock.reset_mock()
-        error_mock.reset_mock()
-
-        with patch.object(task4.st, "session_state", state), \
-            patch.object(task4.st, "markdown"), \
-            patch.object(task4.st, "header"), \
-            patch.object(task4.st, "subheader"), \
-            patch.object(task4.st, "button", return_value=False), \
-            patch.object(task4.st, "selectbox"), \
-            patch.object(task4.st, "write"), \
-            patch.object(task4.st, "json"), \
-            patch.object(task4.st, "caption"), \
-            patch.object(task4.st, "info") as info_mock, \
-            patch.object(task4.st, "success") as success_mock, \
-            patch.object(task4.st, "warning") as warning_mock, \
-            patch.object(task4.st, "error") as error_mock:
-            task4._render_sidebar(runtime, {}, {}, "live", ["All", "Gas"])
-
-        success_mock.assert_any_call("Real-time data ready")
-        success_mock.assert_any_call("Connected")
-        self.assertFalse(state[task4.READY_NOTICE_SESSION_KEY])
-        info_mock.assert_not_called()
-        warning_mock.assert_not_called()
-        error_mock.assert_not_called()
-
-        success_mock.reset_mock()
-        info_mock.reset_mock()
-        warning_mock.reset_mock()
-        error_mock.reset_mock()
-
-        with patch.object(task4.st, "session_state", state), \
-            patch.object(task4.st, "markdown"), \
-            patch.object(task4.st, "header"), \
-            patch.object(task4.st, "subheader"), \
-            patch.object(task4.st, "button", return_value=False), \
-            patch.object(task4.st, "selectbox"), \
-            patch.object(task4.st, "write"), \
-            patch.object(task4.st, "json"), \
-            patch.object(task4.st, "caption"), \
-            patch.object(task4.st, "info") as info_mock, \
-            patch.object(task4.st, "success") as success_mock, \
-            patch.object(task4.st, "warning") as warning_mock, \
-            patch.object(task4.st, "error") as error_mock:
-            task4._render_sidebar(runtime, {}, {}, "live", ["All", "Gas"])
-
-        success_mock.assert_any_call("Connected")
-        self.assertNotIn("Real-time data ready", [call.args[0] for call in success_mock.call_args_list])
-        info_mock.assert_not_called()
-        warning_mock.assert_not_called()
-        error_mock.assert_not_called()
 
     def test_main_calls_render_dashboard_without_manual_rerun_loop(self) -> None:
         with patch.object(dashboard_app, "get_runtime") as runtime_mock, \
@@ -1427,3 +1404,50 @@ class DashboardLogicTests(TestCase):
 
         self.assertEqual(fake_state["display_mode"], "power_value")
         render_mock.assert_called_once()
+
+    def test_render_map_renders_empty_state_without_info_banner(self) -> None:
+        class FakeSessionState(dict):
+            def __getattr__(self, key: str):
+                return self[key]
+
+            def __setattr__(self, key: str, value):
+                self[key] = value
+
+        fake_state = FakeSessionState(
+            display_mode="power_value",
+            selected_fuel="All",
+            selected_region="All",
+        )
+
+        with patch.object(task4.st, "session_state", fake_state), \
+            patch.object(task4.st, "subheader"), \
+            patch.object(task4.st, "info") as info_mock, \
+            patch.object(dashboard_nem_map_component, "render_nem_facility_map", return_value={}) as render_mock:
+            task4._render_map({}, "power_value")
+
+        info_mock.assert_not_called()
+        render_mock.assert_called_once()
+        marker_payload = render_mock.call_args.args[0]
+        self.assertEqual(marker_payload["markers"], [])
+
+    def test_render_table_renders_empty_state_without_info_banner(self) -> None:
+        with patch.object(task4.st, "subheader"), \
+            patch.object(task4.st, "info") as info_mock, \
+            patch.object(task4.st, "dataframe") as dataframe_mock:
+            task4._render_table({})
+
+        info_mock.assert_not_called()
+        dataframe_mock.assert_called_once()
+        rendered = dataframe_mock.call_args.args[0]
+        self.assertEqual(list(rendered.columns), [
+            "facility_code",
+            "facility_name",
+            "state",
+            "fuel_group",
+            "fuel_list",
+            "power_value",
+            "emission_value",
+            "price_per_mwh",
+            "demand_mw",
+            "timestamp",
+        ])

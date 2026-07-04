@@ -9,7 +9,6 @@ from . import runtime as runtime_module
 from .data import fallback as fallback_module
 from .data.aggregation import _build_fuel_options, _build_latest_snapshot, _calculate_snapshot_stats, _filter_snapshot
 from .data.map_payload import _build_map_signature
-from .settings import READY_NOTICE_SESSION_KEY
 
 
 @dataclass(frozen=True)
@@ -44,8 +43,6 @@ class SidebarModel:
     selected_fuel: str
     selected_region: str
     fuel_options: List[str]
-    notice_tone: Optional[str]
-    notice_message: Optional[str]
 
 
 @dataclass(frozen=True)
@@ -64,18 +61,6 @@ def _ensure_session_defaults() -> None:
         compat_st.session_state.selected_fuel = "All"
     if "selected_region" not in compat_st.session_state:
         compat_st.session_state.selected_region = "All"
-    if READY_NOTICE_SESSION_KEY not in compat_st.session_state:
-        compat_st.session_state[READY_NOTICE_SESSION_KEY] = False
-
-
-def _update_ready_notice_state(data_source: str) -> tuple[Optional[str], Optional[str]]:
-    if data_source == "empty":
-        compat_st.session_state[READY_NOTICE_SESSION_KEY] = True
-        return "info", "Waiting for publish Message."
-    if data_source == "live" and compat_st.session_state.get(READY_NOTICE_SESSION_KEY):
-        compat_st.session_state[READY_NOTICE_SESSION_KEY] = False
-        return "success", "Real-time data ready"
-    return None, None
 
 
 def _resolve_data_source(live_messages: list[Dict[str, Any]]) -> str:
@@ -129,7 +114,6 @@ def _build_sidebar_model(context: DashboardContext) -> SidebarModel:
     runtime = context.runtime
     selected_fuel = compat_st.session_state.get("selected_fuel", "All")
     selected_region = compat_st.session_state.get("selected_region", "All")
-    notice_tone, notice_message = _update_ready_notice_state(context.data_source)
 
     return SidebarModel(
         runtime=runtime,
@@ -145,8 +129,6 @@ def _build_sidebar_model(context: DashboardContext) -> SidebarModel:
         selected_fuel=selected_fuel,
         selected_region=selected_region,
         fuel_options=context.fuel_options,
-        notice_tone=notice_tone,
-        notice_message=notice_message,
     )
 
 
@@ -183,7 +165,6 @@ __all__ = [
     "SidebarModel",
     "MapModel",
     "_ensure_session_defaults",
-    "_update_ready_notice_state",
     "_resolve_data_source",
     "_build_dashboard_context_signature",
     "_build_dashboard_context_payload",
