@@ -48,7 +48,12 @@ USERNAME = os.getenv("MQTT_USERNAME") or None
 PASSWORD = os.getenv("MQTT_PASSWORD") or None
 MQTT_TLS = os.getenv("MQTT_TLS", "false").strip().lower() in {"1", "true", "yes", "on"}
 CLIENT_ID = "comp5339-publisher"
-PUBLISH_TOPIC_TEMPLATE = os.getenv("MQTT_PUBLISH_TOPIC_TEMPLATE") or DEFAULT_PUBLISH_TOPIC_TEMPLATE
+PUBLISH_TOPIC_TEMPLATE = (
+    os.getenv("MQTT_PUBLISH_TOPIC_TEMPLATE")
+    or os.getenv("MQTT_TOPIC_TEMPLATE")
+    or DEFAULT_PUBLISH_TOPIC_TEMPLATE
+)
+PUBLISH_DURATION_SECONDS = max(0, int(os.getenv("PUBLISH_DURATION_SECONDS", "0")))
 TICK = 0.100
 TICK_NS = int(TICK * 1e9)
 POLL_SECONDS = 5
@@ -200,16 +205,51 @@ def wait_for_connection(client, attempts: int = 30, delay_seconds: float = 0.5) 
     return False
 
 
-def run_publisher_loop(csv_path: Path = MEASURE_CSV, *, poll_seconds: int = POLL_SECONDS) -> None:
-    client = make_client()
-    if not wait_for_connection(client):
-        print("[Main] MQTT connect timeout, please check broker.")
-        raise SystemExit
+def run_publisher_loop(
+    csv_path: Path = MEASURE_CSV,
+    *,
+    poll_seconds: int = POLL_SECONDS,
+    duration_seconds: int | None = None,
+) -> None:
+    client = None
+    effective_duration_seconds = PUBLISH_DURATION_SECONDS if duration_seconds is None else max(0, duration_seconds)
+    deadline_ns = None if effective_duration_seconds <= 0 else perf_counter_ns() + int(effective_duration_seconds * 1e9)
+    try:
+        client = make_client()
+        if not wait_for_connection(client):
+            print("[Main] MQTT connect timeout, please check broker.")
+            raise SystemExit
 
-    print(f"[Main] Connected, starting stream with tick={TICK}s")
-    rows = load_measure_rows(csv_path)
-    state = {"seq": 0, "last_ts": None, "last_fac": ""}
+        if deadline_ns is None:
+            print(f"[Main] Connected, starting stream with tick={TICK}s")
+        else:
+            print(
+                f"[Main] Connected, starting timed stream with tick={TICK}s "
+                f"for {effective_duration_seconds} seconds"
+            )
 
-    while True:
-        publish_new_since(client, rows, state)
-        time.sleep(poll_seconds)
+        rows = load_measure_rows(csv_path)
+        state = {"seq": 0, "last_ts": None, "last_fac": ""}
+
+        while True:
+            publish_new_since(client, rows, state)
+            if deadline_ns is None:
+                time.sleep(poll_seconds)
+                continue
+
+            remaining_ns = deadline_ns - perf_counter_ns()
+            if remaining_ns <= 0:
+                print(f"[Main] Timed publisher duration reached after {effective_duration_seconds} seconds.")
+                break
+            time.sleep(min(poll_seconds, remaining_ns / 1e9))
+    finally:
+        if client is not None:
+            try:
+                client.disconnect()
+            except Exception as exc:
+                print(f"[Main] MQTT disconnect error: {exc}")
+            try:
+                client.loop_stop()
+            except Exception as exc:
+                print(f"[Main] MQTT loop_stop error: {exc}")
+        print("[Main] Publisher exited")

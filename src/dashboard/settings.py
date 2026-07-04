@@ -13,7 +13,11 @@ from src.shared.stream_cache import (
 
 BROKER = os.getenv("MQTT_BROKER") or os.getenv("MQTT_BROKER_HOST", "127.0.0.1")
 PORT = int(os.getenv("MQTT_PORT") or os.getenv("MQTT_BROKER_PORT", "1883"))
-SUBSCRIBE_TOPIC_FILTER = os.getenv("MQTT_SUBSCRIBE_TOPIC_FILTER") or DEFAULT_SUBSCRIBE_TOPIC_FILTER
+SUBSCRIBE_TOPIC_FILTER = (
+    os.getenv("MQTT_SUBSCRIBE_TOPIC_FILTER")
+    or os.getenv("MQTT_TOPIC")
+    or DEFAULT_SUBSCRIBE_TOPIC_FILTER
+)
 USERNAME = os.getenv("MQTT_USERNAME") or None
 PASSWORD = os.getenv("MQTT_PASSWORD") or None
 MQTT_TLS = os.getenv("MQTT_TLS", "false").strip().lower() in {"1", "true", "yes", "on"}
@@ -32,6 +36,24 @@ ENABLE_FALLBACK_REPLAY = os.getenv("ENABLE_FALLBACK_REPLAY", "true").strip().low
     "no",
     "off",
 }
+ENABLE_GITHUB_ACTIONS_CONTROL = os.getenv("ENABLE_GITHUB_ACTIONS_CONTROL", "false").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+AUTO_START_PUBLISHER = os.getenv("AUTO_START_PUBLISHER", "false").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+AUTO_START_COOLDOWN_SECONDS = max(0, int(os.getenv("AUTO_START_COOLDOWN_SECONDS", "600")))
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN") or None
+GITHUB_OWNER = os.getenv("GITHUB_OWNER", "arhawk")
+GITHUB_REPO = os.getenv("GITHUB_REPO", "NEM-Monitoring-Dashboard")
+GITHUB_WORKFLOW_FILE = os.getenv("GITHUB_WORKFLOW_FILE", "publish-mqtt-on-demand.yml")
+GITHUB_REF = os.getenv("GITHUB_REF", "main")
 DISPLAY_REGION_OPTIONS = ["All", "ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
 READY_NOTICE_SESSION_KEY = "_cache_ready_notice_pending"
 SIDEBAR_HEADER_TITLE = "🔧 Control Center"

@@ -30,6 +30,7 @@ def load_module(module_name: str, relative_path: str):
 
 
 from src.dashboard import app as dashboard_app
+from src.dashboard import actions as dashboard_actions
 from src.dashboard import data as dashboard_data
 from src.dashboard.components import nem_map_component as dashboard_nem_map_component
 from src.dashboard.views import header as dashboard_header_view
@@ -70,6 +71,14 @@ task4.get_runtime = dashboard_runtime.get_runtime
 task4.set_active_runtime = dashboard_runtime.set_active_runtime
 task4.render_dashboard = dashboard_render.render_dashboard
 task4.main = dashboard_app.main
+
+
+class FakeSessionState(dict):
+    def __getattr__(self, key: str):
+        return self[key]
+
+    def __setattr__(self, key: str, value):
+        self[key] = value
 
 
 class PublishLogicTests(TestCase):
@@ -279,6 +288,142 @@ class PublishLogicTests(TestCase):
             task13_mqtt.publish_new_since(Mock(), rows, state)
 
         self.assertEqual(publish_mock.call_args[0][1], "comp5339/task123/measurements/A1")
+
+    def test_run_publisher_loop_exits_cleanly_in_timed_mode(self) -> None:
+        client = Mock()
+
+        with patch.object(task13_mqtt, "make_client", return_value=client), \
+            patch.object(task13_mqtt, "wait_for_connection", return_value=True), \
+            patch.object(task13_mqtt, "load_measure_rows", return_value=[]), \
+            patch.object(task13_mqtt, "publish_new_since") as publish_mock, \
+            patch.object(task13_mqtt.time, "sleep", return_value=None), \
+            patch.object(task13_mqtt, "perf_counter_ns", side_effect=[0, 0, 2_000_000_000]):
+            task13_mqtt.run_publisher_loop(Mock(), poll_seconds=5, duration_seconds=1)
+
+        self.assertGreaterEqual(publish_mock.call_count, 1)
+        client.disconnect.assert_called_once()
+        client.loop_stop.assert_called_once()
+
+    def test_run_publisher_loop_keeps_infinite_mode_when_duration_unset(self) -> None:
+        client = Mock()
+
+        with patch.object(task13_mqtt, "make_client", return_value=client), \
+            patch.object(task13_mqtt, "wait_for_connection", return_value=True), \
+            patch.object(task13_mqtt, "load_measure_rows", return_value=[]), \
+            patch.object(task13_mqtt, "publish_new_since") as publish_mock, \
+            patch.object(task13_mqtt.time, "sleep", side_effect=SystemExit) as sleep_mock, \
+            patch.object(task13_mqtt, "perf_counter_ns", return_value=0):
+            with self.assertRaises(SystemExit):
+                task13_mqtt.run_publisher_loop(Mock(), poll_seconds=7, duration_seconds=0)
+
+        publish_mock.assert_called_once()
+        sleep_mock.assert_called_once_with(7)
+        client.disconnect.assert_called_once()
+        client.loop_stop.assert_called_once()
+
+
+class GitHubActionsControlTests(TestCase):
+    def _response(self, status_code: int, payload: dict | None = None, text: str = "") -> Mock:
+        response = Mock()
+        response.status_code = status_code
+        response.text = text
+        response.json.return_value = payload or {}
+        return response
+
+    def test_auto_start_does_not_call_github_when_control_disabled(self) -> None:
+        session_state = FakeSessionState()
+        with patch.object(dashboard_actions, "ENABLE_GITHUB_ACTIONS_CONTROL", False), \
+            patch.object(dashboard_actions.st, "session_state", session_state), \
+            patch.object(dashboard_actions.requests, "request") as request_mock:
+            result = dashboard_actions.maybe_auto_start_publisher()
+
+        self.assertFalse(result["triggered"])
+        self.assertEqual(result["message"], "GitHub Actions control is disabled.")
+        request_mock.assert_not_called()
+
+    def test_trigger_publisher_workflow_skips_when_run_is_active(self) -> None:
+        session_state = FakeSessionState()
+        active_run = {
+            "id": 101,
+            "status": "in_progress",
+            "conclusion": None,
+            "created_at": datetime(2026, 7, 4, 10, 0, tzinfo=timezone.utc),
+            "html_url": "https://example.com/run/101",
+            "run_number": 7,
+        }
+        responses = [self._response(200, {"workflow_runs": [active_run]})]
+
+        with patch.object(dashboard_actions, "ENABLE_GITHUB_ACTIONS_CONTROL", True), \
+            patch.object(dashboard_actions, "GITHUB_TOKEN", "token"), \
+            patch.object(dashboard_actions.st, "session_state", session_state), \
+            patch.object(dashboard_actions.requests, "request", side_effect=responses) as request_mock:
+            result = dashboard_actions.trigger_publisher_workflow(duration_seconds=600)
+
+        self.assertFalse(result["triggered"])
+        self.assertIn("already in_progress", result["message"])
+        self.assertEqual(request_mock.call_count, 1)
+
+    def test_trigger_publisher_workflow_dispatches_when_no_runs_block(self) -> None:
+        session_state = FakeSessionState()
+        responses = [
+            self._response(200, {"workflow_runs": []}),
+            self._response(204, None),
+        ]
+
+        with patch.object(dashboard_actions, "ENABLE_GITHUB_ACTIONS_CONTROL", True), \
+            patch.object(dashboard_actions, "GITHUB_TOKEN", "token"), \
+            patch.object(dashboard_actions.st, "session_state", session_state), \
+            patch.object(dashboard_actions.requests, "request", side_effect=responses) as request_mock:
+            result = dashboard_actions.trigger_publisher_workflow(duration_seconds=600)
+
+        self.assertTrue(result["triggered"])
+        self.assertIn("Triggered GitHub Actions publisher", result["message"])
+        self.assertEqual(request_mock.call_count, 2)
+
+    def test_cancel_current_publisher_run_cancels_active_run(self) -> None:
+        session_state = FakeSessionState()
+        active_run = {
+            "id": 102,
+            "status": "queued",
+            "conclusion": None,
+            "created_at": datetime(2026, 7, 4, 10, 0, tzinfo=timezone.utc),
+            "html_url": "https://example.com/run/102",
+            "run_number": 8,
+        }
+        responses = [
+            self._response(200, {"workflow_runs": [active_run]}),
+            self._response(202, None),
+        ]
+
+        with patch.object(dashboard_actions, "ENABLE_GITHUB_ACTIONS_CONTROL", True), \
+            patch.object(dashboard_actions, "GITHUB_TOKEN", "token"), \
+            patch.object(dashboard_actions.st, "session_state", session_state), \
+            patch.object(dashboard_actions.requests, "request", side_effect=responses) as request_mock:
+            result = dashboard_actions.cancel_current_publisher_run()
+
+        self.assertTrue(result["triggered"])
+        self.assertIn("Requested cancellation", result["message"])
+        self.assertEqual(request_mock.call_count, 2)
+
+    def test_auto_start_only_triggers_once_per_session(self) -> None:
+        session_state = FakeSessionState()
+        responses = [
+            self._response(200, {"workflow_runs": []}),
+            self._response(204, None),
+        ]
+
+        with patch.object(dashboard_actions, "ENABLE_GITHUB_ACTIONS_CONTROL", True), \
+            patch.object(dashboard_actions, "AUTO_START_PUBLISHER", True), \
+            patch.object(dashboard_actions, "GITHUB_TOKEN", "token"), \
+            patch.object(dashboard_actions.st, "session_state", session_state), \
+            patch.object(dashboard_actions.requests, "request", side_effect=responses) as request_mock:
+            first = dashboard_actions.maybe_auto_start_publisher()
+            second = dashboard_actions.maybe_auto_start_publisher()
+
+        self.assertTrue(first["triggered"])
+        self.assertTrue(second["triggered"])
+        self.assertEqual(second["message"], first["message"])
+        self.assertEqual(request_mock.call_count, 2)
 
 
 class DashboardLogicTests(TestCase):

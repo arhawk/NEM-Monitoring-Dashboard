@@ -51,14 +51,17 @@ def get_refresh_interval_seconds() -> int:
 def get_main_refresh_interval_seconds() -> int:
     return max(
         1,
-        _get_env_int("MAIN_REFRESH_INTERVAL_SECONDS", DEFAULT_MAIN_REFRESH_INTERVAL_SECONDS),
+        _get_env_int("MAIN_REFRESH_INTERVAL_SECONDS", _get_env_int("REFRESH_INTERVAL_SECONDS", DEFAULT_MAIN_REFRESH_INTERVAL_SECONDS)),
     )
 
 
 def get_sidebar_refresh_interval_seconds() -> int:
     return max(
         1,
-        _get_env_int("SIDEBAR_REFRESH_INTERVAL_SECONDS", DEFAULT_SIDEBAR_REFRESH_INTERVAL_SECONDS),
+        _get_env_int(
+            "SIDEBAR_REFRESH_INTERVAL_SECONDS",
+            _get_env_int("REFRESH_INTERVAL_SECONDS", DEFAULT_SIDEBAR_REFRESH_INTERVAL_SECONDS),
+        ),
     )
 
 

@@ -19,6 +19,7 @@ The repository includes a local `.venv` for convenience. You can use that enviro
 
 - `src/publisher/`: fetch, cleaning, alignment, and MQTT publishing modules
 - `src/dashboard/`: dashboard runtime, data shaping, render logic, and map payload generation
+- `src/dashboard/actions.py`: optional GitHub Actions control layer for the cloud demo
 - `src/shared/stream_cache.py`: shared bounded cache and environment helpers
 - `scripts/run_publisher.py`: Render-friendly wrapper for the publisher entrypoint
 - `app/streamlit_app.py`: Render-friendly wrapper for the Streamlit entrypoint
@@ -102,14 +103,16 @@ If you want to stop Colima itself, run:
 colima stop
 ```
 
-## Reproduce the Data Flow
+## Local Mode
+
+Use this when you want to run everything manually on your machine. GitHub Actions is not required.
 
 ### 1. Generate the publish dataset
 
-Run the data preparation script from the repository root:
+Run the publisher from the repository root:
 
 ```bash
-python3 -m src.publisher.cli
+python scripts/run_publisher.py
 ```
 
 What it does:
@@ -123,7 +126,7 @@ What it does:
 - connects to MQTT broker at `127.0.0.1:1883`
 - begins publishing rows to `comp5339/task123/measurements/{facility_code}`
 
-The publisher uses `MQTT_PUBLISH_TOPIC_TEMPLATE`, defaulting to `comp5339/task123/measurements/{facility_code}`.
+The publisher uses `MQTT_PUBLISH_TOPIC_TEMPLATE` or `MQTT_TOPIC_TEMPLATE`, defaulting to `comp5339/task123/measurements/{facility_code}`.
 
 If `data/consolidated_data_total.csv` already exists, the script reuses it instead of fetching again.
 
@@ -132,7 +135,7 @@ If `data/consolidated_data_total.csv` already exists, the script reuses it inste
 Open a second terminal, activate the same `venv`, then run:
 
 ```bash
-python3 -m streamlit run app/streamlit_app.py --server.port 8501
+streamlit run app/streamlit_app.py
 ```
 
 The dashboard connects to the same broker at `127.0.0.1:1883` and subscribes to:
@@ -142,6 +145,13 @@ The dashboard connects to the same broker at `127.0.0.1:1883` and subscribes to:
 The local Streamlit server binds to `127.0.0.1`, so the browser URL will show `http://127.0.0.1:8501`.
 
 To stop the local app processes, use `Ctrl+C` in each terminal.
+
+### Local Mode Summary
+
+- Run the publisher manually with `python scripts/run_publisher.py`
+- Run the dashboard manually with `streamlit run app/streamlit_app.py`
+- Keep `ENABLE_GITHUB_ACTIONS_CONTROL=false`
+- Leave `AUTO_START_PUBLISHER=false`
 
 ### Dashboard Architecture
 
@@ -166,6 +176,7 @@ The dashboard uses these environment variables:
 - `MQTT_PORT`
 - `MQTT_TLS`
 - `MQTT_SUBSCRIBE_TOPIC_FILTER`
+- `MQTT_TOPIC`
 - `MQTT_USERNAME`
 - `MQTT_PASSWORD`
 - `MAX_STREAM_ROWS`
@@ -173,28 +184,52 @@ The dashboard uses these environment variables:
 - `MAIN_REFRESH_INTERVAL_SECONDS`
 - `SIDEBAR_REFRESH_INTERVAL_SECONDS`
 
-## Render Deployment
+## Cloud Demo Mode
 
-Render should run the application as two separate services, not through `docker-compose`:
+Render should host only the Streamlit dashboard. When the dashboard opens, it can auto-trigger the GitHub Actions publisher workflow, which publishes MQTT data for 10 minutes and then exits automatically.
 
-- Publisher service command: `python scripts/run_publisher.py`
-- Dashboard service command: `streamlit run app/streamlit_app.py`
+The repository includes a `render.yaml` blueprint for the dashboard service only. Render does not deploy Mosquitto, and it does not run a publisher worker in this mode.
 
-This keeps the broker orchestration local for development while allowing Render to manage the publisher and dashboard independently.
+Cloud demo flow:
 
-The repository includes a `render.yaml` blueprint with those two services. Configure `MQTT_BROKER`, `MQTT_PORT`, `MQTT_TLS`, and broker credentials in Render to point both services at your MQTT broker, because the blueprint does not deploy Mosquitto.
+1. Render starts the Streamlit dashboard.
+2. The dashboard checks recent GitHub Actions runs for `publish-mqtt-on-demand.yml`.
+3. If no run is active and the cooldown window has expired, it dispatches the workflow.
+4. GitHub Actions runs `python scripts/run_publisher.py` with `PUBLISH_DURATION_SECONDS=600`.
+5. The publisher sends MQTT data to HiveMQ.
+6. The dashboard subscribes to HiveMQ and updates live.
 
-Suggested Render environment variables:
+Required GitHub repository secrets:
 
-- `MQTT_BROKER=<your broker host>`
-- `MQTT_PORT=8883` for HiveMQ Cloud / EMQX Cloud style TLS brokers
+- `MQTT_BROKER`
+- `MQTT_PORT`
+- `MQTT_USERNAME`
+- `MQTT_PASSWORD`
+- `OPEN_ELECTRICITY_API_KEY` if the workflow needs to rebuild publish data
+
+Required Render environment variables:
+
+- `MQTT_BROKER=<your HiveMQ host>`
+- `MQTT_PORT=8883`
+- `MQTT_USERNAME=<your HiveMQ username>`
+- `MQTT_PASSWORD=<your HiveMQ password>`
 - `MQTT_TLS=true`
-- `MQTT_SUBSCRIBE_TOPIC_FILTER=comp5339/task123/measurements/#`
-- `MQTT_USERNAME=<broker username>`
-- `MQTT_PASSWORD=<broker password>`
-- For the Streamlit service, keep the default `$PORT` that Render provides.
+- `MQTT_TOPIC=comp5339/task123/measurements/#`
+- `ENABLE_GITHUB_ACTIONS_CONTROL=true`
+- `AUTO_START_PUBLISHER=true`
+- `AUTO_START_COOLDOWN_SECONDS=600`
+- `GITHUB_TOKEN=<fine-grained GitHub token>`
+- `GITHUB_OWNER=arhawk`
+- `GITHUB_REPO=NEM-Monitoring-Dashboard`
+- `GITHUB_WORKFLOW_FILE=publish-mqtt-on-demand.yml`
+- `GITHUB_REF=main`
+- `MAX_STREAM_ROWS=5520`
+- `RESET_INTERVAL_HOURS=6`
+- `REFRESH_INTERVAL_SECONDS=3`
+- `ENABLE_FALLBACK_REPLAY=true`
+- `FALLBACK_STALE_SECONDS=30`
 
-The repository already includes `data/data_for_publish.csv`, so the first cloud deployment can start from the checked-in publish-ready CSV instead of cold-starting from the Open Electricity API.
+The dashboard service command remains `streamlit run app/streamlit_app.py`, using the default `$PORT` provided by Render.
 
 ## Run Artifacts
 
@@ -231,6 +266,15 @@ For cloud brokers that require encrypted transport, set:
 - `MQTT_PORT=8883`
 
 Leave `MQTT_TLS=false` for the local Mosquitto broker on `1883`.
+
+If you want the GitHub Actions controls active in a local preview environment, set `ENABLE_GITHUB_ACTIONS_CONTROL=true` and provide a fine-grained `GITHUB_TOKEN` with Actions read/write permission for this repository only. Keep `AUTO_START_PUBLISHER=false` unless you want the dashboard to dispatch the workflow automatically on load.
+
+Security note:
+
+- Use a fine-grained GitHub token scoped to this repository only.
+- Grant `Actions: Read and write`.
+- Grant `Metadata: Read`.
+- Do not commit the token.
 
 ## Architecture Note
 

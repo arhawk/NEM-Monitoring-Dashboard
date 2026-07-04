@@ -5,6 +5,17 @@ from typing import Dict, List
 
 from .._compat import st
 from ..data import _format_ts
+from ..actions import (
+    cancel_current_publisher_run,
+    describe_publisher_workflow_status,
+    get_last_runs,
+    get_last_trigger_result,
+    get_recent_or_running_publisher_runs,
+    AUTO_START_PUBLISHER,
+    is_github_actions_control_enabled,
+    maybe_auto_start_publisher,
+    trigger_publisher_workflow,
+)
 from ..render_context import SidebarModel
 from ..runtime import DashboardRuntime, _soft_reset_runtime
 from ..settings import DISPLAY_REGION_OPTIONS, READY_NOTICE_SESSION_KEY, SIDEBAR_HEADER_TITLE
@@ -68,6 +79,9 @@ def _render_sidebar(
     fuel_options: List[str] | None = None,
 ) -> None:
     model = _coerce_sidebar_model(model_or_runtime, snapshot, filtered_snapshot, data_source, fuel_options)
+    github_control_enabled = is_github_actions_control_enabled()
+    if github_control_enabled and AUTO_START_PUBLISHER:
+        maybe_auto_start_publisher()
     st.markdown(
         textwrap.dedent(
             f"""
@@ -191,6 +205,62 @@ def _render_sidebar(
         _soft_reset_runtime(model.runtime)
 
     st.write(f"Last soft reset: {_format_ts(model.runtime.last_soft_reset_at.timestamp())}")
+
+    if not github_control_enabled:
+        return
+
+    st.subheader("Cloud Demo Publisher")
+    st.caption("The GitHub Actions publisher runs for 10 minutes and then stops automatically.")
+
+    st.write(f"Auto-start: {'Enabled' if AUTO_START_PUBLISHER else 'Disabled'}")
+
+    try:
+        current_runs = get_recent_or_running_publisher_runs()
+    except Exception as exc:
+        current_runs = get_last_runs()
+        if not current_runs:
+            st.warning(f"Unable to load GitHub Actions workflow status: {exc}")
+
+    workflow_status = describe_publisher_workflow_status()
+    if workflow_status:
+        st.write(f"Publisher workflow status: {workflow_status}")
+    else:
+        st.write("Publisher workflow status: unavailable")
+
+    last_trigger = get_last_trigger_result()
+    if last_trigger:
+        message = last_trigger.get("message") or "No trigger message recorded."
+        if last_trigger.get("error"):
+            st.warning(f"{message} {last_trigger['error']}")
+        elif last_trigger.get("triggered"):
+            st.success(message)
+        else:
+            st.info(message)
+    else:
+        st.caption("Last trigger result: unavailable")
+
+    active_runs = [run for run in current_runs if run.get("status") in {"queued", "in_progress"}]
+    st.write(f"Active workflow runs: {len(active_runs)}")
+
+    if st.button("Start Live Demo Stream", key="start_live_demo_stream"):
+        result = trigger_publisher_workflow(duration_seconds=600)
+        if result.get("error"):
+            st.warning(f"{result['message']} {result['error']}")
+        elif result.get("triggered"):
+            st.success(result["message"])
+        else:
+            st.info(result["message"])
+        st.rerun()
+
+    if st.button("Stop Current Demo Stream", key="stop_current_demo_stream"):
+        result = cancel_current_publisher_run()
+        if result.get("error"):
+            st.warning(f"{result['message']} {result['error']}")
+        elif result.get("triggered"):
+            st.success(result["message"])
+        else:
+            st.info(result["message"])
+        st.rerun()
 
 
 __all__ = ["_render_sidebar"]
