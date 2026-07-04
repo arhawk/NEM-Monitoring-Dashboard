@@ -232,8 +232,6 @@ Cloud environment variables for the dashboard:
 - `GITHUB_REF=main`
 - `MAX_STREAM_ROWS=5520`
 - `RESET_INTERVAL_HOURS=6`
-- `ENABLE_FALLBACK_REPLAY=true`
-- `FALLBACK_STALE_SECONDS=30`
 
 The dashboard service command remains `streamlit run app/streamlit_app.py`, using the default `$PORT` provided by Render. Streamlit Cloud uses the same Streamlit entrypoint. There is no platform-hosted worker in this deployment path.
 
@@ -312,7 +310,7 @@ flowchart LR
     CACHE["Bounded in-memory stream cache\nsrc/shared/stream_cache.py"]
     CTX["Dashboard context + filters + aggregation\nrender_context.py"]
     VIEWS["Metric cards\nTrend chart\nFacility map\nTable preview"]
-    FALLBACK["Fallback replay\nfallback.py\nreplay data_for_publish.csv when live cache is stale"]
+    WAITING["Waiting state\nsidebar notice when no publish messages have arrived"]
   end
 
   subgraph Modes["Deployment Modes"]
@@ -340,4 +338,4 @@ Key points:
 - Raw data is fetched from Open Electricity / AEMO, then normalized into CSV artifacts inside `data/`.
 - The publish path is file-backed, not database-backed.
 - The dashboard consumes MQTT live updates and keeps only the latest stream state in memory.
-- When live data is stale or unavailable, the dashboard can replay the publish CSV as a fallback sample stream.
+- When no publish messages have arrived yet, the dashboard shows a waiting notice instead of replaying sample data.

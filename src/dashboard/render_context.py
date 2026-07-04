@@ -69,29 +69,17 @@ def _ensure_session_defaults() -> None:
 
 
 def _update_ready_notice_state(data_source: str) -> tuple[Optional[str], Optional[str]]:
-    if data_source == "fallback":
+    if data_source == "empty":
         compat_st.session_state[READY_NOTICE_SESSION_KEY] = True
-        return "info", "Waiting for cache messages. Showing sample replay fallback."
-    if data_source == "stale_live_replaced":
-        compat_st.session_state[READY_NOTICE_SESSION_KEY] = True
-        return "info", "Live cache is stale. Showing sample replay fallback."
-    if compat_st.session_state.get(READY_NOTICE_SESSION_KEY):
+        return "info", "Waiting for publish Message."
+    if data_source == "live" and compat_st.session_state.get(READY_NOTICE_SESSION_KEY):
         compat_st.session_state[READY_NOTICE_SESSION_KEY] = False
         return "success", "Real-time data ready"
     return None, None
 
 
-def _resolve_data_source(
-    live_messages: list[Dict[str, Any]],
-    *,
-    use_fallback: bool = False,
-    fallback_messages: list[Dict[str, Any]] | None = None,
-) -> str:
-    return fallback_module._resolve_data_source(
-        live_messages,
-        use_fallback=use_fallback,
-        fallback_messages=fallback_messages,
-    )
+def _resolve_data_source(live_messages: list[Dict[str, Any]]) -> str:
+    return fallback_module._resolve_data_source(live_messages)
 
 
 def _build_dashboard_context_signature(runtime: Any) -> tuple:
@@ -107,19 +95,12 @@ def _build_dashboard_context_signature(runtime: Any) -> tuple:
         cache.size(),
         last_updated_at,
         last_reset_at,
-        fallback_module._should_use_fallback(runtime),
     )
 
 
 def _build_dashboard_context_payload(runtime: Any) -> DashboardContext:
     live_messages = runtime.cache.get_recent_messages()
-    use_fallback = fallback_module._should_use_fallback(runtime)
-    fallback_messages = fallback_module._load_fallback_messages() if use_fallback else []
-    decision = fallback_module._resolve_dashboard_messages(
-        live_messages,
-        use_fallback=use_fallback,
-        fallback_messages=fallback_messages,
-    )
+    decision = fallback_module._resolve_dashboard_messages(live_messages)
     messages = decision.messages
     data_source = decision.kind
 

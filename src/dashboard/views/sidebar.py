@@ -33,7 +33,7 @@ def _coerce_sidebar_model(
     runtime = model_or_runtime
     snapshot = snapshot or {}
     filtered_snapshot = filtered_snapshot or {}
-    data_source = data_source or "live"
+    data_source = data_source or ("live" if snapshot else "empty")
     fuel_options = fuel_options or ["All"]
     selected_fuel = st.session_state.get("selected_fuel", "All")
     selected_region = st.session_state.get("selected_region", "All")

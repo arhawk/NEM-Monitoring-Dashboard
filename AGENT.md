@@ -60,13 +60,6 @@ Important environment variables:
 - `RESET_INTERVAL_HOURS`
 - `REFRESH_INTERVAL_SECONDS`
   - Legacy generic refresh helper defaulting to `1`; dashboard fragments use dedicated main/sidebar intervals.
-- `FALLBACK_SAMPLE_PATH`
-  - Dashboard fallback sample source, default `data/data_for_publish.csv`.
-- `FALLBACK_STALE_SECONDS`
-  - Threshold before the dashboard falls back when MQTT stays stale, default `30`.
-- `ENABLE_FALLBACK_REPLAY`
-  - Whether the dashboard may replay fallback sample data, default `true`.
-
 Important notes:
 
 - The repo includes `.env.example`, but the code does not auto-load `.env`.
@@ -179,7 +172,7 @@ Notes:
 
 - The dashboard defaults to the same broker at `127.0.0.1:1883`.
 - The default subscription topic is `comp5339/task123/measurements/#`.
-- If MQTT is connected but no new data arrives for long enough, the dashboard may fall back to replay data from `FALLBACK_SAMPLE_PATH`.
+- If MQTT is connected but no new data arrives yet, the dashboard should show the waiting notice instead of replaying sample data.
 
 ## 4. Verification Steps
 
@@ -195,7 +188,7 @@ docker compose ps
 
 3. Start the publisher and verify it is processing and publishing.
 4. Start the dashboard and open `http://127.0.0.1:8501`.
-5. Confirm the page is not failing on import or rendering blank, and that the status reaches `Connected` or at least shows a waiting/fallback state.
+5. Confirm the page is not failing on import or rendering blank, and that the status reaches `Connected` or at least shows the waiting notice before live data arrives.
 
 Test command:
 
@@ -213,7 +206,7 @@ Test caveat:
 
 Useful extra checks:
 
-- Confirm `data/data_for_publish.csv` exists if fallback replay behavior matters.
+- Confirm `data/data_for_publish.csv` exists if publisher input generation matters.
 - If validating a fresh API fetch path, deliberately decide whether existing run artifacts should be reused before deleting anything.
 
 ## 5. Deployment Procedure
@@ -311,22 +304,19 @@ Fix:
 - Set the same external MQTT connection values in the dashboard and the GitHub Actions workflow.
 - Do not assume `localhost:1883` is valid on Render or in GitHub Actions.
 
-### 6.4 Dashboard Only Shows Fallback Data or Keeps Waiting for Messages
+### 6.4 Dashboard Only Shows Waiting Notice
 
 Cause:
 
 - The publisher is not successfully publishing.
 - The dashboard subscription and publisher topic are mismatched.
-- `FALLBACK_SAMPLE_PATH` exists and `ENABLE_FALLBACK_REPLAY=true`.
-
 Fix:
 
 - Verify the publisher is running.
 - Then verify:
   - `MQTT_SUBSCRIBE_TOPIC_FILTER`
   - `MQTT_PUBLISH_TOPIC_TEMPLATE`
-  - `FALLBACK_SAMPLE_PATH`
-  - `FALLBACK_STALE_SECONDS`
+- If the page never leaves the waiting notice, check that the publisher is actually publishing and that the broker is reachable.
 
 ### 6.5 Tests Fail Locally but the Code May Not Be the Problem
 
