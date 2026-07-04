@@ -3,19 +3,71 @@ from __future__ import annotations
 import textwrap
 from typing import Dict, List
 
-from ..data import _format_ts
 from .._compat import st
+from ..data import _format_ts
+from ..render_context import SidebarModel
 from ..runtime import DashboardRuntime, _soft_reset_runtime
 from ..settings import DISPLAY_REGION_OPTIONS, READY_NOTICE_SESSION_KEY, SIDEBAR_HEADER_TITLE
 
 
+def _coerce_sidebar_model(
+    model_or_runtime: SidebarModel | DashboardRuntime,
+    snapshot: Dict[str, Dict[str, str]] | None = None,
+    filtered_snapshot: Dict[str, Dict[str, str]] | None = None,
+    data_source: str | None = None,
+    fuel_options: List[str] | None = None,
+) -> SidebarModel:
+    if isinstance(model_or_runtime, SidebarModel):
+        return model_or_runtime
+
+    runtime = model_or_runtime
+    snapshot = snapshot or {}
+    filtered_snapshot = filtered_snapshot or {}
+    data_source = data_source or "live"
+    fuel_options = fuel_options or ["All"]
+    selected_fuel = st.session_state.get("selected_fuel", "All")
+    selected_region = st.session_state.get("selected_region", "All")
+    notice_tone: str | None = None
+    notice_message: str | None = None
+    if data_source == "fallback":
+        notice_tone = "info"
+        notice_message = "Waiting for cache messages. Showing sample replay fallback."
+        st.session_state[READY_NOTICE_SESSION_KEY] = True
+    elif data_source == "stale_live_replaced":
+        notice_tone = "info"
+        notice_message = "Live cache is stale. Showing sample replay fallback."
+        st.session_state[READY_NOTICE_SESSION_KEY] = True
+    elif st.session_state.get(READY_NOTICE_SESSION_KEY):
+        notice_tone = "success"
+        notice_message = "Real-time data ready"
+        st.session_state[READY_NOTICE_SESSION_KEY] = False
+    return SidebarModel(
+        runtime=runtime,
+        data_source=data_source,
+        status=runtime.status,
+        last_error=runtime.last_error,
+        messages_since_reset=runtime.cache.messages_since_reset(),
+        cache_size=runtime.cache.size(),
+        cache_max_size=runtime.cache.max_size(),
+        last_soft_reset_at=runtime.last_soft_reset_at,
+        snapshot_count=len(snapshot),
+        selected_count=len(filtered_snapshot),
+        selected_fuel=selected_fuel,
+        selected_region=selected_region,
+        fuel_options=fuel_options,
+        notice_tone=notice_tone,
+        notice_message=notice_message,
+    )
+
+
 def _render_sidebar(
-    runtime: DashboardRuntime,
-    snapshot: Dict[str, Dict[str, str]],
-    filtered_snapshot: Dict[str, Dict[str, str]],
-    data_source: str,
-    fuel_options: List[str],
+    model_or_runtime: SidebarModel | DashboardRuntime,
+    snapshot: Dict[str, Dict[str, str]] | None = None,
+    filtered_snapshot: Dict[str, Dict[str, str]] | None = None,
+    data_source: str | None = None,
+    fuel_options: List[str] | None = None,
 ) -> None:
+    model = _coerce_sidebar_model(model_or_runtime, snapshot, filtered_snapshot, data_source, fuel_options)
     st.markdown(
         textwrap.dedent(
             f"""
@@ -78,44 +130,37 @@ def _render_sidebar(
         unsafe_allow_html=True,
     )
     st.subheader("MQTT Status")
-    if runtime.status == "Connected":
+    if model.status == "Connected":
         st.success("Connected")
-    elif runtime.status == "Connecting":
+    elif model.status == "Connecting":
         st.info("Connecting")
-    elif runtime.status == "Disconnected":
+    elif model.status == "Disconnected":
         st.warning("Disconnected")
     else:
         st.error("Error")
-    st.write(f"Messages since reset: {runtime.cache.messages_since_reset()}")
-    if runtime.last_error:
-        st.caption(runtime.last_error)
+    st.write(f"Messages since reset: {model.messages_since_reset}")
+    if model.last_error:
+        st.caption(model.last_error)
 
-    if data_source == "fallback":
-        st.info("Waiting for cache messages. Showing sample replay fallback.")
-        st.session_state[READY_NOTICE_SESSION_KEY] = True
-    elif data_source == "stale_live_replaced":
-        st.info("Live cache is stale. Showing sample replay fallback.")
-        st.session_state[READY_NOTICE_SESSION_KEY] = True
-    elif data_source == "empty":
-        st.info("Waiting for cache messages.")
-    elif st.session_state.get(READY_NOTICE_SESSION_KEY):
-        st.success("Real-time data ready")
-        st.session_state[READY_NOTICE_SESSION_KEY] = False
+    if model.notice_message:
+        if model.notice_tone == "success":
+            st.success(model.notice_message)
+        else:
+            st.info(model.notice_message)
 
     st.subheader("Grid Region Filter")
     st.selectbox("Select Region", DISPLAY_REGION_OPTIONS, key="selected_region")
 
     st.subheader("Fuel Type Filter")
-    if st.session_state.get("selected_fuel") not in fuel_options:
+    if st.session_state.get("selected_fuel") not in model.fuel_options:
         st.session_state.selected_fuel = "All"
-    st.selectbox("Select Fuel Type", fuel_options, key="selected_fuel")
-    selected_count = len(filtered_snapshot)
-    selected_label = "facility selected" if selected_count == 1 else "facilities selected"
-    st.caption(f"{selected_count} {selected_label}")
+    st.selectbox("Select Fuel Type", model.fuel_options, key="selected_fuel")
+    selected_label = "facility selected" if model.selected_count == 1 else "facilities selected"
+    st.caption(f"{model.selected_count} {selected_label}")
 
     st.subheader("Data Statistics")
-    st.write(f"Facilities in snapshot: {len(snapshot)}")
-    st.write(f"MQTT cache size: {runtime.cache.size()} / {runtime.cache.max_size()}")
+    st.write(f"Facilities in snapshot: {model.snapshot_count}")
+    st.write(f"MQTT cache size: {model.cache_size} / {model.cache_max_size}")
 
     st.markdown(
         textwrap.dedent(
@@ -143,9 +188,9 @@ def _render_sidebar(
         unsafe_allow_html=True,
     )
     if st.button("Reset Cache", key="reset_cache", type="primary"):
-        _soft_reset_runtime(runtime)
+        _soft_reset_runtime(model.runtime)
 
-    st.write(f"Last soft reset: {_format_ts(runtime.last_soft_reset_at.timestamp())}")
+    st.write(f"Last soft reset: {_format_ts(model.runtime.last_soft_reset_at.timestamp())}")
 
 
 __all__ = ["_render_sidebar"]
