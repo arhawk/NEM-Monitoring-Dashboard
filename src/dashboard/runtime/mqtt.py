@@ -18,7 +18,7 @@ except ImportError:  # pragma: no cover - exercised in dependency-light test env
     )
 
 from ..data import _normalize_message, _reason_is_success
-from ..settings import BROKER, PASSWORD, PORT, SUBSCRIBE_TOPIC_FILTER, USERNAME
+from ..settings import BROKER, MQTT_TLS, PASSWORD, PORT, SUBSCRIBE_TOPIC_FILTER, USERNAME
 
 
 class MqttConnectionManager:
@@ -35,6 +35,8 @@ class MqttConnectionManager:
         )
         if USERNAME:
             self.client.username_pw_set(USERNAME, PASSWORD)
+        if MQTT_TLS:
+            self.client.tls_set()
         self.client.reconnect_delay_set(min_delay=5, max_delay=30)
         self.client.on_connect = self._on_connect
         self.client.on_disconnect = self._on_disconnect

@@ -114,7 +114,8 @@ python3 -m src.publisher.cli
 
 What it does:
 
-- fetches facility and market data from the Open Electricity API
+- if `data/data_for_publish.csv` already exists, reuses it and starts publishing immediately
+- otherwise fetches facility and market data from the Open Electricity API
 - writes `data/facility_list.csv`
 - writes `data/consolidated_data_total.csv`
 - writes `data/consolidated_data_cleaned.csv`
@@ -163,6 +164,7 @@ The dashboard uses these environment variables:
 
 - `MQTT_BROKER`
 - `MQTT_PORT`
+- `MQTT_TLS`
 - `MQTT_SUBSCRIBE_TOPIC_FILTER`
 - `MQTT_USERNAME`
 - `MQTT_PASSWORD`
@@ -179,14 +181,19 @@ Render should run the application as two separate services, not through `docker-
 
 This keeps the broker orchestration local for development while allowing Render to manage the publisher and dashboard independently.
 
-The repository includes a `render.yaml` blueprint with those two services. Configure `MQTT_BROKER` and `MQTT_PORT` in Render to point both services at your MQTT broker, because the blueprint does not deploy Mosquitto.
+The repository includes a `render.yaml` blueprint with those two services. Configure `MQTT_BROKER`, `MQTT_PORT`, `MQTT_TLS`, and broker credentials in Render to point both services at your MQTT broker, because the blueprint does not deploy Mosquitto.
 
 Suggested Render environment variables:
 
 - `MQTT_BROKER=<your broker host>`
-- `MQTT_PORT=1883`
+- `MQTT_PORT=8883` for HiveMQ Cloud / EMQX Cloud style TLS brokers
+- `MQTT_TLS=true`
 - `MQTT_SUBSCRIBE_TOPIC_FILTER=comp5339/task123/measurements/#`
+- `MQTT_USERNAME=<broker username>`
+- `MQTT_PASSWORD=<broker password>`
 - For the Streamlit service, keep the default `$PORT` that Render provides.
+
+The repository already includes `data/data_for_publish.csv`, so the first cloud deployment can start from the checked-in publish-ready CSV instead of cold-starting from the Open Electricity API.
 
 ## Run Artifacts
 
@@ -213,6 +220,13 @@ Live dashboard output is not written to CSV anymore. The bounded MQTT cache live
 ## Environment File
 
 Copy `.env.example` to `.env` if you want local environment overrides for broker settings, cache size, refresh cadence, or soft reset cadence.
+
+For cloud brokers that require encrypted transport, set:
+
+- `MQTT_TLS=true`
+- `MQTT_PORT=8883`
+
+Leave `MQTT_TLS=false` for the local Mosquitto broker on `1883`.
 
 ## Architecture Note
 

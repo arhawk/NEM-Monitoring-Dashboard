@@ -40,6 +40,7 @@ from src.dashboard.data import fallback as dashboard_data_fallback
 from src.dashboard.views import map as dashboard_map_payload
 from src.dashboard.views import sidebar as dashboard_sidebar_view
 from src.dashboard import runtime as dashboard_runtime
+from src.publisher import cli as publisher_cli
 from src.publisher.data import cleaning as task13_cleaning
 from src.publisher.publish import mqtt_publish as task13_mqtt
 from src.shared import stream_cache
@@ -141,11 +142,44 @@ class PublishLogicTests(TestCase):
         client.publish.return_value = DummyInfo(task13_mqtt.mqtt.MQTT_ERR_SUCCESS, False)
         self.assertFalse(task13_mqtt.safe_publish_stream(client, "topic", {"x": 1}))
 
+    def test_publisher_client_uses_tls_when_enabled(self) -> None:
+        client = Mock()
+        with patch.object(task13_mqtt, "MQTT_TLS", True), \
+            patch.object(task13_mqtt.mqtt, "Client", return_value=client):
+            task13_mqtt.make_client()
+
+        client.tls_set.assert_called_once()
+        client.connect.assert_called_once_with(task13_mqtt.BROKER, task13_mqtt.PORT, keepalive=60)
+
     def test_publish_topic_template_defaults_to_measurements_path(self) -> None:
         self.assertEqual(
             task13_mqtt.PUBLISH_TOPIC_TEMPLATE,
             "comp5339/task123/measurements/{facility_code}",
         )
+
+    def test_publisher_main_skips_data_prep_when_publish_csv_exists(self) -> None:
+        publish_path = Mock()
+        publish_path.exists.return_value = True
+
+        with patch.object(publisher_cli, "PUBLISH_PATH", publish_path), \
+            patch.object(publisher_cli, "prepare_data_artifacts") as prepare_mock, \
+            patch.object(publisher_cli, "run_publisher_loop") as run_mock:
+            publisher_cli.main()
+
+        prepare_mock.assert_not_called()
+        run_mock.assert_called_once_with(publish_path)
+
+    def test_publisher_main_prepares_data_when_publish_csv_missing(self) -> None:
+        publish_path = Mock()
+        publish_path.exists.return_value = False
+
+        with patch.object(publisher_cli, "PUBLISH_PATH", publish_path), \
+            patch.object(publisher_cli, "prepare_data_artifacts") as prepare_mock, \
+            patch.object(publisher_cli, "run_publisher_loop") as run_mock:
+            publisher_cli.main()
+
+        prepare_mock.assert_called_once()
+        run_mock.assert_called_once_with(publish_path)
 
     def test_publish_new_since_stops_on_failed_publish(self) -> None:
         rows = [
@@ -335,6 +369,17 @@ class DashboardLogicTests(TestCase):
         manager._on_connect(client, None, None, 0)
 
         client.subscribe.assert_called_once_with(dashboard_settings.SUBSCRIBE_TOPIC_FILTER, qos=0)
+
+    def test_dashboard_client_uses_tls_when_enabled(self) -> None:
+        runtime = self._build_sidebar_runtime(status="Disconnected")
+        client = Mock()
+        with patch.object(dashboard_runtime.mqtt, "MQTT_TLS", True), \
+            patch.object(dashboard_runtime.mqtt.mqtt, "Client", return_value=client):
+            manager = dashboard_runtime.MqttConnectionManager(runtime)
+            manager.schedule_connect()
+
+        client.tls_set.assert_called_once()
+        client.connect_async.assert_called_once_with(dashboard_settings.BROKER, dashboard_settings.PORT, keepalive=60)
 
     def test_soft_reset_clears_current_cache_and_updates_timestamp(self) -> None:
         runtime = Mock()

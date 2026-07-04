@@ -15,6 +15,7 @@ PORT = int(os.getenv("MQTT_PORT") or os.getenv("MQTT_BROKER_PORT", "1883"))
 SUBSCRIBE_TOPIC_FILTER = os.getenv("MQTT_SUBSCRIBE_TOPIC_FILTER") or DEFAULT_SUBSCRIBE_TOPIC_FILTER
 USERNAME = os.getenv("MQTT_USERNAME") or None
 PASSWORD = os.getenv("MQTT_PASSWORD") or None
+MQTT_TLS = os.getenv("MQTT_TLS", "false").strip().lower() in {"1", "true", "yes", "on"}
 MAX_STREAM_ROWS = get_max_stream_rows()
 RESET_INTERVAL_HOURS = get_reset_interval_hours()
 REFRESH_INTERVAL_SECONDS = get_refresh_interval_seconds()

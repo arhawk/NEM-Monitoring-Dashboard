@@ -28,7 +28,8 @@ def prepare_data_artifacts() -> None:
 
 
 def main() -> None:
-    prepare_data_artifacts()
+    if not PUBLISH_PATH.exists():
+        prepare_data_artifacts()
     run_publisher_loop(PUBLISH_PATH)
 
 

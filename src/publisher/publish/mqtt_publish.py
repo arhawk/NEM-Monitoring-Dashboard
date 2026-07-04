@@ -46,6 +46,7 @@ BROKER = os.getenv("MQTT_BROKER") or os.getenv("MQTT_BROKER_HOST", "127.0.0.1")
 PORT = int(os.getenv("MQTT_PORT") or os.getenv("MQTT_BROKER_PORT", "1883"))
 USERNAME = os.getenv("MQTT_USERNAME") or None
 PASSWORD = os.getenv("MQTT_PASSWORD") or None
+MQTT_TLS = os.getenv("MQTT_TLS", "false").strip().lower() in {"1", "true", "yes", "on"}
 CLIENT_ID = "comp5339-publisher"
 PUBLISH_TOPIC_TEMPLATE = os.getenv("MQTT_PUBLISH_TOPIC_TEMPLATE") or DEFAULT_PUBLISH_TOPIC_TEMPLATE
 TICK = 0.100
@@ -101,6 +102,8 @@ def make_client():
         client = mqtt.Client(client_id=CLIENT_ID, clean_session=True)
     if USERNAME:
         client.username_pw_set(USERNAME, PASSWORD)
+    if MQTT_TLS:
+        client.tls_set()
     client.on_connect = lambda c, u, f, rc: print(f"[MQTT] connected rc={rc}")
     client.on_disconnect = lambda c, u, rc: print(f"[MQTT] disconnected rc={rc}")
     try:
