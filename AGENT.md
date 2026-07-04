@@ -218,30 +218,37 @@ Useful extra checks:
 
 ## 5. Deployment Procedure
 
-This repository already includes `render.yaml`, which defines two Python services:
+This repository already includes `render.yaml`, which defines one Python service:
 
-- `nem-publisher`: worker, start command `python scripts/run_publisher.py`
 - `nem-dashboard`: web, start command `streamlit run app/streamlit_app.py --server.address 0.0.0.0 --server.port $PORT`
 
 Deployment sequence:
 
 1. Use the existing `render.yaml`. Do not convert deployment to `docker-compose`.
-2. Provision an external MQTT broker separately. It must be reachable by both Render services.
-3. Set broker connection variables on both Render services:
+2. Provision an external MQTT broker separately. HiveMQ is the intended cloud broker for the demo path.
+3. Set broker connection variables on the Render dashboard service:
    - `MQTT_BROKER`
    - `MQTT_PORT`
-   - Add `MQTT_USERNAME` / `MQTT_PASSWORD` if authentication is required
-4. Set at least this variable on `nem-publisher`:
-   - `OPEN_ELECTRICITY_API_KEY`
-5. If topic settings must be explicit, configure:
-   - `MQTT_SUBSCRIBE_TOPIC_FILTER`
-   - `MQTT_PUBLISH_TOPIC_TEMPLATE`
-6. Keep the dashboard Streamlit bind behavior as `0.0.0.0:$PORT`, which is already defined in `render.yaml`.
+   - `MQTT_USERNAME` / `MQTT_PASSWORD` if authentication is required
+   - `MQTT_TLS=true` for the HiveMQ TLS port
+   - `MQTT_SUBSCRIBE_TOPIC_FILTER=comp5339/task123/measurements/#`
+4. Set GitHub Actions control variables on the Render dashboard service:
+   - `ENABLE_GITHUB_ACTIONS_CONTROL=true`
+   - `AUTO_START_PUBLISHER=true`
+   - `AUTO_START_COOLDOWN_SECONDS=600`
+   - `GITHUB_TOKEN`
+   - `GITHUB_OWNER`
+   - `GITHUB_REPO`
+   - `GITHUB_WORKFLOW_FILE=publish-mqtt-on-demand.yml`
+   - `GITHUB_REF=main`
+5. Keep the dashboard Streamlit bind behavior as `0.0.0.0:$PORT`, which is already defined in `render.yaml`.
+6. In GitHub Actions, keep the publisher workflow on `workflow_dispatch` and pass `PUBLISH_DURATION_SECONDS=600` so it exits naturally after 10 minutes.
 
 Deployment boundary to remember:
 
 - `render.yaml` does not provision Mosquitto.
-- Render deploys only the two Python services.
+- Render deploys only the dashboard web service.
+- The dashboard subscribes directly to the external HiveMQ broker.
 - Do not transplant the local `docker compose up -d` workflow into Render.
 
 ## 6. Common Failure Modes and Fixes
@@ -277,17 +284,17 @@ Then verify:
 - `MQTT_BROKER_HOST`
 - `MQTT_BROKER_PORT`
 
-### 6.3 Render Services Start but No Live Data Appears
+### 6.3 Render Dashboard Starts but No Live Data Appears
 
 Cause:
 
 - Render does not provide a broker.
-- The two services are not pointing at the same external broker.
+- The dashboard is not pointing at the external HiveMQ broker used by the publisher workflow.
 
 Fix:
 
-- Set the same external MQTT connection values on both publisher and dashboard.
-- Do not assume `localhost:1883` is valid on Render.
+- Set the same external MQTT connection values in the dashboard and the GitHub Actions workflow.
+- Do not assume `localhost:1883` is valid on Render or in GitHub Actions.
 
 ### 6.4 Dashboard Only Shows Fallback Data or Keeps Waiting for Messages
 
@@ -349,7 +356,7 @@ Operating rules:
 - Never treat a missing-package failure from `python3 -m unittest tests.test_dashboard_logic` or `pytest -q tests/test_dashboard_logic.py` as authoritative until the same check has been retried inside `.venv`, if `.venv` exists.
 - Do not claim tests passed unless dependencies are installed in the actual active interpreter and the test command was really run.
 - Treat generated files under `data/` as run artifacts, not as the authoritative basis for code changes.
-- Preserve the split between local broker orchestration and Render deployment of the two Python services.
+- Preserve the split between local broker orchestration and Render deployment of the single dashboard service plus the external HiveMQ-backed workflow.
 - When changing entrypoint behavior, remember external callers may use the wrapper entrypoints:
   - `python scripts/run_publisher.py`
   - `streamlit run app/streamlit_app.py`

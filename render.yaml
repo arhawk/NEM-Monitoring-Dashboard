@@ -1,12 +1,4 @@
 services:
-  - type: worker
-    name: nem-publisher
-    env: python
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: python scripts/run_publisher.py
-    autoDeploy: true
-
   - type: web
     name: nem-dashboard
     env: python

@@ -6,7 +6,6 @@ from typing import Dict, List
 from .._compat import st
 from ..data import _format_ts
 from ..actions import (
-    cancel_current_publisher_run,
     describe_publisher_workflow_status,
     get_last_runs,
     get_last_trigger_result,
@@ -14,7 +13,6 @@ from ..actions import (
     AUTO_START_PUBLISHER,
     is_github_actions_control_enabled,
     maybe_auto_start_publisher,
-    trigger_publisher_workflow,
 )
 from ..render_context import SidebarModel
 from ..runtime import DashboardRuntime, _soft_reset_runtime
@@ -241,26 +239,6 @@ def _render_sidebar(
 
     active_runs = [run for run in current_runs if run.get("status") in {"queued", "in_progress"}]
     st.write(f"Active workflow runs: {len(active_runs)}")
-
-    if st.button("Start Live Demo Stream", key="start_live_demo_stream"):
-        result = trigger_publisher_workflow(duration_seconds=600)
-        if result.get("error"):
-            st.warning(f"{result['message']} {result['error']}")
-        elif result.get("triggered"):
-            st.success(result["message"])
-        else:
-            st.info(result["message"])
-        st.rerun()
-
-    if st.button("Stop Current Demo Stream", key="stop_current_demo_stream"):
-        result = cancel_current_publisher_run()
-        if result.get("error"):
-            st.warning(f"{result['message']} {result['error']}")
-        elif result.get("triggered"):
-            st.success(result["message"])
-        else:
-            st.info(result["message"])
-        st.rerun()
 
 
 __all__ = ["_render_sidebar"]

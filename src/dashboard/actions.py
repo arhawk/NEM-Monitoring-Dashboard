@@ -117,10 +117,6 @@ def _workflow_dispatch_endpoint() -> str:
     return f"/repos/{GITHUB_OWNER}/{GITHUB_REPO}/actions/workflows/{GITHUB_WORKFLOW_FILE}/dispatches"
 
 
-def _workflow_cancel_endpoint(run_id: int) -> str:
-    return f"/repos/{GITHUB_OWNER}/{GITHUB_REPO}/actions/runs/{run_id}/cancel"
-
-
 def get_recent_or_running_publisher_runs() -> List[Dict[str, Any]]:
     if not is_github_actions_control_enabled():
         return []
@@ -220,24 +216,6 @@ def trigger_publisher_workflow(duration_seconds: int = 600) -> Dict[str, Any]:
         return _build_trigger_result(triggered=False, message="Failed to trigger GitHub Actions publisher.", error=str(exc))
 
 
-def cancel_current_publisher_run() -> Dict[str, Any]:
-    if not is_github_actions_control_enabled():
-        return _build_trigger_result(triggered=False, message="GitHub Actions control is disabled.")
-
-    try:
-        runs = get_recent_or_running_publisher_runs()
-        for run in runs:
-            if run.get("status") not in {"queued", "in_progress"}:
-                continue
-            _github_request("POST", _workflow_cancel_endpoint(int(run["id"])))
-            message = f"Requested cancellation for run #{run.get('run_number') or run['id']}."
-            return _build_trigger_result(triggered=True, message=message, run=run)
-
-        return _build_trigger_result(triggered=False, message="No in-progress GitHub Actions publisher run is active.")
-    except Exception as exc:
-        return _build_trigger_result(triggered=False, message="Failed to cancel GitHub Actions publisher.", error=str(exc))
-
-
 def maybe_auto_start_publisher() -> Dict[str, Any]:
     if not is_github_actions_control_enabled():
         return _build_trigger_result(triggered=False, message="GitHub Actions control is disabled.")
@@ -284,7 +262,6 @@ def get_last_runs() -> List[Dict[str, Any]]:
 
 __all__ = [
     "AUTO_START_PUBLISHER",
-    "cancel_current_publisher_run",
     "describe_publisher_workflow_status",
     "get_last_runs",
     "get_last_trigger_result",

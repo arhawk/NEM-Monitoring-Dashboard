@@ -186,20 +186,21 @@ The dashboard uses these environment variables:
 
 ## Cloud Demo Mode
 
-Render should host only the Streamlit dashboard. When the dashboard opens, it can auto-trigger the GitHub Actions publisher workflow, which publishes MQTT data for 10 minutes and then exits automatically.
+Render should host only the Streamlit dashboard. The dashboard auto-triggers a GitHub Actions publisher workflow on first load, and that workflow publishes MQTT data to an external HiveMQ broker for 10 minutes before exiting naturally.
 
 The repository includes a `render.yaml` blueprint for the dashboard service only. Render does not deploy Mosquitto, and it does not run a publisher worker in this mode.
 
 Cloud demo flow:
 
-1. Render starts the Streamlit dashboard.
-2. The dashboard checks recent GitHub Actions runs for `publish-mqtt-on-demand.yml`.
-3. If no run is active and the cooldown window has expired, it dispatches the workflow.
+1. Render starts the Streamlit dashboard service.
+2. On first load, the dashboard checks GitHub Actions for the configured publisher workflow.
+3. If no run is active and the cooldown window has expired, the dashboard dispatches the workflow once for the current browser session.
 4. GitHub Actions runs `python scripts/run_publisher.py` with `PUBLISH_DURATION_SECONDS=600`.
-5. The publisher sends MQTT data to HiveMQ.
-6. The dashboard subscribes to HiveMQ and updates live.
+5. The publisher sends MQTT data to the external HiveMQ broker.
+6. The dashboard subscribes directly to that HiveMQ MQTT topic and refreshes live.
+7. When the publisher exits after 10 minutes, the dashboard stays up and either waits for the next run or falls back to cached/sample data.
 
-Required GitHub repository secrets:
+GitHub repository secrets required by the workflow:
 
 - `MQTT_BROKER`
 - `MQTT_PORT`
@@ -207,14 +208,14 @@ Required GitHub repository secrets:
 - `MQTT_PASSWORD`
 - `OPEN_ELECTRICITY_API_KEY` if the workflow needs to rebuild publish data
 
-Required Render environment variables:
+Render environment variables for the dashboard:
 
 - `MQTT_BROKER=<your HiveMQ host>`
 - `MQTT_PORT=8883`
 - `MQTT_USERNAME=<your HiveMQ username>`
 - `MQTT_PASSWORD=<your HiveMQ password>`
 - `MQTT_TLS=true`
-- `MQTT_TOPIC=comp5339/task123/measurements/#`
+- `MQTT_SUBSCRIBE_TOPIC_FILTER=comp5339/task123/measurements/#`
 - `ENABLE_GITHUB_ACTIONS_CONTROL=true`
 - `AUTO_START_PUBLISHER=true`
 - `AUTO_START_COOLDOWN_SECONDS=600`
@@ -225,11 +226,10 @@ Required Render environment variables:
 - `GITHUB_REF=main`
 - `MAX_STREAM_ROWS=5520`
 - `RESET_INTERVAL_HOURS=6`
-- `REFRESH_INTERVAL_SECONDS=1`
 - `ENABLE_FALLBACK_REPLAY=true`
 - `FALLBACK_STALE_SECONDS=30`
 
-The dashboard service command remains `streamlit run app/streamlit_app.py`, using the default `$PORT` provided by Render.
+The dashboard service command remains `streamlit run app/streamlit_app.py`, using the default `$PORT` provided by Render. There is no Render worker in this deployment path.
 
 ## Run Artifacts
 

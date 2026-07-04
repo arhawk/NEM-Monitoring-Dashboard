@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib
 import importlib.util
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import sys
 from types import SimpleNamespace
@@ -444,31 +444,6 @@ class GitHubActionsControlTests(TestCase):
         self.assertIn("Triggered GitHub Actions publisher", result["message"])
         self.assertEqual(request_mock.call_count, 2)
 
-    def test_cancel_current_publisher_run_cancels_active_run(self) -> None:
-        session_state = FakeSessionState()
-        active_run = {
-            "id": 102,
-            "status": "queued",
-            "conclusion": None,
-            "created_at": datetime(2026, 7, 4, 10, 0, tzinfo=timezone.utc),
-            "html_url": "https://example.com/run/102",
-            "run_number": 8,
-        }
-        responses = [
-            self._response(200, {"workflow_runs": [active_run]}),
-            self._response(202, None),
-        ]
-
-        with patch.object(dashboard_actions, "ENABLE_GITHUB_ACTIONS_CONTROL", True), \
-            patch.object(dashboard_actions, "GITHUB_TOKEN", "token"), \
-            patch.object(dashboard_actions.st, "session_state", session_state), \
-            patch.object(dashboard_actions.requests, "request", side_effect=responses) as request_mock:
-            result = dashboard_actions.cancel_current_publisher_run()
-
-        self.assertTrue(result["triggered"])
-        self.assertIn("Requested cancellation", result["message"])
-        self.assertEqual(request_mock.call_count, 2)
-
     def test_auto_start_only_triggers_once_per_session(self) -> None:
         session_state = FakeSessionState()
         responses = [
@@ -488,6 +463,30 @@ class GitHubActionsControlTests(TestCase):
         self.assertTrue(second["triggered"])
         self.assertEqual(second["message"], first["message"])
         self.assertEqual(request_mock.call_count, 2)
+
+    def test_trigger_publisher_workflow_blocks_when_within_cooldown(self) -> None:
+        session_state = FakeSessionState()
+        now = datetime.now(timezone.utc)
+        recent_run = {
+            "id": 103,
+            "status": "completed",
+            "conclusion": "success",
+            "created_at": now - timedelta(seconds=30),
+            "html_url": "https://example.com/run/103",
+            "run_number": 9,
+        }
+        responses = [self._response(200, {"workflow_runs": [recent_run]})]
+
+        with patch.object(dashboard_actions, "ENABLE_GITHUB_ACTIONS_CONTROL", True), \
+            patch.object(dashboard_actions, "AUTO_START_COOLDOWN_SECONDS", 600), \
+            patch.object(dashboard_actions, "GITHUB_TOKEN", "token"), \
+            patch.object(dashboard_actions.st, "session_state", session_state), \
+            patch.object(dashboard_actions.requests, "request", side_effect=responses) as request_mock:
+            result = dashboard_actions.trigger_publisher_workflow(duration_seconds=600)
+
+        self.assertFalse(result["triggered"])
+        self.assertIn("cooldown window", result["message"])
+        self.assertEqual(request_mock.call_count, 1)
 
 
 class DashboardLogicTests(TestCase):
