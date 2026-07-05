@@ -281,6 +281,27 @@ class PublishLogicTests(TestCase):
         client.tls_set.assert_called_once()
         client.connect.assert_called_once_with(task13_mqtt.BROKER, task13_mqtt.PORT, keepalive=60)
 
+    def test_publisher_client_uses_online_mqtt_env_with_tls(self) -> None:
+        client = Mock()
+        with patch.dict(
+            os.environ,
+            {
+                "MQTT_BROKER": "s1.eu.hivemq.cloud",
+                "MQTT_PORT": "8883",
+                "MQTT_TLS": "true",
+                "MQTT_BROKER_HOST": "",
+                "MQTT_BROKER_PORT": "",
+            },
+            clear=False,
+        ):
+            online_mqtt = load_module("task13_mqtt_online", "src/publisher/publish/mqtt_publish.py")
+
+        with patch.object(online_mqtt.mqtt, "Client", return_value=client):
+            online_mqtt.make_client()
+
+        client.tls_set.assert_called_once()
+        client.connect.assert_called_once_with("s1.eu.hivemq.cloud", 8883, keepalive=60)
+
     def test_publish_topic_template_defaults_to_measurements_path(self) -> None:
         self.assertEqual(
             task13_mqtt.PUBLISH_TOPIC_TEMPLATE,
@@ -507,7 +528,9 @@ class PublishLogicTests(TestCase):
         client.loop_stop.assert_called_once()
 
     def test_run_publisher_loop_reports_broker_refusal_without_traceback(self) -> None:
-        with patch.object(task13_mqtt, "make_client", side_effect=ConnectionRefusedError("refused")), \
+        with patch.object(task13_mqtt, "BROKER", "127.0.0.1"), \
+            patch.object(task13_mqtt, "PORT", 1883), \
+            patch.object(task13_mqtt, "make_client", side_effect=ConnectionRefusedError("refused")), \
             patch.object(task13_mqtt, "wait_for_connection") as wait_mock, \
             patch.object(task13_mqtt, "print") as print_mock:
             with self.assertRaises(SystemExit) as ctx:
