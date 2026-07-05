@@ -42,6 +42,7 @@ from src.dashboard.views import sidebar as dashboard_sidebar_view
 from src.dashboard.views import table as dashboard_table_view
 from src.dashboard import runtime as dashboard_runtime
 from src.publisher import cli as publisher_cli
+from src.publisher.data import assignment1 as task_a1_cleaning
 from src.publisher.data import cleaning as task13_cleaning
 from src.publisher.publish import mqtt_publish as task13_mqtt
 from src.shared import stream_cache
@@ -127,6 +128,130 @@ class PublishLogicTests(TestCase):
         cleaned = task13_cleaning.fill_missing_half_ffill_bfill(series)
         self.assertEqual(cleaned.iloc[1], 1.0)
         self.assertEqual(cleaned.iloc[2], 4.0)
+
+    def test_clean_nger_data_applies_assignment1_filters(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "reportingEntity": "Alpha",
+                    "facilityName": "Good Facility",
+                    "type": "F",
+                    "state": "NSW",
+                    "electricityProductionGJ": 1.0,
+                    "electricityProductionMwh": 2.0,
+                    "scope1tCO2e": 3.0,
+                    "scope2tCO2e": 4.0,
+                    "totalEmissionstCO2e": 5.0,
+                    "emissionIntensitytMwh": 6.0,
+                    "gridConnected": "On",
+                    "grid": "NEM",
+                    "primaryFuel": "Wind",
+                    "importantNotes": None,
+                    "year": 2025,
+                },
+                {
+                    "reportingEntity": "Beta",
+                    "facilityName": "Drop Notes",
+                    "type": "F",
+                    "state": "NSW",
+                    "electricityProductionGJ": 1.0,
+                    "electricityProductionMwh": 2.0,
+                    "scope1tCO2e": 3.0,
+                    "scope2tCO2e": 4.0,
+                    "totalEmissionstCO2e": 5.0,
+                    "emissionIntensitytMwh": 6.0,
+                    "gridConnected": "On",
+                    "grid": "NEM",
+                    "primaryFuel": "Solar",
+                    "importantNotes": "note",
+                    "year": 2025,
+                },
+                {
+                    "reportingEntity": "Gamma",
+                    "facilityName": "Drop Total",
+                    "type": "C",
+                    "state": "NSW",
+                    "electricityProductionGJ": 1.0,
+                    "electricityProductionMwh": 2.0,
+                    "scope1tCO2e": 3.0,
+                    "scope2tCO2e": 4.0,
+                    "totalEmissionstCO2e": 5.0,
+                    "emissionIntensitytMwh": 6.0,
+                    "gridConnected": "On",
+                    "grid": "NEM",
+                    "primaryFuel": "Coal",
+                    "importantNotes": None,
+                    "year": 2025,
+                },
+            ]
+        )
+
+        cleaned = task_a1_cleaning.clean_nger_data(df)
+
+        self.assertEqual(cleaned.shape[0], 1)
+        self.assertListEqual(
+            cleaned.columns.tolist(),
+            [
+                "facilityName",
+                "type",
+                "state",
+                "electricityProductionMwh",
+                "scope1tCO2e",
+                "scope2tCO2e",
+                "totalEmissionstCO2e",
+                "emissionIntensitytMwh",
+                "primaryFuel",
+                "year",
+            ],
+        )
+        self.assertEqual(cleaned.iloc[0]["facilityName"], "Good Facility")
+
+    def test_clean_cer_data_normalizes_station_name_and_year(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "powerStation": "Laura Johnson Home, Townview - Solar w SGU - QLD",
+                    "state": "QLD",
+                    "postcode": 4825,
+                    "MWCapacity": 0.2265,
+                    "fuelSource": "Solar",
+                    "Accreditation start date": "2024-10-15",
+                    "Approval date": "2025-01-13",
+                    "inSheet": "Approved",
+                    "Committed Date (Month/Year)": None,
+                },
+                {
+                    "powerStation": "Leppington - Solar - NSW",
+                    "state": "NSW",
+                    "postcode": 2179,
+                    "MWCapacity": 0.732,
+                    "fuelSource": "Solar",
+                    "Accreditation start date": "2024-11-22",
+                    "Approval date": "2025-01-13",
+                    "inSheet": "Approved",
+                    "Committed Date (Month/Year)": None,
+                },
+            ]
+        )
+
+        cleaned = task_a1_cleaning.clean_cer_data(df)
+
+        self.assertListEqual(
+            cleaned.columns.tolist(),
+            ["powerStation", "state", "postcode", "MWCapacity", "fuelSource", "year"],
+        )
+        self.assertEqual(cleaned.iloc[0]["powerStation"], "Laura Johnson Home, Townview")
+        self.assertEqual(cleaned.iloc[0]["year"], 2025)
+        self.assertEqual(cleaned.iloc[1]["year"], 2025)
+
+    def test_load_assignment1_csv_falls_back_to_legacy_augmented_data(self) -> None:
+        missing_clean_path = Path("/tmp/nonexistent-assignment1/NGER_data_clean.csv")
+
+        loaded = task_a1_cleaning.load_assignment1_csv(missing_clean_path)
+
+        self.assertIn("lat", loaded.columns)
+        self.assertIn("lng", loaded.columns)
+        self.assertGreater(len(loaded), 0)
 
     def test_safe_publish_stream_requires_confirmed_publish(self) -> None:
         class DummyInfo:

@@ -50,6 +50,7 @@ streamlit run app/streamlit_app.py --server.address 0.0.0.0 --server.port $PORT
 
 - `OPEN_ELECTRICITY_API_KEY`: required when the publisher needs to fetch fresh data from the API
 - `PUBLISH_DURATION_SECONDS`: how long the timed publisher should run in cloud mode
+- `ASSIGNMENT1_DATA_DIR`: optional source directory for raw Assignment 1 CSVs (`NGER_data.csv` and `CER_data.csv`)
 
 ### Dashboard Runtime
 
@@ -71,6 +72,8 @@ streamlit run app/streamlit_app.py --server.address 0.0.0.0 --server.port $PORT
 
 These files are created during normal publisher runs:
 
+- `data/NGER_data_clean.csv`
+- `data/CER_data_clean.csv`
 - `data/facility_list.csv`
 - `data/consolidated_data_total.csv`
 - `data/consolidated_data_cleaned.csv`
