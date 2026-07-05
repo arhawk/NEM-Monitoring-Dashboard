@@ -33,7 +33,7 @@ def _calculate_snapshot_stats(snapshot: Dict[str, Dict[str, Any]]) -> Dict[str, 
     if not values:
         return {
             "facility_count": 0,
-            "total_power": 0.0,
+            "total_power": None,
             "total_emission": None,
             "median_price": None,
             "median_demand": None,
@@ -46,7 +46,7 @@ def _calculate_snapshot_stats(snapshot: Dict[str, Dict[str, Any]]) -> Dict[str, 
 
     return {
         "facility_count": len(values),
-        "total_power": round(sum(power_values), 2) if power_values else 0.0,
+        "total_power": round(sum(power_values), 2) if power_values else None,
         "total_emission": round(sum(emission_values), 2) if emission_values else None,
         "median_price": round(float(pd.Series(price_values).median()), 2) if price_values else None,
         "median_demand": round(float(pd.Series(demand_values).median()), 2) if demand_values else None,

@@ -109,7 +109,7 @@ def _render_header(runtime: DashboardRuntime, stats: Dict[str, Any], snapshot: D
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("Total Power Output MW", f"{stats['total_power']}")
+        st.metric("Total Power Output MW", _format_optional_metric(stats["total_power"], "MW"))
     with col2:
         st.metric("Total CO2 Emissions tCO2e", _format_optional_metric(stats["total_emission"], "tCO2e"))
     with col3:

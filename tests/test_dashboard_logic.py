@@ -1232,12 +1232,20 @@ class DashboardLogicTests(TestCase):
         self.assertEqual(stats["median_price"], 30.0)
         self.assertEqual(stats["median_demand"], 5.0)
 
+    def test_snapshot_stats_return_none_for_empty_snapshot(self) -> None:
+        stats = task4._calculate_snapshot_stats({})
+
+        self.assertIsNone(stats["total_power"])
+        self.assertIsNone(stats["total_emission"])
+        self.assertIsNone(stats["median_price"])
+        self.assertIsNone(stats["median_demand"])
+
     def test_resolve_data_source_defaults_to_empty_without_live_messages(self) -> None:
         self.assertEqual(task4._resolve_data_source([]), "empty")
 
     def test_render_header_uses_freshness_badge_for_empty_cache(self) -> None:
         stats = {
-            "total_power": 30.0,
+            "total_power": None,
             "total_emission": 8.0,
             "median_price": 30.0,
             "median_demand": 5.0,
