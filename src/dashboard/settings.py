@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import os
 
-from src.shared.mqtt_topics import MQTT_SUBSCRIBE_TOPIC_FILTER as DEFAULT_SUBSCRIBE_TOPIC_FILTER
+from src.shared.mqtt_topics import (
+    MQTT_SUBSCRIBE_TOPIC_FILTER as DEFAULT_SUBSCRIBE_TOPIC_FILTER,
+)
 from src.shared.stream_cache import (
     get_max_stream_rows,
     get_main_refresh_interval_seconds,
@@ -14,8 +16,7 @@ from src.shared.stream_cache import (
 BROKER = os.getenv("MQTT_BROKER") or os.getenv("MQTT_BROKER_HOST", "127.0.0.1")
 PORT = int(os.getenv("MQTT_PORT") or os.getenv("MQTT_BROKER_PORT", "1883"))
 SUBSCRIBE_TOPIC_FILTER = (
-    os.getenv("MQTT_SUBSCRIBE_TOPIC_FILTER")
-    or DEFAULT_SUBSCRIBE_TOPIC_FILTER
+    os.getenv("MQTT_SUBSCRIBE_TOPIC_FILTER") or DEFAULT_SUBSCRIBE_TOPIC_FILTER
 )
 USERNAME = os.getenv("MQTT_USERNAME") or None
 PASSWORD = os.getenv("MQTT_PASSWORD") or None
@@ -27,7 +28,9 @@ SIDEBAR_REFRESH_INTERVAL_SECONDS = get_sidebar_refresh_interval_seconds()
 CONNECTION_TIMEOUT_SECONDS = 10
 RECONNECT_COOLDOWN_SECONDS = 5
 MONITOR_INTERVAL_SECONDS = max(1, int(os.getenv("MQTT_MONITOR_INTERVAL_SECONDS", "5")))
-ENABLE_GITHUB_ACTIONS_CONTROL = os.getenv("ENABLE_GITHUB_ACTIONS_CONTROL", "false").strip().lower() in {
+ENABLE_GITHUB_ACTIONS_CONTROL = os.getenv(
+    "ENABLE_GITHUB_ACTIONS_CONTROL", "false"
+).strip().lower() in {
     "1",
     "true",
     "yes",
@@ -39,7 +42,9 @@ AUTO_START_PUBLISHER = os.getenv("AUTO_START_PUBLISHER", "false").strip().lower(
     "yes",
     "on",
 }
-AUTO_START_COOLDOWN_SECONDS = max(0, int(os.getenv("AUTO_START_COOLDOWN_SECONDS", "600")))
+AUTO_START_COOLDOWN_SECONDS = max(
+    0, int(os.getenv("AUTO_START_COOLDOWN_SECONDS", "600"))
+)
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN") or None
 GITHUB_OWNER = os.getenv("GITHUB_OWNER", "arhawk")
 GITHUB_REPO = os.getenv("GITHUB_REPO", "NEM-Monitoring-Dashboard")

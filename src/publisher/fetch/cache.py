@@ -28,7 +28,9 @@ def load_cache() -> dict[str, dict[str, Any]]:
                 value["date_start"] = datetime.fromisoformat(value["date_start"])
                 value["date_end"] = datetime.fromisoformat(value["date_end"])
                 consolidated_io = StringIO(value["consolidated_data"])
-                value["consolidated_data"] = pd.read_json(consolidated_io, orient="split")
+                value["consolidated_data"] = pd.read_json(
+                    consolidated_io, orient="split"
+                )
             return data
     except FileNotFoundError:
         return {}

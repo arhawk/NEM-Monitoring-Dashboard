@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 try:
     import requests
 except ImportError:  # pragma: no cover - exercised in dependency-light test envs
+
     class _MissingRequests:
         def request(self, *args, **kwargs):
             raise ModuleNotFoundError("requests is required for GitHub Actions control")
@@ -80,7 +81,13 @@ def _github_headers() -> Dict[str, str]:
     }
 
 
-def _github_request(method: str, path: str, *, params: Dict[str, Any] | None = None, json_body: Dict[str, Any] | None = None) -> requests.Response:
+def _github_request(
+    method: str,
+    path: str,
+    *,
+    params: Dict[str, Any] | None = None,
+    json_body: Dict[str, Any] | None = None,
+) -> requests.Response:
     url = f"{GITHUB_API_BASE}{path}"
     response = requests.request(
         method,
@@ -92,7 +99,9 @@ def _github_request(method: str, path: str, *, params: Dict[str, Any] | None = N
     )
     if response.status_code >= 400:
         message = response.text.strip()
-        raise RuntimeError(f"GitHub API {method} {path} failed with {response.status_code}: {message}")
+        raise RuntimeError(
+            f"GitHub API {method} {path} failed with {response.status_code}: {message}"
+        )
     return response
 
 
@@ -146,14 +155,20 @@ def get_recent_or_running_publisher_runs() -> List[Dict[str, Any]]:
 
 def _format_run_label(run: Dict[str, Any]) -> str:
     created_at = run.get("created_at")
-    created_at_label = created_at.isoformat() if isinstance(created_at, datetime) else str(created_at or "unknown time")
+    created_at_label = (
+        created_at.isoformat()
+        if isinstance(created_at, datetime)
+        else str(created_at or "unknown time")
+    )
     if run.get("status") == "completed":
         conclusion = run.get("conclusion") or "completed"
         return f"{conclusion} at {created_at_label}"
     return f"{run.get('status', 'unknown')} at {created_at_label}"
 
 
-def _find_blocking_run(runs: List[Dict[str, Any]]) -> tuple[Optional[Dict[str, Any]], Optional[str]]:
+def _find_blocking_run(
+    runs: List[Dict[str, Any]],
+) -> tuple[Optional[Dict[str, Any]], Optional[str]]:
     now = datetime.now(timezone.utc)
     cooldown = AUTO_START_COOLDOWN_SECONDS
     if cooldown <= 0:
@@ -169,12 +184,21 @@ def _find_blocking_run(runs: List[Dict[str, Any]]) -> tuple[Optional[Dict[str, A
             if isinstance(created_at, datetime):
                 age_seconds = (now - created_at).total_seconds()
                 if age_seconds < cooldown:
-                    return run, f"A publisher run started {int(age_seconds)} seconds ago, inside the cooldown window."
+                    return (
+                        run,
+                        f"A publisher run started {int(age_seconds)} seconds ago, inside the cooldown window.",
+                    )
 
     return None, None
 
 
-def _build_trigger_result(*, triggered: bool, message: str, run: Dict[str, Any] | None = None, error: str | None = None) -> Dict[str, Any]:
+def _build_trigger_result(
+    *,
+    triggered: bool,
+    message: str,
+    run: Dict[str, Any] | None = None,
+    error: str | None = None,
+) -> Dict[str, Any]:
     result = {
         "triggered": triggered,
         "message": message,
@@ -187,7 +211,9 @@ def _build_trigger_result(*, triggered: bool, message: str, run: Dict[str, Any] 
 
 def trigger_publisher_workflow(duration_seconds: int = 600) -> Dict[str, Any]:
     if not is_github_actions_control_enabled():
-        return _build_trigger_result(triggered=False, message="GitHub Actions control is disabled.")
+        return _build_trigger_result(
+            triggered=False, message="GitHub Actions control is disabled."
+        )
 
     try:
         runs = get_recent_or_running_publisher_runs()
@@ -208,17 +234,25 @@ def trigger_publisher_workflow(duration_seconds: int = 600) -> Dict[str, Any]:
             },
         )
         if response.status_code not in {201, 204}:
-            raise RuntimeError(f"Unexpected GitHub dispatch status: {response.status_code}")
+            raise RuntimeError(
+                f"Unexpected GitHub dispatch status: {response.status_code}"
+            )
 
         message = f"Triggered GitHub Actions publisher for {max(0, duration_seconds)} seconds."
         return _build_trigger_result(triggered=True, message=message)
     except Exception as exc:
-        return _build_trigger_result(triggered=False, message="Failed to trigger GitHub Actions publisher.", error=str(exc))
+        return _build_trigger_result(
+            triggered=False,
+            message="Failed to trigger GitHub Actions publisher.",
+            error=str(exc),
+        )
 
 
 def maybe_auto_start_publisher() -> Dict[str, Any]:
     if not is_github_actions_control_enabled():
-        return _build_trigger_result(triggered=False, message="GitHub Actions control is disabled.")
+        return _build_trigger_result(
+            triggered=False, message="GitHub Actions control is disabled."
+        )
 
     if not AUTO_START_PUBLISHER:
         return _build_trigger_result(triggered=False, message="Auto-start is disabled.")
@@ -227,7 +261,9 @@ def maybe_auto_start_publisher() -> Dict[str, Any]:
         cached_result = _get_session_value(AUTO_START_LAST_RESULT_SESSION_KEY)
         if isinstance(cached_result, dict):
             return cached_result
-        return _build_trigger_result(triggered=False, message="Auto-start already evaluated in this session.")
+        return _build_trigger_result(
+            triggered=False, message="Auto-start already evaluated in this session."
+        )
 
     _set_session_value(AUTO_START_SESSION_KEY, True)
     result = trigger_publisher_workflow(duration_seconds=600)
@@ -240,7 +276,7 @@ def describe_publisher_workflow_status() -> Optional[str]:
     if not isinstance(runs, list) or not runs:
         try:
             runs = get_recent_or_running_publisher_runs()
-        except Exception as exc:
+        except Exception:
             return None
 
     if not runs:

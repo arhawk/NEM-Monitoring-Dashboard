@@ -14,6 +14,7 @@ from types import SimpleNamespace
 try:
     import paho.mqtt.client as mqtt
 except ImportError:  # pragma: no cover - exercised in dependency-light test envs
+
     class _MissingMQTTClient:
         def __init__(self, *args, **kwargs):
             raise ModuleNotFoundError("paho-mqtt is required for MQTT publishing")
@@ -24,7 +25,9 @@ except ImportError:  # pragma: no cover - exercised in dependency-light test env
         CallbackAPIVersion=SimpleNamespace(VERSION1=1),
     )
 
-from src.shared.mqtt_topics import MQTT_PUBLISH_TOPIC_TEMPLATE as DEFAULT_PUBLISH_TOPIC_TEMPLATE
+from src.shared.mqtt_topics import (
+    MQTT_PUBLISH_TOPIC_TEMPLATE as DEFAULT_PUBLISH_TOPIC_TEMPLATE,
+)
 from src.shared.paths import mart_data_path
 
 
@@ -49,8 +52,7 @@ PASSWORD = os.getenv("MQTT_PASSWORD") or None
 MQTT_TLS = os.getenv("MQTT_TLS", "false").strip().lower() in {"1", "true", "yes", "on"}
 CLIENT_ID = "comp5339-publisher"
 PUBLISH_TOPIC_TEMPLATE = (
-    os.getenv("MQTT_PUBLISH_TOPIC_TEMPLATE")
-    or DEFAULT_PUBLISH_TOPIC_TEMPLATE
+    os.getenv("MQTT_PUBLISH_TOPIC_TEMPLATE") or DEFAULT_PUBLISH_TOPIC_TEMPLATE
 )
 PUBLISH_DURATION_SECONDS = max(0, int(os.getenv("PUBLISH_DURATION_SECONDS", "0")))
 TICK = 0.100
@@ -89,7 +91,9 @@ def load_measure_rows(path):
         r["state"] = r["state"] if r["state"] else None
         r["fuel_list"] = r["fuel_list"] if r["fuel_list"] else None
         r["power_value"] = float(r["Power (MW)"]) if r["Power (MW)"] else None
-        r["emission_value"] = float(r["Emissions (tonnes)"]) if r["Emissions (tonnes)"] else None
+        r["emission_value"] = (
+            float(r["Emissions (tonnes)"]) if r["Emissions (tonnes)"] else None
+        )
         r["price_per_mwh"] = float(r["Price ($/MWh)"]) if r["Price ($/MWh)"] else None
         r["demand_mw"] = float(r["Demand (MW)"]) if r["Demand (MW)"] else None
         r["lat"] = float(r["lat"]) if r["lat"] else None
@@ -101,7 +105,9 @@ def load_measure_rows(path):
 
 def make_client():
     if hasattr(mqtt, "CallbackAPIVersion"):
-        client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id=CLIENT_ID, clean_session=False)
+        client = mqtt.Client(
+            mqtt.CallbackAPIVersion.VERSION1, client_id=CLIENT_ID, clean_session=False
+        )
     else:
         client = mqtt.Client(client_id=CLIENT_ID, clean_session=True)
     if USERNAME:
@@ -116,7 +122,9 @@ def make_client():
         pass
     client.max_inflight_messages_set(60)
     client.max_queued_messages_set(0)
-    client.will_set("comp5339/task123/system/will", payload="publisher_offline", qos=1, retain=True)
+    client.will_set(
+        "comp5339/task123/system/will", payload="publisher_offline", qos=1, retain=True
+    )
     client.connect(BROKER, PORT, keepalive=60)
     client.loop_start()
     return client
@@ -225,8 +233,16 @@ def run_publisher_loop(
     duration_seconds: int | None = None,
 ) -> None:
     client = None
-    effective_duration_seconds = PUBLISH_DURATION_SECONDS if duration_seconds is None else max(0, duration_seconds)
-    deadline_ns = None if effective_duration_seconds <= 0 else perf_counter_ns() + int(effective_duration_seconds * 1e9)
+    effective_duration_seconds = (
+        PUBLISH_DURATION_SECONDS
+        if duration_seconds is None
+        else max(0, duration_seconds)
+    )
+    deadline_ns = (
+        None
+        if effective_duration_seconds <= 0
+        else perf_counter_ns() + int(effective_duration_seconds * 1e9)
+    )
     try:
         try:
             client = make_client()
@@ -249,7 +265,9 @@ def run_publisher_loop(
         state = {"seq": 0, "last_ts": None, "last_fac": ""}
 
         while True:
-            keep_running = publish_new_since(client, rows, state, deadline_ns=deadline_ns)
+            keep_running = publish_new_since(
+                client, rows, state, deadline_ns=deadline_ns
+            )
             if keep_running is False:
                 break
             if deadline_ns is None:
@@ -258,7 +276,9 @@ def run_publisher_loop(
 
             remaining_ns = deadline_ns - perf_counter_ns()
             if remaining_ns <= 0:
-                print(f"[Main] Timed publisher duration reached after {effective_duration_seconds} seconds.")
+                print(
+                    f"[Main] Timed publisher duration reached after {effective_duration_seconds} seconds."
+                )
                 break
             time.sleep(min(poll_seconds, remaining_ns / 1e9))
     finally:

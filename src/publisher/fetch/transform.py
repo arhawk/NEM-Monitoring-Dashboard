@@ -45,7 +45,9 @@ def _get_data(response, data_type: str) -> pd.DataFrame:
                 )
 
         data = pd.DataFrame(rows)
-        data["timestamp"] = pd.to_datetime(data["timestamp"], format="ISO8601", utc=False)
+        data["timestamp"] = pd.to_datetime(
+            data["timestamp"], format="ISO8601", utc=False
+        )
         return data.groupby("timestamp")["value"].sum().reset_index()
     except Exception as e:
         print(f"Data parsing error: {e}")

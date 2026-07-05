@@ -7,7 +7,9 @@ import pandas as pd
 from .facility_metadata import load_facility_metadata_csv
 
 
-def combine_matching(df1: pd.DataFrame, df2: pd.DataFrame, left_on: str, right_on: str, keep: bool) -> pd.DataFrame:
+def combine_matching(
+    df1: pd.DataFrame, df2: pd.DataFrame, left_on: str, right_on: str, keep: bool
+) -> pd.DataFrame:
     df2 = df2.drop(columns=["lat", "lng"], errors="ignore")
     matches = []
     for idx1, row1 in df1.iterrows():
@@ -55,10 +57,26 @@ def build_publish_dataset(
     df2 = load_facility_metadata_csv(nger_path)
     df3 = load_facility_metadata_csv(cer_path)
 
-    tmp_df = combine_matching(df1, df2, left_on="facility_name", right_on="facilityName", keep=False)
-    tmp_df2 = combine_matching(tmp_df, df3, left_on="facility_name", right_on="powerStation", keep=True)
-    tmp_df3 = tmp_df2[["facility_code", "facility_name", "primaryFuel", "state_x", "lat", "lng", "fuelSource"]]
-    tmp_df3 = tmp_df3.rename(columns={"state_x": "state", "fuelSource": "futureFuelSource"})
+    tmp_df = combine_matching(
+        df1, df2, left_on="facility_name", right_on="facilityName", keep=False
+    )
+    tmp_df2 = combine_matching(
+        tmp_df, df3, left_on="facility_name", right_on="powerStation", keep=True
+    )
+    tmp_df3 = tmp_df2[
+        [
+            "facility_code",
+            "facility_name",
+            "primaryFuel",
+            "state_x",
+            "lat",
+            "lng",
+            "fuelSource",
+        ]
+    ]
+    tmp_df3 = tmp_df3.rename(
+        columns={"state_x": "state", "fuelSource": "futureFuelSource"}
+    )
     tmp_df3_clean = tmp_df3.drop_duplicates()
 
     grouped = (

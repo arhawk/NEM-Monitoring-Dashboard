@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from ._compat import st as compat_st
 from . import runtime as runtime_module
 from .data import fallback as fallback_module
-from .data.aggregation import _build_fuel_options, _build_latest_snapshot, _calculate_snapshot_stats, _filter_snapshot
+from .data.aggregation import (
+    _build_fuel_options,
+    _build_latest_snapshot,
+    _calculate_snapshot_stats,
+    _filter_snapshot,
+)
 from .data.map_payload import _build_map_signature
 
 
@@ -141,7 +146,9 @@ def _build_map_model(context: DashboardContext) -> MapModel:
         display_mode=display_mode,
         selected_fuel=selected_fuel,
         selected_region=selected_region,
-        cache_signature=_build_map_signature(context.filtered_snapshot, display_mode, selected_fuel, selected_region),
+        cache_signature=_build_map_signature(
+            context.filtered_snapshot, display_mode, selected_fuel, selected_region
+        ),
     )
 
 
@@ -156,7 +163,10 @@ def _build_dashboard_context() -> DashboardContext:
             return payload
 
     payload = _build_dashboard_context_payload(runtime)
-    compat_st.session_state["_dashboard_render_context"] = {"signature": next_signature, "payload": payload}
+    compat_st.session_state["_dashboard_render_context"] = {
+        "signature": next_signature,
+        "payload": payload,
+    }
     return payload
 
 

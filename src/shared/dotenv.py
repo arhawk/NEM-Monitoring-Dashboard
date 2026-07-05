@@ -25,7 +25,9 @@ def _parse_env_line(line: str) -> tuple[str, str] | None:
     return key, value
 
 
-def load_dotenv_from_repo(env_path: str | Path | None = None, *, override: bool = False) -> bool:
+def load_dotenv_from_repo(
+    env_path: str | Path | None = None, *, override: bool = False
+) -> bool:
     """
     Load environment variables from the repository root .env file if present.
 

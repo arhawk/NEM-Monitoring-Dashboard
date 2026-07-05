@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from contextlib import contextmanager
 from types import SimpleNamespace
 
 
@@ -112,7 +111,9 @@ try:  # pragma: no cover - exercised when Streamlit is installed
     from streamlit.components import v1 as components  # type: ignore
 except ImportError:  # pragma: no cover - exercised in dependency-light test envs
     st = _DummyStreamlit()
-    components = SimpleNamespace(html=_dummy_html, declare_component=_dummy_declare_component)
+    components = SimpleNamespace(
+        html=_dummy_html, declare_component=_dummy_declare_component
+    )
 
 
 __all__ = ["st", "components"]

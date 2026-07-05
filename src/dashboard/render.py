@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from ._compat import st
-from .render_context import _build_dashboard_context, _build_map_model, _build_sidebar_model
+from .render_context import (
+    _build_dashboard_context,
+    _build_map_model,
+    _build_sidebar_model,
+)
 from .views.header import _render_current_trend, _render_header
 from .views.map import _render_map
 from .views.sidebar import _render_sidebar
@@ -10,7 +14,9 @@ from .settings import MAIN_REFRESH_INTERVAL_SECONDS, SIDEBAR_REFRESH_INTERVAL_SE
 
 
 def configure_page() -> None:
-    st.set_page_config(page_title="NEM Facility Real-time Monitoring Dashboard", layout="wide")
+    st.set_page_config(
+        page_title="NEM Facility Real-time Monitoring Dashboard", layout="wide"
+    )
 
 
 @st.fragment(run_every=MAIN_REFRESH_INTERVAL_SECONDS)

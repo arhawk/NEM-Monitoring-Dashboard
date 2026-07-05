@@ -29,12 +29,16 @@ def fill_missing_half_ffill_bfill(series: pd.Series) -> pd.Series:
     segment_id = non_na.cumsum()
     segment_id_missing = segment_id.where(missing, np.nan)
 
-    within_segment_idx = segment_id_missing.groupby(segment_id_missing).transform(
-        lambda x: np.arange(1, len(x) + 1)
-    ).reindex(original_index, fill_value=np.nan)
+    within_segment_idx = (
+        segment_id_missing.groupby(segment_id_missing)
+        .transform(lambda x: np.arange(1, len(x) + 1))
+        .reindex(original_index, fill_value=np.nan)
+    )
 
-    segment_length = segment_id_missing.groupby(segment_id_missing).transform("count").reindex(
-        original_index, fill_value=np.nan
+    segment_length = (
+        segment_id_missing.groupby(segment_id_missing)
+        .transform("count")
+        .reindex(original_index, fill_value=np.nan)
     )
 
     ffill_series = series.ffill()
@@ -63,7 +67,9 @@ def handle_missing_values_fast(group: pd.DataFrame) -> pd.DataFrame:
 
     group = group.copy()
     group["Power (MW)"] = fill_missing_half_ffill_bfill(group["Power (MW)"])
-    group["Emissions (tonnes)"] = fill_missing_half_ffill_bfill(group["Emissions (tonnes)"])
+    group["Emissions (tonnes)"] = fill_missing_half_ffill_bfill(
+        group["Emissions (tonnes)"]
+    )
     return group
 
 
@@ -76,7 +82,11 @@ def clean_facility_list(df: pd.DataFrame) -> pd.DataFrame:
     for column in ("lat", "lng"):
         if column in cleaned.columns:
             cleaned[column] = pd.to_numeric(cleaned[column], errors="coerce")
-    subset = [column for column in ("facility_code", "facility_name") if column in cleaned.columns]
+    subset = [
+        column
+        for column in ("facility_code", "facility_name")
+        if column in cleaned.columns
+    ]
     if subset:
         cleaned = cleaned.drop_duplicates(subset=subset, keep="last")
     return cleaned.reset_index(drop=True)
@@ -86,7 +96,11 @@ def clean_consolidated_data(
     input_path,
     output_path,
 ) -> pd.DataFrame:
-    output_path = Path(output_path) if output_path is not None else staging_data_path("open_electricity", "consolidated_data_cleaned.csv")
+    output_path = (
+        Path(output_path)
+        if output_path is not None
+        else staging_data_path("open_electricity", "consolidated_data_cleaned.csv")
+    )
     data = pd.read_csv(input_path)
     if "facility_code" in data.columns:
         data["facility_code"] = data["facility_code"].astype("string").str.strip()
@@ -97,7 +111,11 @@ def clean_consolidated_data(
     data["Power (MW)"] = normalize_non_negative(data["Power (MW)"])
     data["Emissions (tonnes)"] = normalize_non_negative(data["Emissions (tonnes)"])
     data = data.drop_duplicates(
-        subset=[column for column in ("facility_code", "timestamp") if column in data.columns],
+        subset=[
+            column
+            for column in ("facility_code", "timestamp")
+            if column in data.columns
+        ],
         keep="last",
     )
     data = data.groupby("facility_code", group_keys=False, observed=True).apply(
@@ -105,9 +123,15 @@ def clean_consolidated_data(
         include_groups=False,
     )
     df_cleaned = data.dropna(how="all")
-    if not df_cleaned.empty and {"facility_code", "timestamp"}.issubset(df_cleaned.columns):
-        df_cleaned = df_cleaned.sort_values(["facility_code", "timestamp"]).reset_index(drop=True)
-        df_cleaned = df_cleaned.drop_duplicates(subset=["facility_code", "timestamp"], keep="last")
+    if not df_cleaned.empty and {"facility_code", "timestamp"}.issubset(
+        df_cleaned.columns
+    ):
+        df_cleaned = df_cleaned.sort_values(["facility_code", "timestamp"]).reset_index(
+            drop=True
+        )
+        df_cleaned = df_cleaned.drop_duplicates(
+            subset=["facility_code", "timestamp"], keep="last"
+        )
     output_path.parent.mkdir(parents=True, exist_ok=True)
     df_cleaned.to_csv(output_path, index=False)
     return df_cleaned

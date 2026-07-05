@@ -26,16 +26,16 @@ def _marker_popup_html(info: Dict[str, Any], fac_code: str) -> str:
 
     return " ".join(
         f"""
-        <b>{html.escape(str(info.get('facility_name', fac_code)))}</b><br>
+        <b>{html.escape(str(info.get("facility_name", fac_code)))}</b><br>
         Facility Code: {html.escape(str(fac_code))}<br>
-        Region: {html.escape(str(info.get('state', 'Unknown Region')))}<br>
-        Fuel Group: {html.escape(str(info.get('fuel_group', _classify_fuel_group(info.get('fuel_list')))))}<br>
-        Fuel Type: {html.escape(str(info.get('fuel_list', 'Unknown')))}<br>
-        Last Payload Time: {html.escape(str(info.get('timestamp', 'Unknown')))}<br>
-        Power Output: {html.escape(_format_optional_metric(info.get('power_value'), 'MW'))}<br>
-        CO2 Emissions: {html.escape(_format_optional_metric(info.get('emission_value'), 'tCO2e'))}<br>
-        Current Price: {html.escape(_format_optional_metric(info.get('price_per_mwh'), '$/MWh'))}<br>
-        Grid Demand: {html.escape(_format_optional_metric(info.get('demand_mw'), 'MW'))}
+        Region: {html.escape(str(info.get("state", "Unknown Region")))}<br>
+        Fuel Group: {html.escape(str(info.get("fuel_group", _classify_fuel_group(info.get("fuel_list")))))}<br>
+        Fuel Type: {html.escape(str(info.get("fuel_list", "Unknown")))}<br>
+        Last Payload Time: {html.escape(str(info.get("timestamp", "Unknown")))}<br>
+        Power Output: {html.escape(_format_optional_metric(info.get("power_value"), "MW"))}<br>
+        CO2 Emissions: {html.escape(_format_optional_metric(info.get("emission_value"), "tCO2e"))}<br>
+        Current Price: {html.escape(_format_optional_metric(info.get("price_per_mwh"), "$/MWh"))}<br>
+        Grid Demand: {html.escape(_format_optional_metric(info.get("demand_mw"), "MW"))}
         """.split()
     )
 
@@ -80,7 +80,8 @@ def _build_operational_signature(records: Dict[str, Dict[str, Any]]) -> tuple:
                 _signature_metric_value(info.get("demand_mw")),
             )
             for fac_code, info in records.items()
-            if _coerce_float(info.get("lat")) is not None and _coerce_float(info.get("lng")) is not None
+            if _coerce_float(info.get("lat")) is not None
+            and _coerce_float(info.get("lng")) is not None
         )
     )
 
@@ -93,7 +94,12 @@ def _build_map_signature(
 ) -> tuple:
     return (
         _build_static_signature(records),
-        (display_mode, selected_fuel, selected_region, _build_operational_signature(records)),
+        (
+            display_mode,
+            selected_fuel,
+            selected_region,
+            _build_operational_signature(records),
+        ),
     )
 
 
@@ -115,7 +121,8 @@ def _build_marker_payload(
                 "facility_name": info.get("facility_name", fac_code),
                 "lat": lat,
                 "lng": lng,
-                "fuel_group": info.get("fuel_group") or _classify_fuel_group(info.get("fuel_list")),
+                "fuel_group": info.get("fuel_group")
+                or _classify_fuel_group(info.get("fuel_list")),
                 "color": _marker_color(info.get("fuel_group") or info.get("fuel_list")),
                 "radius": round(_marker_radius(info, display_mode), 2),
                 "fingerprint": _marker_fingerprint(info, display_mode),
@@ -135,7 +142,10 @@ def _build_marker_payload(
         "display_mode": display_mode,
         "selected_fuel": selected_fuel,
         "selected_region": selected_region,
-        "legend": [{"label": label, "color": color} for label, color in FUEL_GROUP_COLORS.items()],
+        "legend": [
+            {"label": label, "color": color}
+            for label, color in FUEL_GROUP_COLORS.items()
+        ],
         "markers": markers,
     }
 

@@ -7,6 +7,7 @@ from typing import Optional
 try:
     import paho.mqtt.client as mqtt
 except ImportError:  # pragma: no cover - exercised in dependency-light test envs
+
     class _MissingMQTTClient:
         def __init__(self, *args, **kwargs):
             raise ModuleNotFoundError("paho-mqtt is required for dashboard runtime")
@@ -18,7 +19,14 @@ except ImportError:  # pragma: no cover - exercised in dependency-light test env
     )
 
 from ..data import _normalize_message, _reason_is_success
-from ..settings import BROKER, MQTT_TLS, PASSWORD, PORT, SUBSCRIBE_TOPIC_FILTER, USERNAME
+from ..settings import (
+    BROKER,
+    MQTT_TLS,
+    PASSWORD,
+    PORT,
+    SUBSCRIBE_TOPIC_FILTER,
+    USERNAME,
+)
 
 
 class MqttConnectionManager:
@@ -58,7 +66,9 @@ class MqttConnectionManager:
         except Exception as exc:
             self.runtime._set_status("Error", f"MQTT connect failed: {exc}")
 
-    def _on_connect(self, client, userdata, flags, reason_code, properties=None) -> None:
+    def _on_connect(
+        self, client, userdata, flags, reason_code, properties=None
+    ) -> None:
         if _reason_is_success(reason_code):
             self.runtime.cache.set_last_error(None)
             self.runtime._set_status("Connected", None)
@@ -67,13 +77,19 @@ class MqttConnectionManager:
             except Exception as exc:
                 self.runtime._set_status("Error", f"Subscription failed: {exc}")
         else:
-            self.runtime._set_status("Error", f"MQTT connection rejected: {reason_code}")
+            self.runtime._set_status(
+                "Error", f"MQTT connection rejected: {reason_code}"
+            )
 
-    def _on_disconnect(self, client, userdata, disconnect_flags, reason_code, properties=None) -> None:
+    def _on_disconnect(
+        self, client, userdata, disconnect_flags, reason_code, properties=None
+    ) -> None:
         if _reason_is_success(reason_code):
             self.runtime._set_status("Disconnected", None)
         else:
-            self.runtime._set_status("Disconnected", f"MQTT disconnected: {reason_code}")
+            self.runtime._set_status(
+                "Disconnected", f"MQTT disconnected: {reason_code}"
+            )
 
     def _on_connect_fail(self, client, userdata) -> None:
         self.runtime._set_status("Error", "MQTT connection failed")
@@ -95,7 +111,11 @@ class MqttConnectionManager:
     def refresh_connection_state(self) -> None:
         from ..settings import CONNECTION_TIMEOUT_SECONDS
 
-        if self.runtime.status == "Connecting" and (pytime.monotonic() - self.runtime._last_connect_attempt_at) > CONNECTION_TIMEOUT_SECONDS:
+        if (
+            self.runtime.status == "Connecting"
+            and (pytime.monotonic() - self.runtime._last_connect_attempt_at)
+            > CONNECTION_TIMEOUT_SECONDS
+        ):
             self.runtime._set_status("Disconnected", "MQTT connection timed out")
 
     def ensure_connection(self) -> None:
@@ -104,7 +124,9 @@ class MqttConnectionManager:
         self.refresh_connection_state()
         if self.runtime.status == "Connected":
             return
-        if (pytime.monotonic() - self.runtime._last_connect_attempt_at) < RECONNECT_COOLDOWN_SECONDS:
+        if (
+            pytime.monotonic() - self.runtime._last_connect_attempt_at
+        ) < RECONNECT_COOLDOWN_SECONDS:
             return
         self.schedule_connect()
 

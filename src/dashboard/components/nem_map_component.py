@@ -7,7 +7,9 @@ from .._compat import components
 
 
 _FRONTEND_DIR = Path(__file__).resolve().parent / "nem_map_component_frontend"
-_component_func = components.declare_component("nem_facility_map", path=str(_FRONTEND_DIR))
+_component_func = components.declare_component(
+    "nem_facility_map", path=str(_FRONTEND_DIR)
+)
 
 
 def render_nem_facility_map(

@@ -60,7 +60,9 @@ def _render_sidebar(
     data_source: str | None = None,
     fuel_options: List[str] | None = None,
 ) -> None:
-    model = _coerce_sidebar_model(model_or_runtime, snapshot, filtered_snapshot, data_source, fuel_options)
+    model = _coerce_sidebar_model(
+        model_or_runtime, snapshot, filtered_snapshot, data_source, fuel_options
+    )
     github_control_enabled = is_github_actions_control_enabled()
     if github_control_enabled and AUTO_START_PUBLISHER:
         maybe_auto_start_publisher()
@@ -145,7 +147,9 @@ def _render_sidebar(
     if st.session_state.get("selected_fuel") not in model.fuel_options:
         st.session_state.selected_fuel = "All"
     st.selectbox("Select Fuel Type", model.fuel_options, key="selected_fuel")
-    selected_label = "facility selected" if model.selected_count == 1 else "facilities selected"
+    selected_label = (
+        "facility selected" if model.selected_count == 1 else "facilities selected"
+    )
     st.caption(f"{model.selected_count} {selected_label}")
 
     st.subheader("Data Statistics")
@@ -180,13 +184,17 @@ def _render_sidebar(
     if st.button("Reset Cache", key="reset_cache", type="primary"):
         _soft_reset_runtime(model.runtime)
 
-    st.write(f"Last soft reset: {_format_ts(model.runtime.last_soft_reset_at.timestamp())}")
+    st.write(
+        f"Last soft reset: {_format_ts(model.runtime.last_soft_reset_at.timestamp())}"
+    )
 
     if not github_control_enabled:
         return
 
     st.subheader("Cloud Deployment Publisher")
-    st.caption("The GitHub Actions publisher runs for 10 minutes and then stops automatically.")
+    st.caption(
+        "The GitHub Actions publisher runs for 10 minutes and then stops automatically."
+    )
 
     st.write(f"Auto-start: {'Enabled' if AUTO_START_PUBLISHER else 'Disabled'}")
 
@@ -215,7 +223,9 @@ def _render_sidebar(
     else:
         st.caption("Last trigger result: unavailable")
 
-    active_runs = [run for run in current_runs if run.get("status") in {"queued", "in_progress"}]
+    active_runs = [
+        run for run in current_runs if run.get("status") in {"queued", "in_progress"}
+    ]
     st.write(f"Active workflow runs: {len(active_runs)}")
 
 

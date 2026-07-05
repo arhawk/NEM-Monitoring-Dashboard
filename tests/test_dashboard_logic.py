@@ -13,22 +13,6 @@ from unittest.mock import Mock, patch
 import pandas as pd
 
 
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-
-def load_module(module_name: str, relative_path: str):
-    module_path = ROOT / relative_path
-    spec = importlib.util.spec_from_file_location(module_name, module_path)
-    if spec is None or spec.loader is None:
-        raise RuntimeError(f"Unable to load module from {module_path}")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
 from src.dashboard import app as dashboard_app
 from src.dashboard import actions as dashboard_actions
 from src.dashboard import data as dashboard_data
@@ -46,6 +30,21 @@ from src.publisher.data import facility_metadata as task_facility_metadata
 from src.publisher.data import cleaning as task13_cleaning
 from src.publisher.publish import mqtt_publish as task13_mqtt
 from src.shared import stream_cache
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def load_module(module_name: str, relative_path: str):
+    module_path = ROOT / relative_path
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Unable to load module from {module_path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
+
 
 task4 = SimpleNamespace()
 for module in (
@@ -82,7 +81,9 @@ class PublishLogicTests(TestCase):
     def test_legacy_publisher_wrapper_import_is_side_effect_free(self) -> None:
         module_path = ROOT / "scripts" / "run_publisher.py"
         with patch("src.publisher.cli.main") as main_mock:
-            spec = importlib.util.spec_from_file_location("publisher_wrapper", module_path)
+            spec = importlib.util.spec_from_file_location(
+                "publisher_wrapper", module_path
+            )
             if spec is None or spec.loader is None:
                 self.fail(f"Unable to load module from {module_path}")
             module = importlib.util.module_from_spec(spec)
@@ -94,7 +95,9 @@ class PublishLogicTests(TestCase):
     def test_dashboard_wrapper_import_is_side_effect_free(self) -> None:
         module_path = ROOT / "app" / "streamlit_app.py"
         with patch("src.dashboard.app.main") as main_mock:
-            spec = importlib.util.spec_from_file_location("dashboard_wrapper", module_path)
+            spec = importlib.util.spec_from_file_location(
+                "dashboard_wrapper", module_path
+            )
             if spec is None or spec.loader is None:
                 self.fail(f"Unable to load module from {module_path}")
             module = importlib.util.module_from_spec(spec)
@@ -240,7 +243,9 @@ class PublishLogicTests(TestCase):
             cleaned.columns.tolist(),
             ["powerStation", "state", "postcode", "MWCapacity", "fuelSource", "year"],
         )
-        self.assertEqual(cleaned.iloc[0]["powerStation"], "Laura Johnson Home, Townview")
+        self.assertEqual(
+            cleaned.iloc[0]["powerStation"], "Laura Johnson Home, Townview"
+        )
         self.assertEqual(cleaned.iloc[0]["year"], 2025)
         self.assertEqual(cleaned.iloc[1]["year"], 2025)
 
@@ -257,13 +262,17 @@ class PublishLogicTests(TestCase):
                 ]
             ).to_csv(staged_path, index=False)
 
-            missing_clean_path = Path("/tmp/nonexistent-facility-metadata/NGER_data_clean.csv")
+            missing_clean_path = Path(
+                "/tmp/nonexistent-facility-metadata/NGER_data_clean.csv"
+            )
             with patch.object(
                 task_facility_metadata,
                 "staging_data_path",
                 side_effect=lambda *parts: staged_root.joinpath(*parts),
             ):
-                loaded = task_facility_metadata.load_facility_metadata_csv(missing_clean_path)
+                loaded = task_facility_metadata.load_facility_metadata_csv(
+                    missing_clean_path
+                )
 
         self.assertIn("lat", loaded.columns)
         self.assertIn("lng", loaded.columns)
@@ -285,17 +294,23 @@ class PublishLogicTests(TestCase):
         client = Mock()
         client.publish.return_value = DummyInfo(task13_mqtt.mqtt.MQTT_ERR_SUCCESS, True)
         self.assertTrue(task13_mqtt.safe_publish_stream(client, "topic", {"x": 1}))
-        client.publish.return_value = DummyInfo(task13_mqtt.mqtt.MQTT_ERR_SUCCESS, False)
+        client.publish.return_value = DummyInfo(
+            task13_mqtt.mqtt.MQTT_ERR_SUCCESS, False
+        )
         self.assertFalse(task13_mqtt.safe_publish_stream(client, "topic", {"x": 1}))
 
     def test_publisher_client_uses_tls_when_enabled(self) -> None:
         client = Mock()
-        with patch.object(task13_mqtt, "MQTT_TLS", True), \
-            patch.object(task13_mqtt.mqtt, "Client", return_value=client):
+        with (
+            patch.object(task13_mqtt, "MQTT_TLS", True),
+            patch.object(task13_mqtt.mqtt, "Client", return_value=client),
+        ):
             task13_mqtt.make_client()
 
         client.tls_set.assert_called_once()
-        client.connect.assert_called_once_with(task13_mqtt.BROKER, task13_mqtt.PORT, keepalive=60)
+        client.connect.assert_called_once_with(
+            task13_mqtt.BROKER, task13_mqtt.PORT, keepalive=60
+        )
 
     def test_publisher_client_uses_online_mqtt_env_with_tls(self) -> None:
         client = Mock()
@@ -310,7 +325,9 @@ class PublishLogicTests(TestCase):
             },
             clear=False,
         ):
-            online_mqtt = load_module("task13_mqtt_online", "src/publisher/publish/mqtt_publish.py")
+            online_mqtt = load_module(
+                "task13_mqtt_online", "src/publisher/publish/mqtt_publish.py"
+            )
 
         with patch.object(online_mqtt.mqtt, "Client", return_value=client):
             online_mqtt.make_client()
@@ -328,9 +345,11 @@ class PublishLogicTests(TestCase):
         publish_path = Mock()
         publish_path.exists.return_value = True
 
-        with patch.object(publisher_cli, "PUBLISH_PATH", publish_path), \
-            patch.object(publisher_cli, "prepare_data_artifacts") as prepare_mock, \
-            patch.object(publisher_cli, "run_publisher_loop") as run_mock:
+        with (
+            patch.object(publisher_cli, "PUBLISH_PATH", publish_path),
+            patch.object(publisher_cli, "prepare_data_artifacts") as prepare_mock,
+            patch.object(publisher_cli, "run_publisher_loop") as run_mock,
+        ):
             publisher_cli.main()
 
         prepare_mock.assert_not_called()
@@ -340,9 +359,11 @@ class PublishLogicTests(TestCase):
         publish_path = Mock()
         publish_path.exists.return_value = False
 
-        with patch.object(publisher_cli, "PUBLISH_PATH", publish_path), \
-            patch.object(publisher_cli, "prepare_data_artifacts") as prepare_mock, \
-            patch.object(publisher_cli, "run_publisher_loop") as run_mock:
+        with (
+            patch.object(publisher_cli, "PUBLISH_PATH", publish_path),
+            patch.object(publisher_cli, "prepare_data_artifacts") as prepare_mock,
+            patch.object(publisher_cli, "run_publisher_loop") as run_mock,
+        ):
             publisher_cli.main()
 
         prepare_mock.assert_called_once()
@@ -383,9 +404,13 @@ class PublishLogicTests(TestCase):
         ]
         state = {"seq": 0, "last_ts": None, "last_fac": ""}
 
-        with patch.object(task13_mqtt, "safe_publish_stream", return_value=False) as publish_mock, \
-            patch.object(task13_mqtt, "sleep_until_ns", return_value=None), \
-            patch.object(task13_mqtt, "perf_counter_ns", return_value=0):
+        with (
+            patch.object(
+                task13_mqtt, "safe_publish_stream", return_value=False
+            ) as publish_mock,
+            patch.object(task13_mqtt, "sleep_until_ns", return_value=None),
+            patch.object(task13_mqtt, "perf_counter_ns", return_value=0),
+        ):
             task13_mqtt.publish_new_since(Mock(), rows, state)
 
         self.assertEqual(state, {"seq": 0, "last_ts": None, "last_fac": ""})
@@ -411,9 +436,11 @@ class PublishLogicTests(TestCase):
         ]
         state = {"seq": 0, "last_ts": None, "last_fac": ""}
 
-        with patch.object(task13_mqtt, "safe_publish_stream", return_value=True), \
-            patch.object(task13_mqtt, "sleep_until_ns", return_value=None), \
-            patch.object(task13_mqtt, "perf_counter_ns", return_value=0):
+        with (
+            patch.object(task13_mqtt, "safe_publish_stream", return_value=True),
+            patch.object(task13_mqtt, "sleep_until_ns", return_value=None),
+            patch.object(task13_mqtt, "perf_counter_ns", return_value=0),
+        ):
             task13_mqtt.publish_new_since(Mock(), rows, state)
 
         self.assertEqual(state["seq"], 1)
@@ -455,12 +482,28 @@ class PublishLogicTests(TestCase):
         ]
         state = {"seq": 0, "last_ts": None, "last_fac": ""}
 
-        with patch.object(task13_mqtt, "safe_publish_stream", return_value=True) as publish_mock, \
-            patch.object(task13_mqtt, "sleep_until_ns", return_value=None), \
-            patch.object(task13_mqtt, "perf_counter_ns", side_effect=[
-                0, 0, 0, 0, 10, 120_000_000, 120_000_000,
-            ]):
-            keep_running = task13_mqtt.publish_new_since(Mock(), rows, state, deadline_ns=150_000_000)
+        with (
+            patch.object(
+                task13_mqtt, "safe_publish_stream", return_value=True
+            ) as publish_mock,
+            patch.object(task13_mqtt, "sleep_until_ns", return_value=None),
+            patch.object(
+                task13_mqtt,
+                "perf_counter_ns",
+                side_effect=[
+                    0,
+                    0,
+                    0,
+                    0,
+                    10,
+                    120_000_000,
+                    120_000_000,
+                ],
+            ),
+        ):
+            keep_running = task13_mqtt.publish_new_since(
+                Mock(), rows, state, deadline_ns=150_000_000
+            )
 
         self.assertFalse(keep_running)
         self.assertEqual(state["seq"], 1)
@@ -488,22 +531,32 @@ class PublishLogicTests(TestCase):
         ]
         state = {"seq": 0, "last_ts": None, "last_fac": ""}
 
-        with patch.object(task13_mqtt, "safe_publish_stream", return_value=True) as publish_mock, \
-            patch.object(task13_mqtt, "sleep_until_ns", return_value=None), \
-            patch.object(task13_mqtt, "perf_counter_ns", return_value=0):
+        with (
+            patch.object(
+                task13_mqtt, "safe_publish_stream", return_value=True
+            ) as publish_mock,
+            patch.object(task13_mqtt, "sleep_until_ns", return_value=None),
+            patch.object(task13_mqtt, "perf_counter_ns", return_value=0),
+        ):
             task13_mqtt.publish_new_since(Mock(), rows, state)
 
-        self.assertEqual(publish_mock.call_args[0][1], "comp5339/task123/measurements/A1")
+        self.assertEqual(
+            publish_mock.call_args[0][1], "comp5339/task123/measurements/A1"
+        )
 
     def test_run_publisher_loop_exits_cleanly_in_timed_mode(self) -> None:
         client = Mock()
 
-        with patch.object(task13_mqtt, "make_client", return_value=client), \
-            patch.object(task13_mqtt, "wait_for_connection", return_value=True), \
-            patch.object(task13_mqtt, "load_measure_rows", return_value=[]), \
-            patch.object(task13_mqtt, "publish_new_since") as publish_mock, \
-            patch.object(task13_mqtt.time, "sleep", return_value=None), \
-            patch.object(task13_mqtt, "perf_counter_ns", side_effect=[0, 0, 2_000_000_000]):
+        with (
+            patch.object(task13_mqtt, "make_client", return_value=client),
+            patch.object(task13_mqtt, "wait_for_connection", return_value=True),
+            patch.object(task13_mqtt, "load_measure_rows", return_value=[]),
+            patch.object(task13_mqtt, "publish_new_since") as publish_mock,
+            patch.object(task13_mqtt.time, "sleep", return_value=None),
+            patch.object(
+                task13_mqtt, "perf_counter_ns", side_effect=[0, 0, 2_000_000_000]
+            ),
+        ):
             task13_mqtt.run_publisher_loop(Mock(), poll_seconds=5, duration_seconds=1)
 
         self.assertGreaterEqual(publish_mock.call_count, 1)
@@ -513,12 +566,16 @@ class PublishLogicTests(TestCase):
     def test_run_publisher_loop_breaks_when_helper_reports_timeout(self) -> None:
         client = Mock()
 
-        with patch.object(task13_mqtt, "make_client", return_value=client), \
-            patch.object(task13_mqtt, "wait_for_connection", return_value=True), \
-            patch.object(task13_mqtt, "load_measure_rows", return_value=[]), \
-            patch.object(task13_mqtt, "publish_new_since", return_value=False) as publish_mock, \
-            patch.object(task13_mqtt.time, "sleep", return_value=None) as sleep_mock, \
-            patch.object(task13_mqtt, "perf_counter_ns", side_effect=[0, 0]):
+        with (
+            patch.object(task13_mqtt, "make_client", return_value=client),
+            patch.object(task13_mqtt, "wait_for_connection", return_value=True),
+            patch.object(task13_mqtt, "load_measure_rows", return_value=[]),
+            patch.object(
+                task13_mqtt, "publish_new_since", return_value=False
+            ) as publish_mock,
+            patch.object(task13_mqtt.time, "sleep", return_value=None) as sleep_mock,
+            patch.object(task13_mqtt, "perf_counter_ns", side_effect=[0, 0]),
+        ):
             task13_mqtt.run_publisher_loop(Mock(), poll_seconds=5, duration_seconds=1)
 
         publish_mock.assert_called_once()
@@ -529,14 +586,20 @@ class PublishLogicTests(TestCase):
     def test_run_publisher_loop_keeps_infinite_mode_when_duration_unset(self) -> None:
         client = Mock()
 
-        with patch.object(task13_mqtt, "make_client", return_value=client), \
-            patch.object(task13_mqtt, "wait_for_connection", return_value=True), \
-            patch.object(task13_mqtt, "load_measure_rows", return_value=[]), \
-            patch.object(task13_mqtt, "publish_new_since") as publish_mock, \
-            patch.object(task13_mqtt.time, "sleep", side_effect=SystemExit) as sleep_mock, \
-            patch.object(task13_mqtt, "perf_counter_ns", return_value=0):
+        with (
+            patch.object(task13_mqtt, "make_client", return_value=client),
+            patch.object(task13_mqtt, "wait_for_connection", return_value=True),
+            patch.object(task13_mqtt, "load_measure_rows", return_value=[]),
+            patch.object(task13_mqtt, "publish_new_since") as publish_mock,
+            patch.object(
+                task13_mqtt.time, "sleep", side_effect=SystemExit
+            ) as sleep_mock,
+            patch.object(task13_mqtt, "perf_counter_ns", return_value=0),
+        ):
             with self.assertRaises(SystemExit):
-                task13_mqtt.run_publisher_loop(Mock(), poll_seconds=7, duration_seconds=0)
+                task13_mqtt.run_publisher_loop(
+                    Mock(), poll_seconds=7, duration_seconds=0
+                )
 
         publish_mock.assert_called_once()
         sleep_mock.assert_called_once_with(7)
@@ -544,21 +607,33 @@ class PublishLogicTests(TestCase):
         client.loop_stop.assert_called_once()
 
     def test_run_publisher_loop_reports_broker_refusal_without_traceback(self) -> None:
-        with patch.object(task13_mqtt, "BROKER", "127.0.0.1"), \
-            patch.object(task13_mqtt, "PORT", 1883), \
-            patch.object(task13_mqtt, "make_client", side_effect=ConnectionRefusedError("refused")), \
-            patch.object(task13_mqtt, "wait_for_connection") as wait_mock, \
-            patch.object(task13_mqtt, "print") as print_mock:
+        with (
+            patch.object(task13_mqtt, "BROKER", "127.0.0.1"),
+            patch.object(task13_mqtt, "PORT", 1883),
+            patch.object(
+                task13_mqtt,
+                "make_client",
+                side_effect=ConnectionRefusedError("refused"),
+            ),
+            patch.object(task13_mqtt, "wait_for_connection") as wait_mock,
+            patch.object(task13_mqtt, "print") as print_mock,
+        ):
             with self.assertRaises(SystemExit) as ctx:
-                task13_mqtt.run_publisher_loop(Mock(), poll_seconds=5, duration_seconds=1)
+                task13_mqtt.run_publisher_loop(
+                    Mock(), poll_seconds=5, duration_seconds=1
+                )
 
         self.assertEqual(ctx.exception.code, 1)
         wait_mock.assert_not_called()
-        print_mock.assert_any_call("[Main] MQTT connect failed for 127.0.0.1:1883: refused")
+        print_mock.assert_any_call(
+            "[Main] MQTT connect failed for 127.0.0.1:1883: refused"
+        )
 
 
 class GitHubActionsControlTests(TestCase):
-    def _response(self, status_code: int, payload: dict | None = None, text: str = "") -> Mock:
+    def _response(
+        self, status_code: int, payload: dict | None = None, text: str = ""
+    ) -> Mock:
         response = Mock()
         response.status_code = status_code
         response.text = text
@@ -567,9 +642,11 @@ class GitHubActionsControlTests(TestCase):
 
     def test_auto_start_does_not_call_github_when_control_disabled(self) -> None:
         session_state = FakeSessionState()
-        with patch.object(dashboard_actions, "ENABLE_GITHUB_ACTIONS_CONTROL", False), \
-            patch.object(dashboard_actions.st, "session_state", session_state), \
-            patch.object(dashboard_actions.requests, "request") as request_mock:
+        with (
+            patch.object(dashboard_actions, "ENABLE_GITHUB_ACTIONS_CONTROL", False),
+            patch.object(dashboard_actions.st, "session_state", session_state),
+            patch.object(dashboard_actions.requests, "request") as request_mock,
+        ):
             result = dashboard_actions.maybe_auto_start_publisher()
 
         self.assertFalse(result["triggered"])
@@ -588,10 +665,14 @@ class GitHubActionsControlTests(TestCase):
         }
         responses = [self._response(200, {"workflow_runs": [active_run]})]
 
-        with patch.object(dashboard_actions, "ENABLE_GITHUB_ACTIONS_CONTROL", True), \
-            patch.object(dashboard_actions, "GITHUB_TOKEN", "token"), \
-            patch.object(dashboard_actions.st, "session_state", session_state), \
-            patch.object(dashboard_actions.requests, "request", side_effect=responses) as request_mock:
+        with (
+            patch.object(dashboard_actions, "ENABLE_GITHUB_ACTIONS_CONTROL", True),
+            patch.object(dashboard_actions, "GITHUB_TOKEN", "token"),
+            patch.object(dashboard_actions.st, "session_state", session_state),
+            patch.object(
+                dashboard_actions.requests, "request", side_effect=responses
+            ) as request_mock,
+        ):
             result = dashboard_actions.trigger_publisher_workflow(duration_seconds=600)
 
         self.assertFalse(result["triggered"])
@@ -605,10 +686,14 @@ class GitHubActionsControlTests(TestCase):
             self._response(204, None),
         ]
 
-        with patch.object(dashboard_actions, "ENABLE_GITHUB_ACTIONS_CONTROL", True), \
-            patch.object(dashboard_actions, "GITHUB_TOKEN", "token"), \
-            patch.object(dashboard_actions.st, "session_state", session_state), \
-            patch.object(dashboard_actions.requests, "request", side_effect=responses) as request_mock:
+        with (
+            patch.object(dashboard_actions, "ENABLE_GITHUB_ACTIONS_CONTROL", True),
+            patch.object(dashboard_actions, "GITHUB_TOKEN", "token"),
+            patch.object(dashboard_actions.st, "session_state", session_state),
+            patch.object(
+                dashboard_actions.requests, "request", side_effect=responses
+            ) as request_mock,
+        ):
             result = dashboard_actions.trigger_publisher_workflow(duration_seconds=600)
 
         self.assertTrue(result["triggered"])
@@ -622,11 +707,15 @@ class GitHubActionsControlTests(TestCase):
             self._response(204, None),
         ]
 
-        with patch.object(dashboard_actions, "ENABLE_GITHUB_ACTIONS_CONTROL", True), \
-            patch.object(dashboard_actions, "AUTO_START_PUBLISHER", True), \
-            patch.object(dashboard_actions, "GITHUB_TOKEN", "token"), \
-            patch.object(dashboard_actions.st, "session_state", session_state), \
-            patch.object(dashboard_actions.requests, "request", side_effect=responses) as request_mock:
+        with (
+            patch.object(dashboard_actions, "ENABLE_GITHUB_ACTIONS_CONTROL", True),
+            patch.object(dashboard_actions, "AUTO_START_PUBLISHER", True),
+            patch.object(dashboard_actions, "GITHUB_TOKEN", "token"),
+            patch.object(dashboard_actions.st, "session_state", session_state),
+            patch.object(
+                dashboard_actions.requests, "request", side_effect=responses
+            ) as request_mock,
+        ):
             first = dashboard_actions.maybe_auto_start_publisher()
             second = dashboard_actions.maybe_auto_start_publisher()
 
@@ -648,11 +737,15 @@ class GitHubActionsControlTests(TestCase):
         }
         responses = [self._response(200, {"workflow_runs": [recent_run]})]
 
-        with patch.object(dashboard_actions, "ENABLE_GITHUB_ACTIONS_CONTROL", True), \
-            patch.object(dashboard_actions, "AUTO_START_COOLDOWN_SECONDS", 600), \
-            patch.object(dashboard_actions, "GITHUB_TOKEN", "token"), \
-            patch.object(dashboard_actions.st, "session_state", session_state), \
-            patch.object(dashboard_actions.requests, "request", side_effect=responses) as request_mock:
+        with (
+            patch.object(dashboard_actions, "ENABLE_GITHUB_ACTIONS_CONTROL", True),
+            patch.object(dashboard_actions, "AUTO_START_COOLDOWN_SECONDS", 600),
+            patch.object(dashboard_actions, "GITHUB_TOKEN", "token"),
+            patch.object(dashboard_actions.st, "session_state", session_state),
+            patch.object(
+                dashboard_actions.requests, "request", side_effect=responses
+            ) as request_mock,
+        ):
             result = dashboard_actions.trigger_publisher_workflow(duration_seconds=600)
 
         self.assertFalse(result["triggered"])
@@ -665,7 +758,9 @@ class DashboardLogicTests(TestCase):
         runtime = Mock()
         runtime.status = status
         runtime.last_error = None
-        runtime.last_soft_reset_at = datetime(2026, 7, 3, 23, 56, 37, tzinfo=timezone.utc)
+        runtime.last_soft_reset_at = datetime(
+            2026, 7, 3, 23, 56, 37, tzinfo=timezone.utc
+        )
         runtime.cache.messages_since_reset.return_value = 3
         runtime.cache.get_recent_messages.return_value = []
         runtime.cache.size.return_value = 2
@@ -684,15 +779,21 @@ class DashboardLogicTests(TestCase):
             def __setattr__(self, key: str, value):
                 self[key] = value
 
-        with patch.object(dashboard_runtime, "get_active_runtime", return_value=runtime), \
-            patch.object(dashboard_render_context.compat_st, "session_state", FakeSessionState()):
+        with (
+            patch.object(dashboard_runtime, "get_active_runtime", return_value=runtime),
+            patch.object(
+                dashboard_render_context.compat_st, "session_state", FakeSessionState()
+            ),
+        ):
             context = dashboard_render_context._build_dashboard_context()
 
         runtime.maybe_soft_reset.assert_not_called()
         runtime.ensure_connection.assert_not_called()
         self.assertEqual(context["data_source"], "empty")
 
-    def test_build_dashboard_context_signature_ignores_messages_since_reset(self) -> None:
+    def test_build_dashboard_context_signature_ignores_messages_since_reset(
+        self,
+    ) -> None:
         runtime = self._build_sidebar_runtime(status="Connected")
         runtime.cache.size.return_value = 2
         runtime.cache.last_updated_at.return_value = 100.0
@@ -705,12 +806,26 @@ class DashboardLogicTests(TestCase):
             def __setattr__(self, key: str, value):
                 self[key] = value
 
-        with patch.object(dashboard_render_context.compat_st, "session_state", FakeSessionState(display_mode="power_value", selected_fuel="All", selected_region="All")), \
-            patch.object(runtime.cache, "last_updated_at", return_value=120.0):
+        with (
+            patch.object(
+                dashboard_render_context.compat_st,
+                "session_state",
+                FakeSessionState(
+                    display_mode="power_value",
+                    selected_fuel="All",
+                    selected_region="All",
+                ),
+            ),
+            patch.object(runtime.cache, "last_updated_at", return_value=120.0),
+        ):
             runtime.cache.messages_since_reset.return_value = 3
-            baseline = dashboard_render_context._build_dashboard_context_signature(runtime)
+            baseline = dashboard_render_context._build_dashboard_context_signature(
+                runtime
+            )
             runtime.cache.messages_since_reset.return_value = 99
-            updated = dashboard_render_context._build_dashboard_context_signature(runtime)
+            updated = dashboard_render_context._build_dashboard_context_signature(
+                runtime
+            )
 
         self.assertEqual(baseline, updated)
 
@@ -737,13 +852,19 @@ class DashboardLogicTests(TestCase):
             def __setattr__(self, key: str, value):
                 self[key] = value
 
-        with patch.object(dashboard_runtime, "get_active_runtime", return_value=runtime), \
-            patch.object(dashboard_render_context.compat_st, "session_state", FakeSessionState()):
+        with (
+            patch.object(dashboard_runtime, "get_active_runtime", return_value=runtime),
+            patch.object(
+                dashboard_render_context.compat_st, "session_state", FakeSessionState()
+            ),
+        ):
             context = dashboard_render_context._build_dashboard_context()
 
         self.assertEqual(context["data_source"], "live")
         self.assertEqual(list(context["snapshot"].keys()), ["LIVE1"])
-        self.assertEqual(context["messages"], runtime.cache.get_recent_messages.return_value)
+        self.assertEqual(
+            context["messages"], runtime.cache.get_recent_messages.return_value
+        )
 
     def test_mqtt_manager_subscribes_with_explicit_topic_filter(self) -> None:
         runtime = self._build_sidebar_runtime(status="Disconnected")
@@ -753,24 +874,32 @@ class DashboardLogicTests(TestCase):
 
         manager._on_connect(client, None, None, 0)
 
-        client.subscribe.assert_called_once_with(dashboard_settings.SUBSCRIBE_TOPIC_FILTER, qos=0)
+        client.subscribe.assert_called_once_with(
+            dashboard_settings.SUBSCRIBE_TOPIC_FILTER, qos=0
+        )
 
     def test_dashboard_client_uses_tls_when_enabled(self) -> None:
         runtime = self._build_sidebar_runtime(status="Disconnected")
         client = Mock()
-        with patch.object(dashboard_runtime.mqtt, "MQTT_TLS", True), \
-            patch.object(dashboard_runtime.mqtt.mqtt, "Client", return_value=client):
+        with (
+            patch.object(dashboard_runtime.mqtt, "MQTT_TLS", True),
+            patch.object(dashboard_runtime.mqtt.mqtt, "Client", return_value=client),
+        ):
             manager = dashboard_runtime.MqttConnectionManager(runtime)
             manager.schedule_connect()
 
         client.tls_set.assert_called_once()
-        client.connect_async.assert_called_once_with(dashboard_settings.BROKER, dashboard_settings.PORT, keepalive=60)
+        client.connect_async.assert_called_once_with(
+            dashboard_settings.BROKER, dashboard_settings.PORT, keepalive=60
+        )
 
     def test_soft_reset_clears_current_cache_and_updates_timestamp(self) -> None:
         runtime = Mock()
         runtime.status = "Connected"
         runtime.last_error = "stale error"
-        runtime.last_soft_reset_at = datetime(2026, 7, 3, 23, 56, 37, tzinfo=timezone.utc)
+        runtime.last_soft_reset_at = datetime(
+            2026, 7, 3, 23, 56, 37, tzinfo=timezone.utc
+        )
         runtime.cache = stream_cache.StreamCache(maxlen=10)
         runtime._set_status = Mock()
         runtime._schedule_connect = Mock()
@@ -824,10 +953,16 @@ class DashboardLogicTests(TestCase):
         self.assertIsNone(task4._normalize_message(payload, "topic/test"))
 
     def test_classify_fuel_group_covers_four_way_mapping(self) -> None:
-        self.assertEqual(task4._classify_fuel_group("['Solar', 'Wind', 'Solar']"), "Renewable")
-        self.assertEqual(task4._classify_fuel_group("['Black Coal']"), "Fossil / Non-renewable")
+        self.assertEqual(
+            task4._classify_fuel_group("['Solar', 'Wind', 'Solar']"), "Renewable"
+        )
+        self.assertEqual(
+            task4._classify_fuel_group("['Black Coal']"), "Fossil / Non-renewable"
+        )
         self.assertEqual(task4._classify_fuel_group("['Battery']"), "Storage")
-        self.assertEqual(task4._classify_fuel_group("['Gas', 'Solar']"), "Mixed / Other")
+        self.assertEqual(
+            task4._classify_fuel_group("['Gas', 'Solar']"), "Mixed / Other"
+        )
 
     def test_build_map_signature_changes_with_metric_values(self) -> None:
         base = {
@@ -875,10 +1010,20 @@ class DashboardLogicTests(TestCase):
             "_nem_map_marker_payload_cache": None,
         }
 
-        with patch.object(task4.st, "session_state", fake_state), \
-            patch.object(dashboard_map_payload, "_build_marker_payload", wraps=dashboard_map_payload._build_marker_payload) as build_mock:
-            payload1 = task4._get_cached_marker_payload(records, "power_value", "All", "All")
-            payload2 = task4._get_cached_marker_payload(records, "power_value", "All", "All")
+        with (
+            patch.object(task4.st, "session_state", fake_state),
+            patch.object(
+                dashboard_map_payload,
+                "_build_marker_payload",
+                wraps=dashboard_map_payload._build_marker_payload,
+            ) as build_mock,
+        ):
+            payload1 = task4._get_cached_marker_payload(
+                records, "power_value", "All", "All"
+            )
+            payload2 = task4._get_cached_marker_payload(
+                records, "power_value", "All", "All"
+            )
 
         self.assertIs(payload1, payload2)
         self.assertEqual(build_mock.call_count, 1)
@@ -908,10 +1053,20 @@ class DashboardLogicTests(TestCase):
         }
         fake_state = {}
 
-        with patch.object(task4.st, "session_state", fake_state), \
-            patch.object(dashboard_map_payload, "_build_marker_payload", wraps=dashboard_map_payload._build_marker_payload) as build_mock:
-            payload1 = task4._get_cached_marker_payload(base, "power_value", "All", "All")
-            payload2 = task4._get_cached_marker_payload(updated, "power_value", "All", "All")
+        with (
+            patch.object(task4.st, "session_state", fake_state),
+            patch.object(
+                dashboard_map_payload,
+                "_build_marker_payload",
+                wraps=dashboard_map_payload._build_marker_payload,
+            ) as build_mock,
+        ):
+            payload1 = task4._get_cached_marker_payload(
+                base, "power_value", "All", "All"
+            )
+            payload2 = task4._get_cached_marker_payload(
+                updated, "power_value", "All", "All"
+            )
 
         self.assertIsNot(payload1, payload2)
         self.assertEqual(build_mock.call_count, 2)
@@ -975,8 +1130,13 @@ class DashboardLogicTests(TestCase):
             }
         }
 
-        self.assertEqual(task4._build_static_signature(base), task4._build_static_signature(updated))
-        self.assertNotEqual(task4._build_operational_signature(base), task4._build_operational_signature(updated))
+        self.assertEqual(
+            task4._build_static_signature(base), task4._build_static_signature(updated)
+        )
+        self.assertNotEqual(
+            task4._build_operational_signature(base),
+            task4._build_operational_signature(updated),
+        )
 
     def test_resolve_data_source_uses_live_only_when_live_messages_exist(self) -> None:
         live_messages = [{"facility_code": "A1"}]
@@ -1008,7 +1168,9 @@ class DashboardLogicTests(TestCase):
             }
         }
 
-        self.assertNotEqual(task4._build_static_signature(base), task4._build_static_signature(moved))
+        self.assertNotEqual(
+            task4._build_static_signature(base), task4._build_static_signature(moved)
+        )
 
     def test_marker_payload_reflects_display_mode_and_fingerprint(self) -> None:
         records = {
@@ -1029,8 +1191,13 @@ class DashboardLogicTests(TestCase):
 
         payload = task4._build_marker_payload(records, "power_value", "All", "All")
         self.assertEqual(payload["display_mode"], "power_value")
-        self.assertEqual(payload["static_signature"], task4._build_static_signature(records))
-        self.assertEqual(payload["operational_signature"], task4._build_operational_signature(records))
+        self.assertEqual(
+            payload["static_signature"], task4._build_static_signature(records)
+        )
+        self.assertEqual(
+            payload["operational_signature"],
+            task4._build_operational_signature(records),
+        )
         self.assertEqual(payload["markers"][0]["facility_code"], "A1")
         self.assertEqual(payload["markers"][0]["facility_name"], "Alpha")
         self.assertEqual(payload["markers"][0]["fuel_group"], "Fossil / Non-renewable")
@@ -1070,7 +1237,9 @@ class DashboardLogicTests(TestCase):
         }
 
         payload = task4._build_marker_payload(records, "power_value", "All", "All")
-        self.assertEqual([marker["facility_code"] for marker in payload["markers"]], ["A2"])
+        self.assertEqual(
+            [marker["facility_code"] for marker in payload["markers"]], ["A2"]
+        )
 
     def test_get_latest_trend_message_prefers_latest_valid_record(self) -> None:
         messages = [
@@ -1143,23 +1312,30 @@ class DashboardLogicTests(TestCase):
         runtime = Mock()
         runtime.cache.last_updated_at.return_value = 100.0
 
-        with patch.object(dashboard_header_view, "time", return_value=104.5), \
-            patch.object(task4.st, "subheader") as subheader_mock, \
-            patch.object(task4.st, "info") as info_mock:
-            task4._render_current_trend(runtime, [
-                {
-                    "facility_code": "WOOLGSF",
-                    "facility_name": "Woolooga",
-                    "timestamp": "2025-10-25T08:50:00",
-                    "power_value": 0.0,
-                    "emission_value": 0.0,
-                    "price_per_mwh": 102.16,
-                    "demand_mw": 23448.02,
-                }
-            ])
+        with (
+            patch.object(dashboard_header_view, "time", return_value=104.5),
+            patch.object(task4.st, "subheader") as subheader_mock,
+            patch.object(task4.st, "info") as info_mock,
+        ):
+            task4._render_current_trend(
+                runtime,
+                [
+                    {
+                        "facility_code": "WOOLGSF",
+                        "facility_name": "Woolooga",
+                        "timestamp": "2025-10-25T08:50:00",
+                        "power_value": 0.0,
+                        "emission_value": 0.0,
+                        "price_per_mwh": 102.16,
+                        "demand_mw": 23448.02,
+                    }
+                ],
+            )
 
         subheader_mock.assert_called_once_with("Current Facility")
-        info_mock.assert_called_once_with("No MQTT messages available for current trend yet.")
+        info_mock.assert_called_once_with(
+            "No MQTT messages available for current trend yet."
+        )
 
     def test_render_current_trend_uses_html_component_for_latest_record(self) -> None:
         runtime = Mock()
@@ -1176,8 +1352,10 @@ class DashboardLogicTests(TestCase):
             }
         ]
 
-        with patch.object(dashboard_header_view, "time", return_value=102.5), \
-            patch.object(task4.components, "html") as html_mock:
+        with (
+            patch.object(dashboard_header_view, "time", return_value=102.5),
+            patch.object(task4.components, "html") as html_mock,
+        ):
             task4._render_current_trend(runtime, messages)
 
         html_mock.assert_called_once()
@@ -1198,10 +1376,14 @@ class DashboardLogicTests(TestCase):
             self.assertEqual(stream_cache.get_sidebar_refresh_interval_seconds(), 1)
 
     def test_sidebar_refresh_interval_prefers_environment_override(self) -> None:
-        with patch.dict(os.environ, {"SIDEBAR_REFRESH_INTERVAL_SECONDS": "4"}, clear=True):
+        with patch.dict(
+            os.environ, {"SIDEBAR_REFRESH_INTERVAL_SECONDS": "4"}, clear=True
+        ):
             self.assertEqual(stream_cache.get_sidebar_refresh_interval_seconds(), 4)
 
-    def test_max_stream_rows_defaults_to_five_thousand_five_hundred_twenty(self) -> None:
+    def test_max_stream_rows_defaults_to_five_thousand_five_hundred_twenty(
+        self,
+    ) -> None:
         with patch.dict(os.environ, {}, clear=True):
             self.assertEqual(stream_cache.get_max_stream_rows(), 5520)
 
@@ -1219,8 +1401,12 @@ class DashboardLogicTests(TestCase):
             {"MQTT_TOPIC": "legacy/topic/#"},
             clear=True,
         ):
-            module = load_module("dashboard_settings_legacy_alias_test", "src/dashboard/settings.py")
-            self.assertEqual(module.SUBSCRIBE_TOPIC_FILTER, "comp5339/task123/measurements/#")
+            module = load_module(
+                "dashboard_settings_legacy_alias_test", "src/dashboard/settings.py"
+            )
+            self.assertEqual(
+                module.SUBSCRIBE_TOPIC_FILTER, "comp5339/task123/measurements/#"
+            )
 
     def test_publisher_topic_template_ignores_legacy_topic_alias(self) -> None:
         with patch.dict(
@@ -1228,8 +1414,14 @@ class DashboardLogicTests(TestCase):
             {"MQTT_TOPIC_TEMPLATE": "legacy/topic/{facility_code}"},
             clear=True,
         ):
-            module = load_module("publisher_mqtt_legacy_alias_test", "src/publisher/publish/mqtt_publish.py")
-            self.assertEqual(module.PUBLISH_TOPIC_TEMPLATE, "comp5339/task123/measurements/{facility_code}")
+            module = load_module(
+                "publisher_mqtt_legacy_alias_test",
+                "src/publisher/publish/mqtt_publish.py",
+            )
+            self.assertEqual(
+                module.PUBLISH_TOPIC_TEMPLATE,
+                "comp5339/task123/measurements/{facility_code}",
+            )
 
     def test_optional_market_fields_keep_missing_semantics(self) -> None:
         payload = {
@@ -1296,18 +1488,24 @@ class DashboardLogicTests(TestCase):
             column.__enter__ = Mock(return_value=column)
             column.__exit__ = Mock(return_value=None)
 
-        with patch.object(task4.st, "title"), \
-            patch.object(task4.st, "badge") as badge_mock, \
-            patch.object(task4.st, "caption"), \
-            patch.object(task4.st, "info") as info_mock, \
-            patch.object(task4.st, "success") as success_mock, \
-            patch.object(task4.st, "columns", return_value=column_mocks), \
-            patch.object(task4.st, "metric"):
+        with (
+            patch.object(task4.st, "title"),
+            patch.object(task4.st, "badge") as badge_mock,
+            patch.object(task4.st, "caption"),
+            patch.object(task4.st, "info") as info_mock,
+            patch.object(task4.st, "success") as success_mock,
+            patch.object(task4.st, "columns", return_value=column_mocks),
+            patch.object(task4.st, "metric"),
+        ):
             task4._render_header(runtime, stats, {})
 
         info_mock.assert_not_called()
         success_mock.assert_not_called()
-        badge_mock.assert_called_once_with("Waiting for publish Message...", icon=":material/hourglass_empty:", color="blue")
+        badge_mock.assert_called_once_with(
+            "Waiting for publish Message...",
+            icon=":material/hourglass_empty:",
+            color="blue",
+        )
 
     def test_render_header_uses_freshness_badge_for_fresh_cache(self) -> None:
         stats = {
@@ -1323,15 +1521,19 @@ class DashboardLogicTests(TestCase):
             column.__enter__ = Mock(return_value=column)
             column.__exit__ = Mock(return_value=None)
 
-        with patch.object(task4.st, "title"), \
-            patch.object(dashboard_header_view, "time", return_value=102.5), \
-            patch.object(task4.st, "badge") as badge_mock, \
-            patch.object(task4.st, "caption"), \
-            patch.object(task4.st, "columns", return_value=column_mocks), \
-            patch.object(task4.st, "metric"):
+        with (
+            patch.object(task4.st, "title"),
+            patch.object(dashboard_header_view, "time", return_value=102.5),
+            patch.object(task4.st, "badge") as badge_mock,
+            patch.object(task4.st, "caption"),
+            patch.object(task4.st, "columns", return_value=column_mocks),
+            patch.object(task4.st, "metric"),
+        ):
             task4._render_header(runtime, stats, {})
 
-        badge_mock.assert_called_once_with("Real-time Update", icon=":material/schedule:", color="green")
+        badge_mock.assert_called_once_with(
+            "Real-time Update", icon=":material/schedule:", color="green"
+        )
 
     def test_render_header_uses_freshness_badge_for_stale_cache(self) -> None:
         stats = {
@@ -1347,32 +1549,44 @@ class DashboardLogicTests(TestCase):
             column.__enter__ = Mock(return_value=column)
             column.__exit__ = Mock(return_value=None)
 
-        with patch.object(task4.st, "title"), \
-            patch.object(dashboard_header_view, "time", return_value=104.1), \
-            patch.object(task4.st, "badge") as badge_mock, \
-            patch.object(task4.st, "caption"), \
-            patch.object(task4.st, "columns", return_value=column_mocks), \
-            patch.object(task4.st, "metric"):
+        with (
+            patch.object(task4.st, "title"),
+            patch.object(dashboard_header_view, "time", return_value=104.1),
+            patch.object(task4.st, "badge") as badge_mock,
+            patch.object(task4.st, "caption"),
+            patch.object(task4.st, "columns", return_value=column_mocks),
+            patch.object(task4.st, "metric"),
+        ):
             task4._render_header(runtime, stats, {})
 
-        badge_mock.assert_called_once_with("Waiting for publish Message...", icon=":material/hourglass_empty:", color="blue")
+        badge_mock.assert_called_once_with(
+            "Waiting for publish Message...",
+            icon=":material/hourglass_empty:",
+            color="blue",
+        )
 
-    def test_render_sidebar_keeps_transport_status_without_transient_notices(self) -> None:
+    def test_render_sidebar_keeps_transport_status_without_transient_notices(
+        self,
+    ) -> None:
         runtime = self._build_sidebar_runtime(status="Connecting")
 
-        with patch.dict(task4.st.session_state, {"display_mode": "power_value"}, clear=True), \
-            patch.object(task4.st, "markdown"), \
-            patch.object(task4.st, "header"), \
-            patch.object(task4.st, "subheader") as subheader_mock, \
-            patch.object(task4.st, "button", return_value=False), \
-            patch.object(task4.st, "selectbox"), \
-            patch.object(task4.st, "write") as write_mock, \
-            patch.object(task4.st, "json"), \
-            patch.object(task4.st, "caption"), \
-            patch.object(task4.st, "info") as info_mock, \
-            patch.object(task4.st, "success") as success_mock, \
-            patch.object(task4.st, "warning") as warning_mock, \
-            patch.object(task4.st, "error") as error_mock:
+        with (
+            patch.dict(
+                task4.st.session_state, {"display_mode": "power_value"}, clear=True
+            ),
+            patch.object(task4.st, "markdown"),
+            patch.object(task4.st, "header"),
+            patch.object(task4.st, "subheader") as subheader_mock,
+            patch.object(task4.st, "button", return_value=False),
+            patch.object(task4.st, "selectbox"),
+            patch.object(task4.st, "write") as write_mock,
+            patch.object(task4.st, "json"),
+            patch.object(task4.st, "caption"),
+            patch.object(task4.st, "info") as info_mock,
+            patch.object(task4.st, "success") as success_mock,
+            patch.object(task4.st, "warning") as warning_mock,
+            patch.object(task4.st, "error") as error_mock,
+        ):
             task4._render_sidebar(runtime, {}, {}, "empty", ["All", "Gas"])
 
         self.assertGreaterEqual(len(subheader_mock.call_args_list), 1)
@@ -1387,8 +1601,16 @@ class DashboardLogicTests(TestCase):
         )
         write_lines = [str(call.args[0]) for call in write_mock.call_args_list]
         self.assertLess(
-            next(i for i, line in enumerate(write_lines) if line.startswith("Messages since reset:")),
-            next(i for i, line in enumerate(write_lines) if line.startswith("MQTT cache size:")),
+            next(
+                i
+                for i, line in enumerate(write_lines)
+                if line.startswith("Messages since reset:")
+            ),
+            next(
+                i
+                for i, line in enumerate(write_lines)
+                if line.startswith("MQTT cache size:")
+            ),
         )
         info_mock.assert_called_once_with("Connecting")
         success_mock.assert_not_called()
@@ -1402,28 +1624,52 @@ class DashboardLogicTests(TestCase):
             "A2": {"facility_code": "A2"},
         }
 
-        with patch.dict(task4.st.session_state, {"display_mode": "power_value", "selected_fuel": "All", "selected_region": "All"}, clear=True), \
-            patch.object(task4.st, "markdown"), \
-            patch.object(task4.st, "header"), \
-            patch.object(task4.st, "subheader"), \
-            patch.object(task4.st, "button", return_value=False), \
-            patch.object(task4.st, "selectbox"), \
-            patch.object(task4.st, "write") as write_mock, \
-            patch.object(task4.st, "caption") as caption_mock, \
-            patch.object(task4.st, "json") as json_mock, \
-            patch.object(task4.st, "info"), \
-            patch.object(task4.st, "success"), \
-            patch.object(task4.st, "warning"), \
-            patch.object(task4.st, "error"):
-            task4._render_sidebar(runtime, {}, filtered_snapshot, "live", ["All", "Gas"])
+        with (
+            patch.dict(
+                task4.st.session_state,
+                {
+                    "display_mode": "power_value",
+                    "selected_fuel": "All",
+                    "selected_region": "All",
+                },
+                clear=True,
+            ),
+            patch.object(task4.st, "markdown"),
+            patch.object(task4.st, "header"),
+            patch.object(task4.st, "subheader"),
+            patch.object(task4.st, "button", return_value=False),
+            patch.object(task4.st, "selectbox"),
+            patch.object(task4.st, "write") as write_mock,
+            patch.object(task4.st, "caption") as caption_mock,
+            patch.object(task4.st, "json") as json_mock,
+            patch.object(task4.st, "info"),
+            patch.object(task4.st, "success"),
+            patch.object(task4.st, "warning"),
+            patch.object(task4.st, "error"),
+        ):
+            task4._render_sidebar(
+                runtime, {}, filtered_snapshot, "live", ["All", "Gas"]
+            )
 
         runtime.cache.get_latest_message.assert_not_called()
         json_mock.assert_not_called()
-        self.assertFalse(any("No MQTT messages have arrived yet." in str(call.args[0]) for call in write_mock.call_args_list))
+        self.assertFalse(
+            any(
+                "No MQTT messages have arrived yet." in str(call.args[0])
+                for call in write_mock.call_args_list
+            )
+        )
         caption_mock.assert_any_call("2 facilities selected")
-        self.assertTrue(any(str(call.args[0]) == "2 facilities selected" for call in caption_mock.call_args_list))
+        self.assertTrue(
+            any(
+                str(call.args[0]) == "2 facilities selected"
+                for call in caption_mock.call_args_list
+            )
+        )
 
-    def test_render_sidebar_reset_button_triggers_soft_reset_and_shows_timestamp_after_button(self) -> None:
+    def test_render_sidebar_reset_button_triggers_soft_reset_and_shows_timestamp_after_button(
+        self,
+    ) -> None:
         runtime = self._build_sidebar_runtime(status="Connected")
         updated_reset_at = datetime(2026, 7, 4, 1, 2, 3, tzinfo=timezone.utc)
 
@@ -1431,24 +1677,40 @@ class DashboardLogicTests(TestCase):
             runtime.last_soft_reset_at = updated_reset_at
             runtime_obj.last_soft_reset_at = updated_reset_at
 
-        with patch.dict(task4.st.session_state, {"display_mode": "power_value", "selected_fuel": "All", "selected_region": "All"}, clear=True), \
-            patch.object(task4.st, "markdown"), \
-            patch.object(task4.st, "header"), \
-            patch.object(task4.st, "subheader"), \
-            patch.object(task4.st, "button", return_value=True) as button_mock, \
-            patch.object(task4.st, "selectbox"), \
-            patch.object(task4.st, "write") as write_mock, \
-            patch.object(task4.st, "caption"), \
-            patch.object(task4.st, "json"), \
-            patch.object(task4.st, "info"), \
-            patch.object(task4.st, "success"), \
-            patch.object(task4.st, "warning"), \
-            patch.object(task4.st, "error"), \
-            patch.object(dashboard_sidebar_view, "_soft_reset_runtime", side_effect=soft_reset_side_effect) as soft_reset_mock, \
-            patch.object(task4.st, "rerun") as rerun_mock:
+        with (
+            patch.dict(
+                task4.st.session_state,
+                {
+                    "display_mode": "power_value",
+                    "selected_fuel": "All",
+                    "selected_region": "All",
+                },
+                clear=True,
+            ),
+            patch.object(task4.st, "markdown"),
+            patch.object(task4.st, "header"),
+            patch.object(task4.st, "subheader"),
+            patch.object(task4.st, "button", return_value=True) as button_mock,
+            patch.object(task4.st, "selectbox"),
+            patch.object(task4.st, "write") as write_mock,
+            patch.object(task4.st, "caption"),
+            patch.object(task4.st, "json"),
+            patch.object(task4.st, "info"),
+            patch.object(task4.st, "success"),
+            patch.object(task4.st, "warning"),
+            patch.object(task4.st, "error"),
+            patch.object(
+                dashboard_sidebar_view,
+                "_soft_reset_runtime",
+                side_effect=soft_reset_side_effect,
+            ) as soft_reset_mock,
+            patch.object(task4.st, "rerun") as rerun_mock,
+        ):
             task4._render_sidebar(runtime, {}, {}, "live", ["All", "Gas"])
 
-        button_mock.assert_called_once_with("Reset Cache", key="reset_cache", type="primary")
+        button_mock.assert_called_once_with(
+            "Reset Cache", key="reset_cache", type="primary"
+        )
         soft_reset_mock.assert_called_once()
         rerun_mock.assert_not_called()
         self.assertIn(
@@ -1457,10 +1719,12 @@ class DashboardLogicTests(TestCase):
         )
 
     def test_main_calls_render_dashboard_without_manual_rerun_loop(self) -> None:
-        with patch.object(dashboard_app, "get_runtime") as runtime_mock, \
-            patch.object(dashboard_app, "set_active_runtime") as set_runtime_mock, \
-            patch.object(dashboard_app, "render_dashboard") as render_mock, \
-            patch.object(task4.st, "rerun") as rerun_mock:
+        with (
+            patch.object(dashboard_app, "get_runtime") as runtime_mock,
+            patch.object(dashboard_app, "set_active_runtime") as set_runtime_mock,
+            patch.object(dashboard_app, "render_dashboard") as render_mock,
+            patch.object(task4.st, "rerun") as rerun_mock,
+        ):
             runtime_mock.return_value = Mock()
             task4.main()
 
@@ -1471,18 +1735,28 @@ class DashboardLogicTests(TestCase):
     def test_render_sidebar_injects_compact_header_css(self) -> None:
         runtime = self._build_sidebar_runtime(status="Connected")
 
-        with patch.dict(task4.st.session_state, {"display_mode": "power_value", "selected_fuel": "All", "selected_region": "All"}, clear=True), \
-            patch.object(task4.st, "markdown") as markdown_mock, \
-            patch.object(task4.st, "header"), \
-            patch.object(task4.st, "subheader"), \
-            patch.object(task4.st, "button", return_value=False), \
-            patch.object(task4.st, "selectbox"), \
-            patch.object(task4.st, "write"), \
-            patch.object(task4.st, "caption"), \
-            patch.object(task4.st, "info"), \
-            patch.object(task4.st, "success"), \
-            patch.object(task4.st, "warning"), \
-            patch.object(task4.st, "error"):
+        with (
+            patch.dict(
+                task4.st.session_state,
+                {
+                    "display_mode": "power_value",
+                    "selected_fuel": "All",
+                    "selected_region": "All",
+                },
+                clear=True,
+            ),
+            patch.object(task4.st, "markdown") as markdown_mock,
+            patch.object(task4.st, "header"),
+            patch.object(task4.st, "subheader"),
+            patch.object(task4.st, "button", return_value=False),
+            patch.object(task4.st, "selectbox"),
+            patch.object(task4.st, "write"),
+            patch.object(task4.st, "caption"),
+            patch.object(task4.st, "info"),
+            patch.object(task4.st, "success"),
+            patch.object(task4.st, "warning"),
+            patch.object(task4.st, "error"),
+        ):
             task4._render_sidebar(runtime, {}, {}, "live", ["All", "Gas"])
 
         self.assertTrue(markdown_mock.called)
@@ -1526,11 +1800,17 @@ class DashboardLogicTests(TestCase):
             selected_region="All",
         )
 
-        with patch.object(task4.st, "session_state", fake_state), \
-            patch.object(task4.st, "subheader"), \
-            patch.object(task4.st, "caption"), \
-            patch.object(task4.st, "info"), \
-            patch.object(dashboard_nem_map_component, "render_nem_facility_map", return_value={"display_mode": "emission_value"}) as render_mock:
+        with (
+            patch.object(task4.st, "session_state", fake_state),
+            patch.object(task4.st, "subheader"),
+            patch.object(task4.st, "caption"),
+            patch.object(task4.st, "info"),
+            patch.object(
+                dashboard_nem_map_component,
+                "render_nem_facility_map",
+                return_value={"display_mode": "emission_value"},
+            ) as render_mock,
+        ):
             task4._render_map(filtered_snapshot, "power_value")
 
         self.assertEqual(fake_state["display_mode"], "emission_value")
@@ -1567,11 +1847,17 @@ class DashboardLogicTests(TestCase):
             selected_region="All",
         )
 
-        with patch.object(task4.st, "session_state", fake_state), \
-            patch.object(task4.st, "subheader"), \
-            patch.object(task4.st, "caption"), \
-            patch.object(task4.st, "info"), \
-            patch.object(dashboard_nem_map_component, "render_nem_facility_map", return_value={"center": {"lat": -33.0, "lng": 151.0}, "zoom": 6}) as render_mock:
+        with (
+            patch.object(task4.st, "session_state", fake_state),
+            patch.object(task4.st, "subheader"),
+            patch.object(task4.st, "caption"),
+            patch.object(task4.st, "info"),
+            patch.object(
+                dashboard_nem_map_component,
+                "render_nem_facility_map",
+                return_value={"center": {"lat": -33.0, "lng": 151.0}, "zoom": 6},
+            ) as render_mock,
+        ):
             task4._render_map(filtered_snapshot, "power_value")
 
         self.assertEqual(fake_state["display_mode"], "power_value")
@@ -1591,10 +1877,14 @@ class DashboardLogicTests(TestCase):
             selected_region="All",
         )
 
-        with patch.object(task4.st, "session_state", fake_state), \
-            patch.object(task4.st, "subheader"), \
-            patch.object(task4.st, "info") as info_mock, \
-            patch.object(dashboard_nem_map_component, "render_nem_facility_map", return_value={}) as render_mock:
+        with (
+            patch.object(task4.st, "session_state", fake_state),
+            patch.object(task4.st, "subheader"),
+            patch.object(task4.st, "info") as info_mock,
+            patch.object(
+                dashboard_nem_map_component, "render_nem_facility_map", return_value={}
+            ) as render_mock,
+        ):
             task4._render_map({}, "power_value")
 
         info_mock.assert_not_called()
@@ -1603,23 +1893,28 @@ class DashboardLogicTests(TestCase):
         self.assertEqual(marker_payload["markers"], [])
 
     def test_render_table_renders_empty_state_without_info_banner(self) -> None:
-        with patch.object(task4.st, "subheader"), \
-            patch.object(task4.st, "info") as info_mock, \
-            patch.object(task4.st, "dataframe") as dataframe_mock:
+        with (
+            patch.object(task4.st, "subheader"),
+            patch.object(task4.st, "info") as info_mock,
+            patch.object(task4.st, "dataframe") as dataframe_mock,
+        ):
             task4._render_table({})
 
         info_mock.assert_not_called()
         dataframe_mock.assert_called_once()
         rendered = dataframe_mock.call_args.args[0]
-        self.assertEqual(list(rendered.columns), [
-            "facility_code",
-            "facility_name",
-            "state",
-            "fuel_group",
-            "fuel_list",
-            "power_value",
-            "emission_value",
-            "price_per_mwh",
-            "demand_mw",
-            "timestamp",
-        ])
+        self.assertEqual(
+            list(rendered.columns),
+            [
+                "facility_code",
+                "facility_name",
+                "state",
+                "fuel_group",
+                "fuel_list",
+                "power_value",
+                "emission_value",
+                "price_per_mwh",
+                "demand_mw",
+                "timestamp",
+            ],
+        )

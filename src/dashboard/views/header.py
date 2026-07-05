@@ -12,7 +12,13 @@ from ..settings import CACHE_FRESHNESS_STALE_AFTER_SECONDS
 
 
 def _build_current_trend_html(message: Dict[str, Any]) -> str:
-    facility_name = html.escape(str(message.get("facility_name") or message.get("facility_code") or "Unknown Facility"))
+    facility_name = html.escape(
+        str(
+            message.get("facility_name")
+            or message.get("facility_code")
+            or "Unknown Facility"
+        )
+    )
     facility_code = html.escape(str(message.get("facility_code") or ""))
     timestamp = html.escape(str(message.get("timestamp") or ""))
     details = " | ".join(part for part in (facility_code, timestamp) if part)
@@ -38,7 +44,11 @@ def _build_current_trend_html(message: Dict[str, Any]) -> str:
             """
         )
 
-    detail_html = f'<div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">{details}</div>' if details else ""
+    detail_html = (
+        f'<div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">{details}</div>'
+        if details
+        else ""
+    )
     return textwrap.dedent(
         f"""
         <div style="
@@ -59,7 +69,7 @@ def _build_current_trend_html(message: Dict[str, Any]) -> str:
             gap: 8px;
             margin-top: 10px;
           ">
-            {''.join(card_items)}
+            {"".join(card_items)}
           </div>
         </div>
         """
@@ -73,7 +83,9 @@ def _is_cache_fresh(runtime: DashboardRuntime) -> bool:
     return (time() - float(last_updated_at)) <= CACHE_FRESHNESS_STALE_AFTER_SECONDS
 
 
-def _render_current_trend(runtime: DashboardRuntime, messages: List[Dict[str, Any]]) -> None:
+def _render_current_trend(
+    runtime: DashboardRuntime, messages: List[Dict[str, Any]]
+) -> None:
     from ..data import _get_latest_trend_message
 
     if not _is_cache_fresh(runtime):
@@ -102,20 +114,35 @@ def _build_cache_freshness_badge(runtime: DashboardRuntime) -> tuple[str, str, s
     return "green", "Real-time Update", ":material/schedule:"
 
 
-def _render_header(runtime: DashboardRuntime, stats: Dict[str, Any], snapshot: Dict[str, Dict[str, Any]]) -> None:
+def _render_header(
+    runtime: DashboardRuntime,
+    stats: Dict[str, Any],
+    snapshot: Dict[str, Dict[str, Any]],
+) -> None:
     st.title("⚡ National Electricity Market (NEM) Facility Monitoring Dashboard")
     badge_color, badge_text, badge_icon = _build_cache_freshness_badge(runtime)
     st.badge(badge_text, icon=badge_icon, color=badge_color)
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("Total Power Output MW", _format_optional_metric(stats["total_power"], "MW"))
+        st.metric(
+            "Total Power Output MW", _format_optional_metric(stats["total_power"], "MW")
+        )
     with col2:
-        st.metric("Total CO2 Emissions tCO2e", _format_optional_metric(stats["total_emission"], "tCO2e"))
+        st.metric(
+            "Total CO2 Emissions tCO2e",
+            _format_optional_metric(stats["total_emission"], "tCO2e"),
+        )
     with col3:
-        st.metric("Median Price $/MWh", _format_optional_metric(stats["median_price"], "$/MWh"))
+        st.metric(
+            "Median Price $/MWh",
+            _format_optional_metric(stats["median_price"], "$/MWh"),
+        )
     with col4:
-        st.metric("Median Grid Demand MW", _format_optional_metric(stats["median_demand"], "MW"))
+        st.metric(
+            "Median Grid Demand MW",
+            _format_optional_metric(stats["median_demand"], "MW"),
+        )
 
 
 __all__ = [

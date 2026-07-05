@@ -9,6 +9,7 @@ import pandas as pd
 try:
     import requests
 except ImportError:  # pragma: no cover - exercised in dependency-light test envs
+
     class _MissingSession:
         def __init__(self, *args, **kwargs):
             self.headers = {}
@@ -46,7 +47,9 @@ def create_session() -> requests.Session:
     return session
 
 
-def fetch_response(session: requests.Session, api: str, params: dict[str, Any] | None = None):
+def fetch_response(
+    session: requests.Session, api: str, params: dict[str, Any] | None = None
+):
     """Fetch HTTP response with error handling."""
     try:
         response = session.get(api, params=params)

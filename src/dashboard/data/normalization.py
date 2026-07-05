@@ -72,7 +72,11 @@ def _extract_fuel_tokens(fuel_list: Any) -> List[str]:
 
 
 def _classify_fuel_group(fuel_list: Any) -> str:
-    from ..settings import FOSSIL_FUEL_TOKENS, RENEWABLE_FUEL_TOKENS, STORAGE_FUEL_TOKENS
+    from ..settings import (
+        FOSSIL_FUEL_TOKENS,
+        RENEWABLE_FUEL_TOKENS,
+        STORAGE_FUEL_TOKENS,
+    )
 
     tokens = _extract_fuel_tokens(fuel_list)
     if not tokens:

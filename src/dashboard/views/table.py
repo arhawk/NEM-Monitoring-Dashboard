@@ -23,7 +23,9 @@ def _render_table(filtered_snapshot: Dict[str, Dict[str, str]]) -> None:
     ]
     preview = pd.DataFrame.from_records(list(filtered_snapshot.values()), columns=cols)
     existing = [col for col in cols if col in preview.columns]
-    st.dataframe(preview[existing].sort_values("facility_code"), width="stretch", height=260)
+    st.dataframe(
+        preview[existing].sort_values("facility_code"), width="stretch", height=260
+    )
 
 
 __all__ = ["_render_table"]

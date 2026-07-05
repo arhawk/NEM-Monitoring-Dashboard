@@ -9,12 +9,15 @@ import pandas as pd
 try:
     import requests
 except ImportError:  # pragma: no cover - exercised in dependency-light test envs
+
     class _MissingRequests:
         class exceptions:  # type: ignore[valid-type]
             HTTPError = RuntimeError
 
         def get(self, *args, **kwargs):
-            raise ModuleNotFoundError("requests is required for facility metadata fetches")
+            raise ModuleNotFoundError(
+                "requests is required for facility metadata fetches"
+            )
 
     requests = _MissingRequests()
 
@@ -47,13 +50,21 @@ def clean_nger_data(df: pd.DataFrame) -> pd.DataFrame:
     if "type" in cleaned.columns:
         cleaned["type"] = cleaned["type"].astype("string").str.strip()
     if "importantNotes" in cleaned.columns:
-        cleaned["importantNotes"] = cleaned["importantNotes"].replace({"N/A": pd.NA, "-": pd.NA})
+        cleaned["importantNotes"] = cleaned["importantNotes"].replace(
+            {"N/A": pd.NA, "-": pd.NA}
+        )
     cleaned = cleaned[cleaned["facilityName"].notna()]
     cleaned = cleaned[cleaned["importantNotes"].isna()]
 
     drop_columns = [
         column
-        for column in ("reportingEntity", "importantNotes", "electricityProductionGJ", "gridConnected", "grid")
+        for column in (
+            "reportingEntity",
+            "importantNotes",
+            "electricityProductionGJ",
+            "gridConnected",
+            "grid",
+        )
         if column in cleaned.columns
     ]
     if drop_columns:
@@ -66,7 +77,9 @@ def clean_nger_data(df: pd.DataFrame) -> pd.DataFrame:
 def clean_cer_data(df: pd.DataFrame) -> pd.DataFrame:
     """Apply the CER cleaning rules for facility metadata."""
     cleaned = df.copy()
-    cleaned["powerStation"] = cleaned["powerStation"].astype("string").str.split("-", n=1).str[0].str.strip()
+    cleaned["powerStation"] = (
+        cleaned["powerStation"].astype("string").str.split("-", n=1).str[0].str.strip()
+    )
     if "state" in cleaned.columns:
         cleaned["state"] = cleaned["state"].astype("string").str.strip()
     if "fuelSource" in cleaned.columns:
@@ -77,11 +90,19 @@ def clean_cer_data(df: pd.DataFrame) -> pd.DataFrame:
 
     if "Approval date" in cleaned.columns:
         cleaned.loc[cleaned["inSheet"] == "Approved", "year"] = (
-            cleaned["Approval date"].astype("string").str.split("-", n=1).str[0].astype("Int64")
+            cleaned["Approval date"]
+            .astype("string")
+            .str.split("-", n=1)
+            .str[0]
+            .astype("Int64")
         )
     if "Committed Date (Month/Year)" in cleaned.columns:
         cleaned.loc[cleaned["inSheet"] == "Committed", "year"] = (
-            cleaned["Committed Date (Month/Year)"].astype("string").str.split("-", n=1).str[0].astype("Int64")
+            cleaned["Committed Date (Month/Year)"]
+            .astype("string")
+            .str.split("-", n=1)
+            .str[0]
+            .astype("Int64")
         )
 
     keep_columns = list(cleaned.columns[:5]) + [cleaned.columns[-1]]
@@ -91,7 +112,11 @@ def clean_cer_data(df: pd.DataFrame) -> pd.DataFrame:
 
 def fetch_nger_raw_data(output_dir: str | Path | None = None) -> pd.DataFrame:
     """Download the remote NGER source datasets and write the raw CSV."""
-    output_dir = Path(output_dir) if output_dir is not None else raw_data_path(FACILITY_METADATA_DIR)
+    output_dir = (
+        Path(output_dir)
+        if output_dir is not None
+        else raw_data_path(FACILITY_METADATA_DIR)
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     records: list[dict] = []
@@ -117,7 +142,11 @@ def fetch_nger_raw_data(output_dir: str | Path | None = None) -> pd.DataFrame:
 
 def fetch_cer_raw_data(output_dir: str | Path | None = None) -> pd.DataFrame:
     """Download the remote CER XLSX and write the raw CSV."""
-    output_dir = Path(output_dir) if output_dir is not None else raw_data_path(FACILITY_METADATA_DIR)
+    output_dir = (
+        Path(output_dir)
+        if output_dir is not None
+        else raw_data_path(FACILITY_METADATA_DIR)
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     response = requests.get(CER_XLSX_URL, timeout=120)
@@ -150,9 +179,25 @@ def fetch_cer_raw_data(output_dir: str | Path | None = None) -> pd.DataFrame:
     )
     probable_df["inSheet"] = "Probable"
 
-    approved_df.columns = ["powerStation", "state", "postcode", "MWCapacity", "fuelSource"] + approved_df.columns.tolist()[5:]
-    committed_df.columns = ["powerStation", "state", "MWCapacity", "fuelSource"] + committed_df.columns.tolist()[4:]
-    probable_df.columns = ["powerStation", "state", "MWCapacity", "fuelSource"] + probable_df.columns.tolist()[4:]
+    approved_df.columns = [
+        "powerStation",
+        "state",
+        "postcode",
+        "MWCapacity",
+        "fuelSource",
+    ] + approved_df.columns.tolist()[5:]
+    committed_df.columns = [
+        "powerStation",
+        "state",
+        "MWCapacity",
+        "fuelSource",
+    ] + committed_df.columns.tolist()[4:]
+    probable_df.columns = [
+        "powerStation",
+        "state",
+        "MWCapacity",
+        "fuelSource",
+    ] + probable_df.columns.tolist()[4:]
 
     combined = pd.concat([approved_df, committed_df, probable_df], ignore_index=True)
     combined.to_csv(output_dir / "CER_data.csv", index=False, encoding="utf-8-sig")
@@ -166,7 +211,11 @@ def clean_facility_metadata_artifacts(
     """Read raw metadata CSVs, clean them, and write the staged outputs."""
     default_source_dir = raw_data_path(FACILITY_METADATA_DIR)
     default_output_dir = staging_data_path(FACILITY_METADATA_DIR)
-    source_dir = Path(source_dir) if source_dir is not None else Path(os.getenv("FACILITY_METADATA_DATA_DIR", default_source_dir))
+    source_dir = (
+        Path(source_dir)
+        if source_dir is not None
+        else Path(os.getenv("FACILITY_METADATA_DATA_DIR", default_source_dir))
+    )
     output_dir = Path(output_dir) if output_dir is not None else default_output_dir
 
     nger_raw_path = source_dir / "NGER_data.csv"
@@ -179,8 +228,12 @@ def clean_facility_metadata_artifacts(
     nger_clean = clean_nger_data(pd.read_csv(nger_raw_path))
     cer_clean = clean_cer_data(pd.read_csv(cer_raw_path))
 
-    nger_clean.to_csv(output_dir / "NGER_data_clean.csv", index=False, encoding="utf-8-sig")
-    cer_clean.to_csv(output_dir / "CER_data_clean.csv", index=False, encoding="utf-8-sig")
+    nger_clean.to_csv(
+        output_dir / "NGER_data_clean.csv", index=False, encoding="utf-8-sig"
+    )
+    cer_clean.to_csv(
+        output_dir / "CER_data_clean.csv", index=False, encoding="utf-8-sig"
+    )
 
     return {
         "nger": nger_clean,
@@ -188,17 +241,27 @@ def clean_facility_metadata_artifacts(
     }
 
 
-def fetch_and_clean_facility_metadata_artifacts(output_dir: str | Path | None = None) -> dict[str, pd.DataFrame]:
+def fetch_and_clean_facility_metadata_artifacts(
+    output_dir: str | Path | None = None,
+) -> dict[str, pd.DataFrame]:
     """Fetch the remote metadata source files, then clean them into CSV artifacts."""
-    raw_output_dir = Path(output_dir) if output_dir is not None else raw_data_path(FACILITY_METADATA_DIR)
+    raw_output_dir = (
+        Path(output_dir)
+        if output_dir is not None
+        else raw_data_path(FACILITY_METADATA_DIR)
+    )
     staging_output_dir = staging_data_path(FACILITY_METADATA_DIR)
     nger_raw = fetch_nger_raw_data(output_dir=raw_output_dir)
     cer_raw = fetch_cer_raw_data(output_dir=raw_output_dir)
     nger_clean = clean_nger_data(nger_raw)
     cer_clean = clean_cer_data(cer_raw)
     staging_output_dir.mkdir(parents=True, exist_ok=True)
-    nger_clean.to_csv(staging_output_dir / "NGER_data_clean.csv", index=False, encoding="utf-8-sig")
-    cer_clean.to_csv(staging_output_dir / "CER_data_clean.csv", index=False, encoding="utf-8-sig")
+    nger_clean.to_csv(
+        staging_output_dir / "NGER_data_clean.csv", index=False, encoding="utf-8-sig"
+    )
+    cer_clean.to_csv(
+        staging_output_dir / "CER_data_clean.csv", index=False, encoding="utf-8-sig"
+    )
     return {
         "nger_raw": nger_raw,
         "cer_raw": cer_raw,
@@ -221,6 +284,7 @@ def load_facility_metadata_csv(path: str | Path) -> pd.DataFrame:
         return pd.read_csv(staged_path)
 
     raise FileNotFoundError(f"Could not find {path} or staged fallback {staged_path}")
+
 
 __all__ = [
     "clean_cer_data",

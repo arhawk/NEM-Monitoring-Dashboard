@@ -41,7 +41,9 @@ def prepare_data_artifacts() -> None:
         )
 
     STAGING_FACILITY_LIST_PATH.parent.mkdir(parents=True, exist_ok=True)
-    clean_facility_list(pd.read_csv(RAW_FACILITY_LIST_PATH)).to_csv(STAGING_FACILITY_LIST_PATH, index=False)
+    clean_facility_list(pd.read_csv(RAW_FACILITY_LIST_PATH)).to_csv(
+        STAGING_FACILITY_LIST_PATH, index=False
+    )
     clean_consolidated_data(RAW_CONSOLIDATED_PATH, STAGING_CONSOLIDATED_PATH)
     build_publish_dataset(
         STAGING_CONSOLIDATED_PATH,

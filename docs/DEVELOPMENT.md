@@ -1,43 +1,6 @@
 # Development
 
-## Prerequisites
-
-- Python 3.10+
-- `pip`
-- Docker Compose
-
-## Local Workflow
-
-1. Create and activate a virtual environment.
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-2. Install dependencies.
-
-```bash
-pip install -r requirements.txt
-```
-
-3. Start the local MQTT broker.
-
-```bash
-docker compose up -d
-```
-
-4. Run the publisher.
-
-```bash
-python scripts/run_publisher.py
-```
-
-5. Run the dashboard in a second terminal.
-
-```bash
-streamlit run app/streamlit_app.py
-```
+Use [README.md](../README.md) as the canonical start, verify, and troubleshoot runbook.
 
 ## Working With Data Artifacts
 
@@ -65,10 +28,10 @@ The wrapper scripts exist so the same code works in local terminals and on hoste
 Run the available checks with:
 
 ```bash
-pytest -q tests/test_dashboard_logic.py tests/test_dotenv_loader.py
+ruff format --check .
+ruff check .
+pytest -q
 ```
-
-The repository does not define a separate lint or type-check command.
 
 ## Development Notes
 
