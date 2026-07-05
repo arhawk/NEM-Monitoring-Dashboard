@@ -1,0 +1,1652 @@
+﻿facilityName,type,state,electricityProductionMwh,scope1tCO2e,scope2tCO2e,totalEmissionstCO2e,emissionIntensitytMwh,primaryFuel,year
+Gunning Wind Farm,F,NSW,157700.0,19.0,293.0,312.0,0.0,Wind,2015
+Royalla Solar Farm,F,ACT,59199.0,0.0,15.0,15.0,0.0,Solar,2015
+Waubra Wind Farm,F,VIC,683834.0,77.0,1144.0,1221.0,0.0,Wind,2015
+Banimboola Hydro,F,VIC,38082.0,5.0,17.0,22.0,0.0,Hydro,2015
+Bayswater Power Station,F,NSW,13965430.0,12253123.0,8306.0,12261429.0,0.88,Black Coal,2015
+Bogong Power Station,F,VIC,74144.0,83.0,839.0,922.0,0.0,Hydro,2015
+Burrendong Hydro,F,NSW,7619.0,1.0,97.0,98.0,0.0,Hydro,2015
+Clover Hydro,F,VIC,42047.0,3.0,51.0,54.0,0.0,Hydro,2015
+Coopers Cogeneration,F,SA,25463.0,19260.0,86.0,19346.0,0.76,Gas,2015
+Copeton Hydro,F,NSW,38829.0,1.0,75.0,76.0,0.0,Hydro,2015
+Dartmouth Hydro,F,VIC,446691.0,0.0,727.0,727.0,0.0,Hydro,2015
+Eildon Hydro,F,VIC,197317.0,20.0,153.0,173.0,0.0,Hydro,2015
+Glenbawn Hydro,F,NSW,11737.0,0.0,16.0,16.0,0.0,Hydro,2015
+Glenorchy Landfill Generation,F,TAS,11977.0,745.0,1.0,746.0,0.06,Landfill Gas,2015
+Hallett (Stage 1) Wind Farm,F,SA,315741.0,135.0,217.0,352.0,0.0,Wind,2015
+Hallett (Stage 2) Wind Farm,F,SA,238477.0,85.0,187.0,272.0,0.0,Wind,2015
+Hallett (Stage 4) Wind Farm,F,SA,428809.0,133.0,360.0,493.0,0.0,Wind,2015
+Hallett (Stage 5) Wind Farm,F,SA,135847.0,75.0,175.0,250.0,0.0,Wind,2015
+Hobart Landfill Generation,F,TAS,7604.0,427.0,0.0,427.0,0.06,Landfill Gas,2015
+Hunter Valley Gas Turbines,F,NSW,250.0,355.0,869.0,1224.0,1.42,Gas,2015
+Kincumber Landfill Generation,F,NSW,4059.0,238.0,5.0,243.0,0.06,Landfill Gas,2015
+Liddell Power Station,F,NSW,6906736.0,6514993.0,46355.0,6561348.0,0.94,Black Coal,2015
+Loy Yang Power Station and Mine,F,VIC,16226412.0,18508708.0,268516.0,18777224.0,1.14,Brown Coal,2015
+Macarthur Wind Farm,F,VIC,997152.0,371.0,2655.0,3026.0,0.0,Wind,2015
+McKay Creek Hydro,F,VIC,88209.0,0.0,6185.0,6185.0,0.0,Hydro,2015
+Moranbah Power Station,F,QLD,23031.0,12327.0,1142.0,13469.0,0.54,Coal Seam Methane,2015
+Nyngan Solar Plant,F,NSW,9380.0,9.0,59.0,68.0,0.0,Solar,2015
+Oaklands Hill Wind Farm,F,VIC,146261.0,68.0,637.0,705.0,0.0,Wind,2015
+Rockingham Landfill Generation,F,WA,21490.0,1320.0,6.0,1326.0,0.06,Landfill Gas,2015
+Rubicon Hydro Scheme,F,VIC,46446.0,0.0,47.0,47.0,0.0,Hydro,2015
+Shoalhaven Landfill Generation,F,NSW,5483.0,356.0,8.0,364.0,0.06,Landfill Gas,2015
+Somerton Power Station,F,VIC,10464.0,8378.0,2036.0,10414.0,0.8,Gas,2015
+Suncoast Biomass Generation Plant,F,QLD,859.0,38.0,69.0,107.0,0.04,Macadamia Nut Shells,2015
+Torrens Island Power Station,F,SA,1682547.0,983263.0,15130.0,998393.0,0.58,Gas/Diesel,2015
+Wattle Point Wind Farm,F,SA,260438.0,49.0,229.0,278.0,0.0,Wind,2015
+Werribee Biogas Generator,F,VIC,54673.0,2902.0,1498.0,4400.0,0.05,Biogas,2015
+West Kiewa Hydro,F,VIC,117489.0,0.0,1709.0,1709.0,0.0,Hydro,2015
+Wilpena Pound Solar Generation,F,SA,881.0,624.0,0.0,624.0,0.71,Solar,2015
+Woy Woy Landfill Generation,F,NSW,8669.0,469.0,2.0,471.0,0.05,Landfill Gas,2015
+Yarrawonga Hydro,F,VIC,50184.0,0.0,46.0,46.0,0.0,Hydro,2015
+Alinta Pinjarra Generation Facility,F,WA,1639092.0,1301720.0,246.0,1301966.0,0.79,Gas,2015
+Alinta Wagerup Generation Facility,F,WA,176958.0,111432.0,6229.0,117661.0,0.63,Gas/Diesel,2015
+Anglesea Power Station,F,VIC,1260261.0,1374358.0,411.0,1374769.0,1.09,Brown Coal,2015
+Augusta Power Stations,F,SA,2645721.0,2734413.0,7994.0,2742407.0,1.03,Brown Coal,2015
+Bairnsdale Power Station,F,VIC,149821.0,81092.0,1008.0,82100.0,0.54,Gas,2015
+Braemar Power Station,F,QLD,2196658.0,1243347.0,829.0,1244176.0,0.57,Coal Seam Methane,2015
+Newman Power Station,F,WA,231335.0,138146.0,0.0,138146.0,0.6,Gas,2015
+Port Hedland Power Station,F,WA,489876.0,388562.0,0.0,388562.0,0.79,Gas,2015
+Emu Downs Wind Farm,F,WA,253848.0,91.0,343.0,434.0,0.0,Wind,2015
+Braemar 2 Power Station,F,QLD,2602982.0,1530289.0,854.0,1531143.0,0.59,Coal Seam Methane,2015
+Karratha Power Station,F,WA,474165.0,270985.0,0.0,270985.0,0.57,Gas,2015
+LGP Belmont Administration & Kalamunda Facility,FA,WA,6.0,19.0,18.0,37.0,3.42,Liquid Fuel,2015
+LGP Canning Vale Facility,F,WA,661.0,36.0,10.0,46.0,0.05,Landfill Gas,2015
+LGP Red Hill Facility,F,WA,25521.0,1277.0,1.0,1278.0,0.05,Landfill Gas,2015
+LGP Tamala Park Facility,F,WA,31881.0,1588.0,2.0,1590.0,0.05,Landfill Gas,2015
+Smithfield Power Partnership,F,NSW,968538.0,460102.0,0.0,460102.0,0.48,Gas,2015
+Condamine Power Station,F,QLD,765100.0,333565.0,526.0,334091.0,0.44,Gas,2015
+Yarnima Power Station IOP,F,WA,458924.0,307351.0,0.0,307351.0,0.67,Gas,2015
+Bluewaters Power 1,F,WA,1673841.0,1482015.0,2327.0,1484342.0,0.89,Black Coal,2015
+Bluewaters Power 2,F,WA,1688377.0,1377635.0,1775.0,1379410.0,0.82,Black Coal,2015
+Brookfield District Energy (GX) Pty Ltd,F,NSW,21723.0,11861.0,22049.0,33910.0,0.55,Gas,2015
+Canunda Wind Farm,F,SA,123687.0,17.0,156.0,173.0,0.0,Wind,2015
+Broadwater Power Plant,F,NSW,178872.0,6032.0,1423.0,7455.0,0.03,Bagasse,2015
+Condong Power Plant,F,NSW,104359.0,3007.0,1687.0,4694.0,0.03,Bagasse,2015
+FMG Cloud Break Mine Site Power Station,F,WA,178737.0,110575.0,0.0,110575.0,0.62,Diesel,2015
+Norseman Gold Power Station,F,WA,14146.0,10193.0,0.0,10193.0,0.72,Diesel,2015
+Callide A Power Station,F,QLD,100820.0,123177.0,43885.0,167062.0,1.22,Black Coal,2015
+Callide B Power Station,F,QLD,3529535.0,3285158.0,34530.0,3319688.0,0.93,Black Coal,2015
+Kogan Creek Power Station,F,QLD,5731490.0,4761463.0,2411.0,4763874.0,0.83,Black Coal,2015
+Wivenhoe Power Station,F,QLD,20244.0,23.0,50466.0,50489.0,0.0,Hydro,2015
+Collgar Wind Farm,F,WA,712890.0,227.0,611.0,838.0,0.0,Wind,2015
+Boco Rock Wind Farm Pty Ltd,F,NSW,208779.0,55.0,720.0,775.0,0.0,Wind,2015
+Taralga Wind Farm Pty Ltd,F,NSW,73768.0,20.0,128.0,148.0,0.0,Wind,2015
+Brown Mountain Power Station,F,NSW,13453.0,6.0,0.0,6.0,0.0,Hydro,2015
+Colongra PS,F,NSW,71796.0,41565.0,3913.0,45478.0,0.58,Gas,2015
+Vales Point Power Station,F,NSW,6936854.0,6020229.0,47711.0,6067940.0,0.87,Black Coal,2015
+Diamantina Power Station,F,QLD,1502967.0,613667.0,95.0,613762.0,0.41,Gas,2015
+Jeeralang Power Station,F,VIC,22165.0,15640.0,6730.0,22370.0,0.71,Gas,2015
+Newport Power Station,F,VIC,95248.0,52641.0,24749.0,77390.0,0.55,Gas,2015
+Albany Wind Farm,F,WA,96556.0,13.0,7.0,20.0,0.0,Wind,2015
+Bremer Bay Wind Diesel System,FA,WA,1851.0,220.0,3.0,223.0,0.12,Wind/Diesel,2015
+Cockburn Power Station,F,WA,658150.0,260404.0,0.0,260404.0,0.4,Gas,2015
+Collie Power Station,F,WA,2239388.0,2024283.0,3244.0,2027527.0,0.9,Black Coal,2015
+Coral Bay Wind Diesel System,FA,WA,3366.0,1813.0,0.0,1813.0,0.54,Wind/Diesel,2015
+Denham Wind Farm,F,WA,1909.0,0.0,1.0,1.0,0.0,Wind,2015
+Esperance Wind Farm,F,WA,14681.0,0.0,8.0,8.0,0.0,Wind,2015
+Geraldton Gas Turbine Station,F,WA,22.0,29.0,0.0,29.0,1.31,Gas,2015
+Hopetoun Wind Diesel System,FA,WA,5476.0,2671.0,0.0,2671.0,0.49,Wind/Diesel,2015
+Kalbarri Photovoltaic,F,WA,23.0,0.0,4.0,4.0,0.0,Solar,2015
+Kalbarri Wind Farm,F,WA,4206.0,0.0,6.0,6.0,0.0,Wind,2015
+Kalgoorlie Gas Turbine Station,F,WA,1872.0,1751.0,0.0,1751.0,0.94,Gas,2015
+Kwinana Power Station,F,WA,977810.0,602488.0,700.0,603188.0,0.62,Gas,2015
+Muja Power Station,F,WA,3842076.0,3744318.0,1655.0,3745973.0,0.97,Black Coal,2015
+Mungarra Gas Turbine Station,F,WA,96890.0,82909.0,0.0,82909.0,0.86,Gas,2015
+Pinjar Gas Turbine Station,F,WA,464041.0,376980.0,0.0,376980.0,0.81,Gas,2015
+South West Cogeneration Joint Venture,F,WA,991369.0,623890.0,37.0,623927.0,0.63,Gas,2015
+Ravensthorpe Power Station,F,WA,195.0,138.0,0.0,138.0,0.71,Liquid Fuel,2015
+Energy Impact - Bromelton Peak Generation Plant,F,QLD,1874.0,1402.0,427.0,1829.0,0.75,Liquid Fuel,2015
+Energy Impact - Generation,F,QLD,1146.0,799.0,0.0,799.0,0.7,Liquid Fuel,2015
+Appin CSM Power Station,F,NSW,163584.0,124621.0,85.0,124706.0,0.76,Coal Seam Methane,2015
+Ardyaloon Remote Power Station,F,WA,1774.0,1275.0,0.0,1275.0,0.72,Liquid Fuel,2015
+Beagle Bay Remote Power Station,F,WA,1621.0,1151.0,0.0,1151.0,0.71,Liquid Fuel,2015
+Belrose and Grange Avenue LFG Power Stations,FA,NSW,12943.0,815.0,6.0,821.0,0.06,Landfill Gas,2015
+Berwick LFG Power Station,F,VIC,24160.0,1539.0,810.0,2349.0,0.06,Landfill Gas,2015
+Bidyadanga Remote Power Staiton,F,WA,2907.0,2094.0,0.0,2094.0,0.72,Liquid Fuel,2015
+Broadmeadows LFG Power Station,F,VIC,19281.0,1230.0,10.0,1240.0,0.06,Landfill Gas,2015
+Brooklyn LFG Power Station,F,VIC,16999.0,1054.0,5.0,1059.0,0.06,Landfill Gas,2015
+Broome LNG Power Station,F,WA,134916.0,82255.0,0.0,82255.0,0.61,Gas/Diesel,2015
+Browns Plains LFG Power Station,F,QLD,11218.0,712.0,4.0,716.0,0.06,Landfill Gas,2015
+Century Power Station,FA,QLD,1220.0,848.0,0.0,848.0,0.69,Diesel,2015
+Clayton LFG Power Station,F,VIC,80643.0,4503.0,321.0,4824.0,0.06,Landfill Gas,2015
+Coober Pedy Remote Power Station,F,SA,11906.0,8348.0,0.0,8348.0,0.7,Diesel,2015
+Cue Remote Power Station,F,WA,1890.0,1363.0,0.0,1363.0,0.72,Liquid Fuel,2015
+Derby LNG Power Station,F,WA,35761.0,18528.0,0.0,18528.0,0.52,Gas/Diesel,2015
+Djarandjin Remote Power Station,F,WA,1621.0,1157.0,0.0,1157.0,0.71,Liquid Fuel,2015
+Eastern Creek LFG Power Station,F,NSW,16236.0,931.0,3.0,934.0,0.06,Landfill Gas,2015
+EDL LFG (VIC),FA,VIC,7866.0,502.0,7.0,509.0,0.06,Landfill Gas,2015
+Fitzroy Crossing LNG Power Station,F,WA,14463.0,7074.0,0.0,7074.0,0.49,Gas/Diesel,2015
+Gascoyne Junction Remote Power Station,F,WA,791.0,603.0,0.0,603.0,0.76,Liquid Fuel,2015
+German Creek CMM Power Station,F,QLD,305963.0,166630.0,0.0,166630.0,0.54,Waste Coal Mine Gas,2015
+Glennies Creek Power Station,F,NSW,90719.0,53189.0,5.0,53194.0,0.59,Waste Coal Mine Gas,2015
+Halls Creek LNG Power Station,F,WA,11455.0,6357.0,0.0,6357.0,0.55,Gas/Diesel,2015
+Highbury and Tea Tree Gully Power Stations,FA,SA,3373.0,220.0,42.0,262.0,0.07,Landfill Gas,2015
+Jacks Gully LFG Power Station,F,NSW,15657.0,991.0,1.0,992.0,0.06,Landfill Gas,2015
+Karumba Power Station,F,QLD,14376.0,9935.0,8.0,9943.0,0.69,Diesel,2015
+Laverton Remote Power Station,F,WA,3840.0,2685.0,0.0,2685.0,0.7,Liquid Fuel,2015
+Leonora Remote Power Station,F,WA,8889.0,6446.0,0.0,6446.0,0.73,Gas,2015
+Looma Power Station,FA,WA,2591.0,2076.0,0.0,2076.0,0.8,Gas/Diesel,2015
+Lucas Heights 1 LFG Power Station,F,NSW,22753.0,1447.0,3.0,1450.0,0.06,Landfill Gas,2015
+Lucas Heights 2 LFG Power Station,F,NSW,100908.0,6422.0,3.0,6425.0,0.06,Landfill Gas,2015
+McArthur River Power Station,F,NT,285784.0,132182.0,0.0,132182.0,0.46,Gas,2015
+Meekatharra Remote Power Station,F,WA,6495.0,4675.0,0.0,4675.0,0.72,Liquid Fuel,2015
+Menzies Remote Power Station,F,WA,728.0,560.0,0.0,560.0,0.77,Liquid Fuel,2015
+Moranbah North CMM Power Station,F,QLD,439406.0,238554.0,0.0,238554.0,0.54,Waste Coal Mine Gas,2015
+Mt Magnet Remote Power Station,F,WA,3450.0,2514.0,0.0,2514.0,0.73,Gas,2015
+Mugga Lane LFG Power Station,F,ACT,22063.0,1398.0,1.0,1399.0,0.06,Landfill Gas,2015
+Oaky Creek Power Station,F,QLD,133654.0,77508.0,23.0,77531.0,0.58,Coal Seam Methane,2015
+Pedler Creek LFG Power Station,F,SA,19150.0,1210.0,2.0,1212.0,0.06,Landfill Gas,2015
+Pine Creek A Power Station,F,NT,181082.0,90532.0,0.0,90532.0,0.5,Gas,2015
+Roghan Road LFG Power Station,FA,QLD,1355.0,83.0,44.0,127.0,0.06,Landfill Gas,2015
+Sandstone Remote Power Station,F,WA,509.0,406.0,0.0,406.0,0.8,Liquid Fuel,2015
+Springvale LFG Power Station,F,VIC,16669.0,1066.0,13.0,1079.0,0.06,Landfill Gas,2015
+Tahmoor Power Station,F,NSW,46456.0,29870.0,10.0,29880.0,0.64,Waste Coal Mine Gas,2015
+Teralba Power Station,F,NSW,11461.0,7316.0,32.0,7348.0,0.64,Coal Seam Methane,2015
+Tower CSM Power Station,F,NSW,202035.0,145425.0,9.0,145434.0,0.72,Coal Seam Methane,2015
+Warmun Remote Power Station,F,WA,2707.0,1967.0,0.0,1967.0,0.73,Liquid Fuel,2015
+West Belconnen LFG Power Station,F,ACT,3101.0,201.0,8.0,209.0,0.06,Landfill Gas,2015
+Wiluna Remote Power Station,F,WA,2292.0,1657.0,0.0,1657.0,0.72,Liquid Fuel,2015
+Wingfield 1 LFG Power Station,F,SA,16096.0,1019.0,1.0,1020.0,0.06,Landfill Gas,2015
+Wingfield 2 LFG Power Station,F,SA,16574.0,1049.0,1.0,1050.0,0.06,Landfill Gas,2015
+Yalgoo Remote Power Station,F,WA,804.0,616.0,0.0,616.0,0.77,Liquid Fuel,2015
+Brewer Power Station,F,NT,47184.0,30511.0,14.0,30525.0,0.65,Gas,2015
+Cathedral Rocks Wind Farm,F,SA,172339.0,65.0,128.0,193.0,0.0,Wind,2015
+Hallett Power Station,F,SA,22288.0,23349.0,2735.0,26084.0,1.05,Gas/Diesel,2015
+Mt Piper Power Station,F,NSW,6282647.0,5432906.0,35153.0,5468059.0,0.86,Black Coal,2015
+Tallawarra Power Station,F,NSW,2082392.0,758611.0,2381.0,760992.0,0.36,Gas,2015
+Waterloo Wind Farm,F,SA,295439.0,66.0,226.0,292.0,0.0,Wind,2015
+Yallourn Power Station,F,VIC,11253570.0,14318960.0,301769.0,14620729.0,1.27,Brown Coal,2015
+Newgen Neerabup Power Station,F,WA,124811.0,75996.0,3033.0,79029.0,0.61,Gas,2015
+Oakey Power Station,F,QLD,499141.0,311168.0,1956.0,313124.0,0.62,Gas,2015
+Esperance Power Station,F,WA,75509.0,58134.0,0.0,58134.0,0.77,Gas/Diesel,2015
+Essential Energy Generation Facilities,FA,NSW,499.0,692.0,183.0,875.0,1.39,Multiple sources,2015
+FPC Green Energy,F,QLD,98740.0,3769.0,1645.0,5414.0,0.04,Biofuel,2015
+Parkeston Power Station,F,WA,226239.0,134782.0,0.0,134782.0,0.6,Gas/Diesel,2015
+Blayney Wind Farm,F,NSW,20082.0,0.0,49.0,49.0,0.0,Wind,2015
+Burrinjuck Power Station,F,NSW,84748.0,0.0,105.0,105.0,0.0,Hydro,2015
+Crookwell Wind Farm,F,NSW,7923.0,0.0,33.0,33.0,0.0,Wind,2015
+Hume Power Station,F,NSW,209736.0,0.0,298.0,298.0,0.0,Hydro,2015
+Keepit Power Station,F,NSW,2848.0,0.0,0.0,0.0,0.0,Hydro,2015
+Energy Brix Australia Corporation,F,VIC,41694.0,100703.0,18935.0,119638.0,2.42,Brown Coal,2015
+Wyangala A,F,NSW,38467.0,0.0,0.0,0.0,0.0,Hydro,2015
+Bastyan Hydro Power Station,F,TAS,358255.0,0.0,221.0,221.0,0.0,Hydro,2015
+Butlers Gorge Hydro Power Station,F,TAS,91806.0,0.0,0.0,0.0,0.0,Hydro,2015
+Catagunya Hydro Power Station,F,TAS,217173.0,0.0,22.0,22.0,0.0,Hydro,2015
+Cethana Hydro Power Station,F,TAS,241878.0,0.0,98.0,98.0,0.0,Hydro,2015
+Cluny Hydro Power Station,F,TAS,81428.0,0.0,9.0,9.0,0.0,Hydro,2015
+Devils Gate Hydro Power Station,F,TAS,261695.0,0.0,27.0,27.0,0.0,Hydro,2015
+Fisher Hydro Power Station,F,TAS,127967.0,0.0,3.0,3.0,0.0,Hydro,2015
+Flinders Island Power Station,F,TAS,3642.0,2457.0,4.0,2461.0,0.67,Wind/Diesel,2015
+Gordon Hydro Power Station,F,TAS,1061781.0,0.0,114.0,114.0,0.0,Hydro,2015
+John Butters Hydro Power Station,F,TAS,490699.0,0.0,631.0,631.0,0.0,Hydro,2015
+King Island Power Station,F,TAS,12621.0,5037.0,4.0,5041.0,0.4,Wind/Diesel,2015
+Lake Echo Hydro Power Station,F,TAS,33554.0,0.0,21.0,21.0,0.0,Hydro,2015
+Lake Margaret Lower Hydro Power station,F,TAS,5676.0,0.0,3.0,3.0,0.0,Hydro,2015
+Lake Margaret Upper Hydro Power Station,F,TAS,47259.0,0.0,1.0,1.0,0.0,Hydro,2015
+Lemonthyme Hydro Power Station,F,TAS,257353.0,0.0,55.0,55.0,0.0,Hydro,2015
+Liapootah Hydro Power Station,F,TAS,414345.0,0.0,467.0,467.0,0.0,Hydro,2015
+Mackintosh Hydro Power Station,F,TAS,341090.0,0.0,776.0,776.0,0.0,Hydro,2015
+Meadowbank Hydro Power Station,F,TAS,44148.0,0.0,56.0,56.0,0.0,Hydro,2015
+Paloona Hydro Power Station,F,TAS,93079.0,0.0,45.0,45.0,0.0,Hydro,2015
+Parangana Hydro Power Station,F,TAS,4185.0,0.0,0.0,0.0,0.0,Hydro,2015
+Poatina Hydro Power Station,F,TAS,1055099.0,0.0,1994.0,1994.0,0.0,Hydro,2015
+Reece Hydro Power Station,F,TAS,915293.0,0.0,1976.0,1976.0,0.0,Hydro,2015
+Repulse Hydro Power Station,F,TAS,139043.0,0.0,10.0,10.0,0.0,Hydro,2015
+Rowallan Hydro Power Station,F,TAS,23586.0,0.0,8.0,8.0,0.0,Hydro,2015
+Tamar Valley Power Station,F,TAS,17672.0,9276.0,2570.0,11846.0,0.52,Gas,2015
+Tarraleah Hydro Power Station,F,TAS,632011.0,0.0,102.0,102.0,0.0,Hydro,2015
+Tods Corner Hydro Power Station,F,TAS,5759.0,0.0,3.0,3.0,0.0,Hydro,2015
+Trevallyn Hydro Power Station,F,TAS,348919.0,0.0,80.0,80.0,0.0,Hydro,2015
+Tribute Hydro Power Station,F,TAS,219016.0,0.0,67.0,67.0,0.0,Hydro,2015
+Tungatinah Hydro Power Station,F,TAS,425202.0,0.0,156.0,156.0,0.0,Hydro,2015
+Wayatinah Hydro Power Station,F,TAS,242808.0,0.0,29.0,29.0,0.0,Hydro,2015
+Wilmot Hydro Power Station,F,TAS,114264.0,0.0,47.0,47.0,0.0,Hydro,2015
+Challicum Hills Wind Farm,F,VIC,135426.0,93.0,0.0,93.0,0.0,Wind,2015
+Clements Gap Wind Farm,F,SA,171023.0,26.0,0.0,26.0,0.0,Wind,2015
+Codrington Wind Farm,F,VIC,44698.0,24.0,0.0,24.0,0.0,Wind,2015
+Eildon Pondage Hydro,F,VIC,14728.0,0.0,0.0,0.0,0.0,Hydro,2015
+Glenmaggie Hydro,F,VIC,6779.0,0.0,0.0,0.0,0.0,Hydro,2015
+Ord Hydro,F,WA,206140.0,18.0,0.0,18.0,0.0,Hydro,2015
+Portland Wind Farms,F,VIC,412024.0,21.0,0.0,21.0,0.0,Wind,2015
+The Drop Hydro,F,NSW,7835.0,0.0,0.0,0.0,0.0,Hydro,2015
+William Hovell Hydro,F,VIC,2961.0,0.0,0.0,0.0,0.0,Hydro,2015
+Yambuk Wind Farm,F,VIC,90241.0,107.0,0.0,107.0,0.0,Wind,2015
+Alinta Wind Farm,F,WA,330634.0,47.0,624.0,671.0,0.0,Wind,2015
+Capital East Solar Farm,F,NSW,191.0,0.0,8.0,8.0,0.0,Solar,2015
+Capital Wind Farm,F,NSW,328940.0,105.0,871.0,976.0,0.0,Wind,2015
+"Lake Bonney Stage 1,2 & 3 Wind Farm",F,SA,688314.0,88.0,888.0,976.0,0.0,Wind,2015
+Woodlawn Wind Farm,F,NSW,128464.0,33.0,186.0,219.0,0.0,Wind,2015
+Kwinana Cogeneration Plant,F,WA,892266.0,462837.0,96.0,462933.0,0.52,Gas,2015
+Loy Yang B Power Station,F,VIC,8622021.0,9755875.0,1932.0,9757807.0,1.13,Brown Coal,2015
+Albury Renewable Energy Facility,F,NSW,7994.0,435.0,0.0,435.0,0.05,Landfill Gas,2015
+Atlas Renewable Energy Facility,F,WA,4642.0,266.0,0.0,266.0,0.06,Landfill Gas,2015
+Awaba Renewable Energy Facility,F,NSW,9173.0,507.0,0.0,507.0,0.06,Landfill Gas,2015
+Ballarat Renewable Energy Facility,F,VIC,5079.0,295.0,0.0,295.0,0.06,Landfill Gas,2015
+Bendigo Renewable Energy Facility,F,VIC,3916.0,225.0,0.0,225.0,0.06,Solar,2015
+Birkdale Renewable Energy Facility,F,QLD,6701.0,364.0,0.0,364.0,0.05,Landfill Gas,2015
+Darwin Renewable Energy Facility,F,NT,8990.0,528.0,0.0,528.0,0.06,Landfill Gas,2015
+Eastern Creek 2 Renewable Energy Facility,F,NSW,63616.0,3323.0,0.0,3323.0,0.05,Landfill Gas,2015
+Hampton Park Renewable Energy Facility,F,VIC,61273.0,3222.0,0.0,3222.0,0.05,Landfill Gas,2015
+Ipswich Renewable Energy Facility,F,QLD,8394.0,484.0,0.0,484.0,0.06,Landfill Gas,2015
+Mornington Peninsula Renewable Energy Facility,F,VIC,5711.0,320.0,0.0,320.0,0.06,Landfill Gas,2015
+Newcastle Renewable Energy Facility,F,NSW,18005.0,993.0,0.0,993.0,0.06,Landfill Gas,2015
+Remount Renewable Energy Facility,F,TAS,14455.0,816.0,0.0,816.0,0.06,Landfill Gas,2015
+Rochedale Renewable Energy Facility,F,QLD,33909.0,1927.0,0.0,1927.0,0.06,Landfill Gas,2015
+Shepparton Renewable Energy Facility,F,VIC,4701.0,279.0,0.0,279.0,0.06,Landfill Gas,2015
+South Cardup Renewable Energy Facility,F,WA,26139.0,1508.0,0.0,1508.0,0.06,Landfill Gas,2015
+Stapylton Renewable Energy Facility,F,QLD,4380.0,265.0,0.0,265.0,0.06,Landfill Gas,2015
+Suntown Renewable Energy Facility,F,QLD,38.0,1.0,0.0,1.0,0.03,Landfill Gas,2015
+Swanbank Renewable Energy Facility,F,QLD,9518.0,537.0,0.0,537.0,0.06,Landfill Gas,2015
+Tweed Shire Renewable Energy Facility,F,NSW,1729.0,106.0,0.0,106.0,0.06,Landfill Gas,2015
+Wollert Renewable Energy Facility,F,VIC,54583.0,2968.0,0.0,2968.0,0.05,Landfill Gas,2015
+Wyndham Renewable Energy Facility,F,VIC,15450.0,764.0,0.0,764.0,0.05,Landfill Gas,2015
+Wyong Renewable Energy Facility,F,NSW,16865.0,929.0,0.0,929.0,0.06,Landfill Gas,2015
+Mt Mercer Wind farm Pty Ltd,F,VIC,349816.0,91.0,623.0,714.0,0.0,Wind,2015
+Mt Millar Wind Farm Pty Ltd,F,SA,186818.0,16.0,24.0,40.0,0.0,Wind,2015
+Bald Hills Wind Farm,F,VIC,65999.0,45.0,431.0,476.0,0.0,Wind,2015
+Alfred Hospital Cogeneration Plant,F,VIC,15619.0,13869.0,590.0,14459.0,0.89,Gas,2015
+Dandenong Hospital Cogeneration Plant,F,VIC,15112.0,11329.0,429.0,11758.0,0.75,Gas,2015
+Geelong Hospital Cogeneration Plant,F,VIC,15486.0,12359.0,563.0,12922.0,0.8,Gas,2015
+Royal Melbourne Hospital Cogeneration Plant,F,VIC,31789.0,25321.0,953.0,26274.0,0.8,Gas,2015
+ST. Vincent's Hospital Cogeneration Plant,F,VIC,15684.0,13743.0,632.0,14375.0,0.88,Gas,2015
+Mortons Lane Windfarm Pty Ltd,F,VIC,62305.0,0.0,0.0,0.0,0.0,Wind,2015
+Hazelwood Power Station,F,VIC,10969423.0,15354936.0,192118.0,15547054.0,1.4,Brown Coal,2015
+New Gullen Range Wind Farm Pty Ltd,F,NSW,359906.0,0.0,397.0,397.0,0.0,Wind,2015
+Kwinana Gas Fired Power Station,F,WA,2152887.0,851682.0,3081.0,854763.0,0.4,Gas,2015
+Gladstone Power Station,F,QLD,6482464.0,6301561.0,55547.0,6357108.0,0.97,Black Coal,2015
+Australand,F,NSW,1120.0,668.0,48.0,716.0,0.6,Gas,2015
+Ballarat Solar Park,F,VIC,183.0,0.0,2.0,2.0,0.0,Solar,2015
+Bendigo Solar Park,F,VIC,523.0,0.0,4.0,4.0,0.0,Solar,2015
+Blackmores,F,NSW,1164.0,807.0,50.0,857.0,0.69,Gas,2015
+Bond,F,NSW,1208.0,668.0,52.0,720.0,0.55,Gas,2015
+Chifley Square,F,NSW,1221.0,650.0,52.0,702.0,0.53,Gas,2015
+Cullerin Wind Farm,F,NSW,90467.0,19.0,105.0,124.0,0.0,Wind,2015
+Dandenong,F,VIC,3800.0,2129.0,232.0,2361.0,0.56,Gas,2015
+Darling Downs Power Station,F,QLD,4337819.0,1767735.0,1581.0,1769316.0,0.41,Gas,2015
+Drapac,F,VIC,642.0,393.0,38.0,431.0,0.61,Gas,2015
+Eraring Power Station,F,NSW,14316479.0,12289095.0,14022.0,12303117.0,0.86,Black Coal,2015
+Exhibition Street,F,VIC,3150.0,1710.0,186.0,1896.0,0.54,Gas,2015
+Kent Street,F,NSW,3138.0,1571.0,250.0,1821.0,0.5,Gas,2015
+La Trobe,F,VIC,858.0,521.0,83.0,604.0,0.61,Gas,2015
+Ladbroke Grove Power Station,F,SA,184406.0,96421.0,516.0,96937.0,0.52,Gas,2015
+Mirvac,F,NSW,4742.0,2584.0,220.0,2804.0,0.54,Gas,2015
+Mortlake Power Station,F,VIC,1163477.0,617279.0,5853.0,623132.0,0.53,Gas,2015
+Mount,F,NSW,1624.0,891.0,70.0,961.0,0.55,Gas,2015
+Mt Stuart Power Station,F,QLD,30821.0,27037.0,4121.0,31158.0,0.88,Kerosene,2015
+Quarantine Power Station,F,SA,215247.0,157160.0,2065.0,159225.0,0.73,Gas,2015
+Roma Power Station,F,QLD,207274.0,134645.0,681.0,135326.0,0.65,Gas,2015
+Shoalhaven Scheme,F,NSW,76789.0,2.0,73496.0,73498.0,0.0,Hydro,2015
+Stockland Headquarters,F,NSW,1291.0,745.0,56.0,801.0,0.58,Gas,2015
+University of NSW,F,NSW,2428.0,1294.0,104.0,1398.0,0.53,Gas,2015
+Uranquinty Power Station,F,NSW,427162.0,221484.0,5449.0,226933.0,0.52,Gas,2015
+Millmerran Power Station (facility),F,QLD,6629264.0,5384007.0,4129.0,5388136.0,0.81,Black Coal,2015
+Pelican Point Power Station,F,SA,1030116.0,411975.0,6659.0,418634.0,0.4,Gas,2015
+Katherine Region,FA,NT,17518.0,12363.0,0.0,12363.0,0.08,Multiple sources,2015
+Northern (Darwin) Region,FA,NT,62243.0,43878.0,0.0,43878.0,0.7,Multiple sources,2015
+Remote Centres Generation,FA,NT,14219.0,10283.0,0.0,10283.0,0.72,Multiple sources,2015
+Southern Region,FA,NT,28022.0,19683.0,0.0,19683.0,0.7,Multiple sources,2015
+Channel Island Power Station,F,NT,978047.0,607777.0,0.0,607777.0,0.62,Gas,2015
+Katherine Power Station,F,NT,15546.0,12589.0,0.0,12589.0,0.81,Gas,2015
+Kings Canyon,F,NT,1723.0,1141.0,0.0,1141.0,0.66,Solar,2015
+Owen Springs Power Station,F,NT,79603.0,40674.0,0.0,40674.0,0.51,Gas,2015
+Ron Goodin Power Station,F,NT,93048.0,62680.0,0.0,62680.0,0.67,Gas,2015
+Tennant Creek Power Station,F,NT,30329.0,23220.0,0.0,23220.0,0.77,Gas,2015
+Weddell Power Station,F,NT,437931.0,270679.0,0.0,270679.0,0.62,Gas,2015
+Yulara Power Station,F,NT,24086.0,15800.0,0.0,15800.0,0.66,Gas/Diesel,2015
+Visy Energy - Coolaroo Co-gen,F,VIC,15886.0,20066.0,11653.0,31719.0,1.26,Biofuel,2015
+Kemerton Power Station,F,WA,83966.0,54862.0,2534.0,57396.0,0.65,Gas/Diesel,2015
+Starfish Hill Wind Farm,F,SA,90823.0,45.0,59.0,104.0,0.0,Wind,2015
+Toora Wind Farm,F,VIC,51667.0,20.0,269.0,289.0,0.0,Wind,2015
+Townsville Power Station,F,QLD,80772.0,39843.0,2758.0,42601.0,0.49,Gas,2015
+Windy Hill Wind Farm,F,QLD,31243.0,18.0,15.0,33.0,0.0,Wind,2015
+Carnarvon Power Station,F,WA,46080.0,26831.0,0.0,26831.0,0.58,Gas,2015
+Horizon Power Aggregated Minor Power Stations,FA,WA,11731.0,7794.0,0.0,7794.0,0.66,Diesel,2015
+South Hedland Temporary Generation Power Station,F,WA,59958.0,43013.0,0.0,43013.0,0.72,Gas,2015
+Paraburdoo Power Station,F,WA,569918.0,322110.0,0.0,322110.0,0.57,Gas,2015
+West Angelas Power Station,F,WA,624.0,4670.0,0.0,4670.0,7.48,Gas,2015
+Yurralyi Maya Power Station,F,WA,977227.0,527491.0,0.0,527491.0,0.54,Gas,2015
+Royalla Solar Farm,F,ACT,13743.0,0.0,85.0,85.0,0.0,Solar,2015
+Wilga Park Power Station,F,NSW,54018.0,30404.0,175.0,30579.0,0.56,Coal Seam Methane,2015
+Wonthaggi Wind Farm,F,VIC,28369.0,5.0,0.0,5.0,0.0,Wind,2015
+Musselroe Wind Farm Pty Ltd,F,TAS,527884.0,151.0,2881.0,3032.0,0.0,Wind,2015
+Woolnorth Bluff point Wind Farm Pty Ltd,F,TAS,242435.0,76.0,4756.0,4832.0,0.0,Wind,2015
+Woolnorth Studland Bay Wind Farm Pty Ltd,F,TAS,280075.0,83.0,5486.0,5569.0,0.0,Wind,2015
+SNOWTOWN SOUTH WIND FARM,F,SA,427379.0,47.0,148.0,195.0,0.0,Wind,2015
+Snowtown Wind Farm,F,SA,341577.0,0.0,202.0,202.0,0.0,Wind,2015
+SNOWTOWN WIND FARM STAGE 2,F,SA,414830.0,54.0,203.0,257.0,0.0,Wind,2015
+Angaston Power Station,F,SA,1653.0,895.0,569.0,1464.0,0.54,Liquid Fuel,2015
+Colongra Power Station,F,NSW,1952.0,4646.0,2716.0,7362.0,2.38,Gas,2015
+HEZ Power Station,F,NSW,233.0,149.0,519.0,668.0,0.64,Diesel,2015
+Laverton North Power Station,F,VIC,1144.0,1854.0,3292.0,5146.0,1.62,Gas,2015
+Lonsdale/Port Stanvac Power Station,F,SA,3753.0,2083.0,307.0,2390.0,0.56,Diesel,2015
+Snowy Hydro Ltd,F,NSW,2589633.0,1312.0,113899.0,115211.0,0.0,Hydro,2015
+Valley Power,F,VIC,5199.0,4314.0,2946.0,7260.0,0.83,Gas,2015
+Barron Gorge Power Station,F,QLD,173727.0,206.0,638.0,844.0,0.0,Hydro,2015
+Kareeya Power Station,F,QLD,448393.0,35.0,1213.0,1248.0,0.0,Hydro,2015
+Mackay Gas Turbine,F,QLD,291.0,332.0,3.0,335.0,1.14,Diesel,2015
+Mica Creek Power Station,F,QLD,643402.0,307351.0,0.0,307351.0,0.48,Gas,2015
+Stanwell Power Station,F,QLD,8754479.0,7396349.0,6645.0,7402994.0,0.84,Black Coal,2015
+Swanbank E Power Station,F,QLD,952886.0,341746.0,2663.0,344409.0,0.36,Gas,2015
+Tarong Power Stations,F,QLD,7617354.0,6690964.0,38225.0,6729189.0,0.88,Black Coal,2015
+Dry Creek Power Station,F,SA,4886.0,6105.0,525.0,6630.0,1.25,Gas,2015
+Mintaro Power Station,F,SA,7134.0,5795.0,144.0,5939.0,0.81,Gas,2015
+Port Lincoln Power Station,F,SA,385.0,551.0,381.0,932.0,1.43,Diesel,2015
+Snuggery Power Station,F,SA,375.0,510.0,583.0,1093.0,1.36,Diesel,2015
+Kalgoorlie Power Station,F,WA,161661.0,103462.0,0.0,103462.0,0.64,Gas,2015
+Kambalda Power Station,F,WA,181020.0,114377.0,0.0,114377.0,0.63,Gas,2015
+Leinster Power Station,F,WA,280851.0,154478.0,0.0,154478.0,0.55,Gas/Diesel,2015
+Mt Keith Power Station,F,WA,307241.0,179213.0,0.0,179213.0,0.58,Gas,2015
+Solomon Power Station,F,WA,240185.0,218293.0,0.0,218293.0,0.91,Gas/Diesel,2015
+Cocos Keeling Islands Generation,FA,WA,5642.0,3886.0,0.0,3886.0,0.69,Liquid Fuel,2015
+Exmouth Power Station,F,WA,22736.0,15883.0,0.0,15883.0,0.7,Gas,2015
+Gunning Wind Farm,F,NSW,156246.0,,,329.0,0.0,Wind,2017
+Waubra Wind Farm,F,VIC,612417.0,,,1209.0,0.0,Wind,2017
+Banimboola Hydro,F,VIC,3038.0,,,13.0,0.0,Hydro,2017
+Bayswater Power Station,F,NSW,15944580.0,,,14161393.0,0.89,Black Coal,2017
+Bogong Power Station,F,VIC,116333.0,,,873.0,0.0,Hydro,2017
+Broken Hill Solar Plant,F,NSW,127565.0,,,356.0,0.0,Solar,2017
+Burrendong Hydro,F,NSW,41502.0,,,43.0,0.0,Hydro,2017
+Clover Hydro,F,VIC,70975.0,,,208.0,0.0,Hydro,2017
+Coopers Cogeneration,F,SA,25382.0,,,19096.0,0.75,Gas,2017
+Copeton Hydro,F,NSW,28087.0,,,57.0,0.0,Hydro,2017
+Dartmouth Hydro,F,VIC,44398.0,,,255.0,,Hydro,2017
+Eildon Hydro,F,VIC,102961.0,,,931.0,0.0,Hydro,2017
+Glenbawn Hydro,F,NSW,4143.0,,,7.0,0.0,Hydro,2017
+Glenorchy Landfill Generation,F,TAS,9492.0,,,511.0,0.05,Landfill Gas,2017
+Hallett (Stage 1) Wind Farm,F,SA,285598.0,,,376.0,0.0,Wind,2017
+Hallett (Stage 2) Wind Farm,F,SA,224577.0,,,291.0,0.0,Wind,2017
+Hallett (Stage 4) Wind Farm,F,SA,395840.0,,,732.0,0.0,Wind,2017
+Hallett (Stage 5) Wind Farm,F,SA,122298.0,,,463.0,0.0,Wind,2017
+Hobart Landfill Generation,F,TAS,2472.0,,,217.0,0.09,Landfill Gas,2017
+Hunter Valley Gas Turbines,F,NSW,642.0,,,1896.0,1.52,Gas,2017
+Kemps Creek Landfill Generation,F,NSW,8853.0,,,395.0,0.04,Landfill Gas,2017
+Kincumber Landfill Generation,F,NSW,2264.0,,,197.0,0.08,Landfill Gas,2017
+Liddell Power Station,F,NSW,9510036.0,,,8855569.0,0.93,Black Coal,2017
+Loy Yang Power Station and Mine,F,VIC,15885288.0,,,18963597.0,1.18,Brown Coal,2017
+Macarthur Wind Farm,F,VIC,894077.0,,,3537.0,0.0,Wind,2017
+McKay Creek Hydro,F,VIC,139434.0,,,4895.0,0.0,Hydro,2017
+Moranbah Power Station,F,QLD,83454.0,,,45587.0,0.54,Coal Seam Methane,2017
+Nyngan Solar Plant,F,NSW,232188.0,,,927.0,0.0,Solar,2017
+Oaklands Hill Wind Farm,F,VIC,170182.0,,,856.0,0.0,Wind,2017
+Pindari Hydro,F,NSW,7196.0,,,28.0,0.0,Hydro,2017
+Rockingham Landfill Generation,F,WA,21183.0,,,1088.0,0.05,Landfill Gas,2017
+Rubicon Hydro Scheme,F,VIC,48938.0,,,39.0,,Hydro,2017
+Shoalhaven Landfill Generation,F,NSW,5717.0,,,247.0,0.04,Landfill Gas,2017
+Somerton Power Station,F,VIC,29144.0,,,23877.0,0.75,Gas,2017
+Torrens Island Power Station,F,SA,2883881.0,,,1643453.0,0.56,Gas,2017
+Wattle Point Wind Farm,F,SA,233053.0,,,264.0,0.0,Wind,2017
+Werribee Biogas Generator,F,VIC,54870.0,,,3913.0,0.05,Biogas,2017
+West Kiewa Hydro,F,VIC,197991.0,,,1040.0,0.0,Hydro,2017
+Wilpena Pound Solar Generation,F,SA,967.0,,,704.0,0.73,Solar,2017
+Woy Woy Landfill Generation,F,NSW,8216.0,,,489.0,0.06,Landfill Gas,2017
+Yarrawonga Hydro,F,VIC,31445.0,,,31.0,0.0,Hydro,2017
+Alinta Pinjarra Generation Facility,F,WA,2271889.0,,,1509754.0,0.66,Gas,2017
+Alinta Wagerup Generation Facility,F,WA,139462.0,,,95114.0,0.65,Gas,2017
+Diamantina Power Station,F,QLD,1649300.0,,,667203.0,0.4,Gas,2017
+Emu Downs Wind Farm,F,WA,258824.0,,,345.0,0.0,Wind,2017
+Braemar 2 Power Station,F,QLD,460482.0,,,278242.0,0.6,Coal Seam Methane,2017
+Karratha Power Station,F,WA,345471.0,,,187036.0,0.54,Gas,2017
+Osborne facility,F,SA,966933.0,,,399217.0,0.41,Gas,2017
+Facility,F,VIC,256544.0,,,1098.0,,Wind,2017
+Smithfield Power Partnership,F,NSW,979394.0,,,462404.0,0.47,Gas,2017
+Yarnima Power Station,F,WA,707273.0,,,302918.0,0.43,Gas,2017
+Bluewaters Power 1,F,WA,1829005.0,,,1633781.0,0.89,Black Coal,2017
+Bluewaters Power 2,F,WA,833636.0,,,728221.0,0.87,Black Coal,2017
+Enwave Central Park Pty Ltd,F,NSW,401.0,,,2417.0,6.03,Gas,2017
+Enwave Mascot Pty Ltd,F,NSW,28055.0,,,16864.0,0.55,Gas,2017
+Callide B Power Station,F,QLD,4778347.0,,,4427588.0,0.92,Black Coal,2017
+Kogan Creek Power Station,F,QLD,5924064.0,,,4851366.0,0.82,Black Coal,2017
+Wivenhoe Power Station,F,QLD,66170.0,,,90668.0,0.0,Hydro,2017
+Canunda Wind Farm,F,SA,117988.0,,,120.0,0.0,Wind,2017
+Broadwater Power Plant,F,NSW,214876.0,,,8188.0,0.03,Bagasse,2017
+Condong Power Plant,F,NSW,178028.0,,,8810.0,0.04,Bagasse,2017
+Facility,F,VIC,75801.0,,,108.0,,Wind,2017
+Appin CSM Power Station,F,NSW,64535.0,,,46607.0,0.71,Coal Seam Methane,2017
+Ardyaloon Remote Power Station,F,WA,1847.0,,,1337.0,0.72,Liquid Fuel,2017
+Beagle Bay Remote Power Station,F,WA,1741.0,,,1261.0,0.72,Liquid Fuel,2017
+Belrose LFG Power Station,F,NSW,5514.0,,,366.0,0.07,Landfill Gas,2017
+Berwick LFG Power Station,F,VIC,15979.0,,,1527.0,0.06,Landfill Gas,2017
+Bidyadanga Remote Power Station,F,WA,2898.0,,,2130.0,0.73,Liquid Fuel,2017
+Broadmeadows LFG Power Station,F,VIC,17448.0,,,1212.0,0.06,Landfill Gas,2017
+Brooklyn LFG Power Station,F,VIC,12765.0,,,802.0,0.06,Landfill Gas,2017
+Broome LNG Power Station,F,WA,138547.0,,,73718.0,0.53,Gas,2017
+Browns Plains LFG Power Station,F,QLD,13435.0,,,854.0,0.06,Landfill Gas,2017
+Clayton LFG Power Station,F,VIC,78167.0,,,4716.0,0.06,Landfill Gas,2017
+Coober Pedy Remote Power Station,F,SA,12588.0,,,8614.0,0.68,Diesel,2017
+Corio LFG Power Station,F,VIC,7267.0,,,469.0,0.06,Landfill Gas,2017
+Cullerin Range Wind Farm,F,NSW,98466.0,,,110.0,0.0,Wind,2017
+Derby LNG Power Station,F,WA,34239.0,,,20130.0,0.59,Gas,2017
+Djarindjin Remote Power Station,F,WA,1820.0,,,1317.0,0.72,Liquid Fuel,2017
+Eastern Creek LFG Power Station,F,NSW,12046.0,,,700.0,0.06,Landfill Gas,2017
+Fitzroy Crossing LNG Power Station,F,WA,14174.0,,,8379.0,0.59,Gas,2017
+Gascoyne Junction Remote Power Station,F,WA,789.0,,,622.0,0.79,Liquid Fuel,2017
+German Creek CMM Power Station,F,QLD,319786.0,,,166860.0,0.52,Waste Coal Mine Gas,2017
+Glennies Creek Power Station,F,NSW,78624.0,,,40320.0,0.51,Waste Coal Mine Gas,2017
+Grange Avenue LFG Power Station,F,NSW,6607.0,,,394.0,0.06,Landfill Gas,2017
+Grosvenor I WCMG Power Station,F,QLD,45806.0,,,25480.0,0.56,Waste Coal Mine Gas,2017
+Halls Creek LNG Power Station,F,WA,11465.0,,,7302.0,0.64,Gas,2017
+Jacks Gully LFG Power Station,F,NSW,13169.0,,,842.0,0.06,Landfill Gas,2017
+Kalamunda Power Station,F,WA,22.0,,,6.0,0.23,Diesel,2017
+Laverton Remote Power Station,F,WA,3643.0,,,2620.0,0.72,Liquid Fuel,2017
+Leonora Remote Power Station,F,WA,8414.0,,,6291.0,0.75,Gas,2017
+Looma Power Station,F,WA,2605.0,,,2074.0,0.8,Diesel,2017
+Lucas Heights 1 LFG Power Station,F,NSW,16262.0,,,1043.0,0.06,Landfill Gas,2017
+Lucas Heights 2 LFG Power Station,F,NSW,97163.0,,,6150.0,0.06,Landfill Gas,2017
+McArthur River Power Station,F,NT,247704.0,,,122205.0,0.49,Gas,2017
+Menzies Remote Power Station,F,WA,627.0,,,517.0,0.82,Liquid Fuel,2017
+Moranbah North CMM Power Station,F,QLD,490229.0,,,260208.0,0.53,Waste Coal Mine Gas,2017
+Mugga Lane LFG Power Station,F,ACT,24575.0,,,1603.0,0.07,Landfill Gas,2017
+Oaky Creek I Power Station,F,QLD,127137.0,,,65262.0,0.51,Waste Coal Mine Gas,2017
+Oaky Creek II Power Station,F,QLD,102226.0,,,53567.0,0.52,Waste Coal Mine Gas,2017
+Pine Creek A Power Station,F,NT,181016.0,,,95430.0,0.53,Gas,2017
+Red Hill Power Station,F,WA,27766.0,,,1579.0,0.06,Landfill Gas,2017
+Roghan Road LFG Power Station,F,QLD,997.0,,,107.0,0.06,Landfill Gas,2017
+Springvale LFG Power Station,F,VIC,14282.0,,,924.0,0.06,Landfill Gas,2017
+Tahmoor Power Station,F,NSW,28237.0,,,16215.0,0.57,Waste Coal Mine Gas,2017
+Tamala Park Power Station,F,WA,40344.0,,,2558.0,0.06,Landfill Gas,2017
+Tower CSM Power Station,F,NSW,269090.0,,,185576.0,0.69,Coal Seam Methane,2017
+Warmun Remote Power Station,F,WA,2753.0,,,2046.0,0.74,Liquid Fuel,2017
+West Belconnen LFG Power Station,F,ACT,2175.0,,,165.0,0.07,Landfill Gas,2017
+Wingfield 1 LFG Power Station,F,SA,14991.0,,,952.0,0.06,Landfill Gas,2017
+Wingfield 2 LFG Power Station,F,SA,17258.0,,,1095.0,0.06,Landfill Gas,2017
+Wonthaggi Wind Farm,F,VIC,3033.0,,,9.0,0.0,Wind,2017
+Cue Town Powerstation,F,WA,2667.0,,,1846.0,0.69,Liquid Fuel,2017
+Meekatharra Town Powerstation,F,WA,7638.0,,,5235.0,0.69,Liquid Fuel,2017
+Mt Magnet Town Powerstation,F,WA,3878.0,,,2118.0,0.55,Gas,2017
+Norseman Gold Power Station,F,WA,8276.0,,,6283.0,0.76,Diesel,2017
+Sandstone Town Powerstation,F,WA,701.0,,,539.0,0.77,Liquid Fuel,2017
+Wiluna Town Powerstation,F,WA,2367.0,,,1651.0,0.7,Liquid Fuel,2017
+Yalgoo Town Powerstation,F,WA,1078.0,,,786.0,0.73,Liquid Fuel,2017
+Collgar Wind Farm,F,WA,696306.0,,,826.0,0.0,Wind,2017
+Boco Rock Wind Farm Pty Ltd,F,NSW,349302.0,,,1045.0,0.0,Wind,2017
+Royalla Solar Farm,F,ACT,37199.0,,,188.0,,Solar,2017
+Jeeralang Power Station,F,VIC,59510.0,,,53038.0,0.78,Gas,2017
+Newport Power Station,F,VIC,322211.0,,,191542.0,0.53,Gas,2017
+Bald Hills Wind Farm Pty Ltd,F,VIC,352690.0,,,932.0,0.0,Wind,2017
+Mumbida Wind Farm Pty Ltd,F,WA,204617.0,,,292.0,0.0,Wind,2017
+Albany Wind Farm,F,WA,85900.0,,,23.0,0.0,Wind,2017
+Bremer Bay Wind Diesel Power Station,F,WA,1546.0,,,13.0,0.01,Wind,2017
+Cockburn Power Station,F,WA,363931.0,,,140394.0,0.39,Gas,2017
+Collie Power Station,F,WA,2230763.0,,,2007389.0,0.9,Black Coal,2017
+Coral Bay Wind Diesel Power Station,F,WA,3438.0,,,1538.0,0.45,Wind,2017
+Denham Wind Farm,F,WA,2190.0,,,0.0,,Wind,2017
+Esperance Wind Farm,F,WA,14289.0,,,7.0,0.0,Wind,2017
+Hopetoun Wind Diesel Power Station,F,WA,4949.0,,,2310.0,0.47,Wind,2017
+Kalbarri Wind Farm,F,WA,4008.0,,,3.0,,Wind,2017
+Kalgoorlie Gas Turbine Station,F,WA,343.0,,,322.0,0.94,Gas,2017
+Kwinana Power Station,F,WA,660433.0,,,356083.0,0.54,Gas,2017
+Muja Power Station,F,WA,5152438.0,,,4744514.0,0.92,Black Coal,2017
+Mungarra Gas Turbine Station,F,WA,13262.0,,,9974.0,0.75,Gas,2017
+Pinjar Gas Turbine Station,F,WA,511125.0,,,420822.0,0.82,Gas,2017
+Ravensthorpe Power Station,F,WA,139.0,,,95.0,0.68,Liquid Fuel,2017
+Barcaldine Power Station Facility,F,QLD,3942.0,,,6514.0,1.65,Gas,2017
+Energy Impact - Bromelton Peak Generation Plant - Facility,F,QLD,2017.0,,,1945.0,0.76,Liquid Fuel,2017
+Energy Impact - Generation - Facility,F,QLD,1244.0,,,876.0,0.7,Liquid Fuel,2017
+Cathedral Rocks Wind Farm,F,SA,153188.0,,,174.0,0.0,Wind,2017
+Hallett Power Station,F,SA,46253.0,,,50146.0,1.04,Gas,2017
+Mt Piper Power Station,F,NSW,7557603.0,,,6594820.0,0.87,Black Coal,2017
+Tallawarra Power Station,F,NSW,803031.0,,,316063.0,0.39,Gas,2017
+Waterloo Wind Farm,F,SA,309197.0,,,320.0,0.0,Wind,2017
+Yallourn Power Station,F,VIC,11473837.0,,,14985752.0,1.29,Brown Coal,2017
+Newgen Neerabup Power Station,F,WA,166241.0,,,105284.0,0.62,Gas,2017
+Oakey Power Station,F,QLD,133205.0,,,90754.0,0.67,Gas,2017
+Esperance Power Station,F,WA,77056.0,,,61447.0,0.8,Gas,2017
+Essential Energy Generation Facilities,FA,NSW,21.0,,,123.0,,Solar,2017
+Exmouth Power Station Pty Ltd,F,WA,23791.0,,,16793.0,0.71,Gas,2017
+Parkeston Power Station,F,WA,196066.0,,,114018.0,0.58,Gas,2017
+Burrinjuck Power Station,F,NSW,106969.0,,,14.0,0.0,Hydro,2017
+Hume Power Station,F,NSW,255677.0,,,228.0,0.0,Hydro,2017
+Keepit Power Station,F,NSW,5972.0,,,7.0,0.0,Hydro,2017
+HWF1 Pty Ltd,F,SA,306023.0,,,169.0,,Wind,2017
+HWF2 Pty Ltd,F,SA,80623.0,,,193.0,,Wind,2017
+Wyangala A,F,NSW,70965.0,,,4.0,,Hydro,2017
+Wyangala B,F,NSW,11246.0,,,1.0,,Hydro,2017
+Bastyan Hydro Power Station,F,TAS,384798.0,,,13.0,,Hydro,2017
+Butlers Gorge Hydro Power Station,F,TAS,93229.0,,,0.0,,Hydro,2017
+Catagunya Hydro Power Station,F,TAS,224421.0,,,17.0,,Hydro,2017
+Cethana Hydro Power Station,F,TAS,413990.0,,,289.0,,Hydro,2017
+Cluny Hydro Power Station,F,TAS,62451.0,,,16.0,,Hydro,2017
+Devils Gate Hydro Power Station,F,TAS,287216.0,,,15.0,,Hydro,2017
+Fisher Hydro Power Station,F,TAS,237569.0,,,2.0,,Hydro,2017
+Flinders Island Power Station,F,TAS,5242.0,,,2877.0,0.55,Wind,2017
+Gordon Hydro Power Station,F,TAS,403399.0,,,42.0,,Hydro,2017
+John Butters Hydro Power Station,F,TAS,737642.0,,,306.0,,Hydro,2017
+King Island Power Station,F,TAS,13458.0,,,4972.0,0.37,Wind,2017
+Lake Echo Hydro Power Station,F,TAS,53879.0,,,15.0,,Hydro,2017
+Lake Margaret Lower Hydro Power station,F,TAS,14689.0,,,1.0,,Hydro,2017
+Lake Margaret Upper Hydro Power Station,F,TAS,48129.0,,,3.0,,Hydro,2017
+Lemonthyme Hydro Power Station,F,TAS,286538.0,,,31.0,,Hydro,2017
+Liapootah Hydro Power Station,F,TAS,435138.0,,,141.0,,Hydro,2017
+Mackintosh Hydro Power Station,F,TAS,403216.0,,,110.0,,Hydro,2017
+Meadowbank Hydro Power Station,F,TAS,184230.0,,,15.0,,Hydro,2017
+Paloona Hydro Power Station,F,TAS,44406.0,,,17.0,,Hydro,2017
+Parangana Hydro Power Station,F,TAS,3399.0,,,0.0,,Hydro,2017
+Poatina Hydro Power Station,F,TAS,754030.0,,,1202.0,,Hydro,2017
+Reece Hydro Power Station,F,TAS,1031386.0,,,1209.0,,Hydro,2017
+Repulse Hydro Power Station,F,TAS,144245.0,,,7.0,,Hydro,2017
+Rowallan Hydro Power Station,F,TAS,49918.0,,,0.0,,Hydro,2017
+Tamar Valley Power Station,F,TAS,793836.0,,,329551.0,0.41,Gas,2017
+Tarraleah Hydro Power Station,F,TAS,551043.0,,,73.0,,Hydro,2017
+Tods Corner Hydro Power Station,F,TAS,1264.0,,,6.0,,Hydro,2017
+Trevallyn Hydro Power Station,F,TAS,439575.0,,,36.0,,Hydro,2017
+Tribute Hydro Power Station,F,TAS,245559.0,,,37.0,,Hydro,2017
+Tungatinah Hydro Power Station,F,TAS,531869.0,,,90.0,,Hydro,2017
+Wayatinah Hydro Power Station,F,TAS,232238.0,,,26.0,,Hydro,2017
+Wilmot Hydro Power Station,F,TAS,133227.0,,,32.0,,Hydro,2017
+Alinta Wind Farm,F,WA,345628.0,,,537.0,0.0,Wind,2017
+Capital East Solar Farm,F,NSW,97.0,,,6.0,,Solar,2017
+Capital Wind Farm,F,NSW,354643.0,,,1069.0,0.0,Wind,2017
+"Lake Bonney Stage 1,2 & 3 Wind Farm",F,SA,666716.0,,,908.0,0.0,Wind,2017
+Woodlawn Wind Farm,F,NSW,146912.0,,,446.0,0.0,Wind,2017
+Kwinana Cogeneration Plant,F,WA,854565.0,,,471033.0,0.55,Gas,2017
+Loy Yang B Power Station,F,VIC,8572256.0,,,9634137.0,1.12,Brown Coal,2017
+Barcaldine Remote Community Solar Farm Pty Ltd,F,QLD,5373.0,,,0.0,0.0,Solar,2017
+Albury Renewable Energy Facility,F,NSW,8581.0,,,467.0,0.05,Landfill Gas,2017
+Atlas Renewable Energy Facility,F,WA,3393.0,,,201.0,0.06,Landfill Gas,2017
+Awaba Renewable Energy Facility,F,NSW,8086.0,,,441.0,0.05,Landfill Gas,2017
+Ballarat Renewable Energy Facility,F,VIC,6663.0,,,370.0,0.06,Landfill Gas,2017
+Bendigo Renewable Energy Facility,F,VIC,4189.0,,,231.0,0.06,Solar,2017
+Birkdale Renewable Energy Facility,F,QLD,5804.0,,,331.0,0.06,Landfill Gas,2017
+Darwin Renewable Energy Facility,F,NT,7612.0,,,464.0,0.06,Landfill Gas,2017
+Eastern Creek 2 Renewable Energy Facility,F,NSW,60975.0,,,3198.0,0.05,Landfill Gas,2017
+Hampton Park Renewable Energy Facility,F,VIC,58454.0,,,3059.0,0.05,Landfill Gas,2017
+Ipswich Renewable Energy Facility,F,QLD,6342.0,,,351.0,0.06,Landfill Gas,2017
+Mornington Peninsula Renewable Energy Facility,F,VIC,6338.0,,,359.0,0.06,Landfill Gas,2017
+Newcastle Renewable Energy Facility,F,NSW,16996.0,,,912.0,0.05,Landfill Gas,2017
+Remount Renewable Energy Facility,F,TAS,12554.0,,,695.0,0.06,Landfill Gas,2017
+Rochedale Renewable Energy Facility,F,QLD,35649.0,,,1932.0,0.05,Landfill Gas,2017
+Shepparton Renewable Energy Facility,F,VIC,5606.0,,,313.0,0.06,Landfill Gas,2017
+South Cardup Renewable Energy Facility,F,WA,25132.0,,,1406.0,0.06,Landfill Gas,2017
+Stapylton Renewable Energy Facility,F,QLD,13954.0,,,788.0,0.06,Landfill Gas,2017
+Swanbank Renewable Energy Facility,F,QLD,12705.0,,,692.0,0.05,Landfill Gas,2017
+Wollert Renewable Energy Facility,F,VIC,55058.0,,,3041.0,0.06,Landfill Gas,2017
+Wyndham Renewable Energy Facility,F,VIC,14795.0,,,753.0,0.05,Landfill Gas,2017
+Wyong Renewable Energy Facility,F,NSW,18173.0,,,999.0,0.05,Landfill Gas,2017
+Mt Mercer Wind farm Pty Ltd,F,VIC,362339.0,,,87.0,0.0,Wind,2017
+Mt Millar Wind Farm Pty Ltd,F,SA,160278.0,,,41.0,0.0,Wind,2017
+Alfred Hospital Cogeneration Plant,F,VIC,14028.0,,,14223.0,0.98,Gas,2017
+Dandenong Hospital Cogeneration Plant,F,VIC,12526.0,,,11388.0,0.88,Gas,2017
+Geelong Hospital Cogeneration Plant,F,VIC,13914.0,,,12734.0,0.88,Gas,2017
+Royal Melbourne Hospital Cogeneration Plant,F,VIC,30690.0,,,26844.0,0.86,Gas,2017
+ST. Vincent’s Hospital Cogeneration Plant,F,VIC,12946.0,,,13656.0,1.02,Gas,2017
+Mortons Lane Windfarm Pty Ltd,F,VIC,60945.0,,,49.0,,Wind,2017
+Hazelwood Power Station,F,VIC,7700208.0,,,10969387.0,1.41,Brown Coal,2017
+New Gullen Range Wind Farm Pty Ltd,F,NSW,473414.0,,,453.0,,Wind,2017
+Kwinana Gas Fired Power Station,F,WA,2159697.0,,,846107.0,0.39,Gas,2017
+Gladstone Power Station,F,QLD,6662610.0,,,6442894.0,0.96,Black Coal,2017
+Onslow Power Station,F,WA,13282.0,,,7615.0,0.57,Gas,2017
+Australand,F,NSW,1241.0,,,790.0,0.59,Gas,2017
+Ballarat Solar Park,F,VIC,441.0,,,2.0,,Solar,2017
+Bendigo Solar Park,F,VIC,493.0,,,3.0,,Solar,2017
+Blackmores,F,NSW,1268.0,,,969.0,0.72,Gas,2017
+Bond,F,NSW,991.0,,,598.0,0.56,Gas,2017
+Chifley Square,F,NSW,880.0,,,509.0,0.54,Gas,2017
+Cullerin Wind Farm,F,NSW,4645.0,,,10.0,0.0,Wind,2017
+Dandenong,F,VIC,2938.0,,,1984.0,0.61,Gas,2017
+Darling Downs Power Station,F,QLD,3342947.0,,,1397750.0,0.42,Gas,2017
+Drapac,F,VIC,663.0,,,459.0,0.64,Gas,2017
+Eraring Power Station,F,NSW,14993469.0,,,12918969.0,0.86,Black Coal,2017
+Exhibition Street,F,VIC,2201.0,,,1348.0,0.56,Gas,2017
+Kent Street,F,NSW,3500.0,,,1883.0,0.5,Gas,2017
+La Trobe,F,VIC,665.0,,,440.0,0.61,Gas,2017
+Ladbroke Grove Power Station,F,SA,211147.0,,,110282.0,0.52,Gas,2017
+Mirvac,F,NSW,4323.0,,,2561.0,0.55,Gas,2017
+Mortlake Power Station,F,VIC,1102918.0,,,614867.0,0.55,Gas,2017
+Mount,F,NSW,1916.0,,,1154.0,0.56,Gas,2017
+Mt Stuart Power Station,F,QLD,73408.0,,,74708.0,0.97,Kerosene,2017
+Quarantine Power Station,F,SA,264028.0,,,173596.0,0.65,Gas,2017
+Roma Power Station,F,QLD,41739.0,,,28029.0,0.65,Gas,2017
+Shoalhaven Scheme,F,NSW,117187.0,,,124409.0,0.0,Hydro,2017
+Stockland Headquarters,F,NSW,1457.0,,,910.0,0.58,Gas,2017
+University of NSW,F,NSW,2330.0,,,1556.0,0.63,Gas,2017
+Uranquinty Power Station,F,NSW,636399.0,,,393507.0,0.61,Gas,2017
+Millmerran Power Station (facility),F,QLD,6608557.0,,,5413009.0,0.82,Black Coal,2017
+Pelican Point Power Station,F,SA,1209624.0,,,497611.0,0.41,Gas,2017
+Kwinana Swift Power Station,F,WA,57688.0,,,34248.0,0.58,Gas,2017
+Merredin Energy Power Station,F,WA,442.0,,,997.0,1.07,Gas,2017
+Paraburdoo Power Station,F,WA,545527.0,,,288580.0,0.53,Gas,2017
+West Angelas Power Station,F,WA,380221.0,,,205655.0,0.54,Gas,2017
+Yurralyi Maya Power Station,F,WA,756219.0,,,414906.0,0.55,Gas,2017
+Bairnsdale Power Station,F,VIC,168524.0,,,94392.0,0.55,Gas,2017
+Braemar Power Station,F,QLD,649747.0,,,382051.0,0.59,Coal Seam Methane,2017
+Newman Power Station,F,WA,187149.0,,,159852.0,0.85,Gas,2017
+Port Hedland Power Station,F,WA,481108.0,,,375138.0,0.78,Gas,2017
+Wagerup Power Station,F,WA,50385.0,,,30949.0,0.6,Gas,2017
+Alpurrurulam (Lake Nash),F,NT,1846.0,,,1191.0,0.65,Diesel,2017
+Amanbidgi (Kildurk),F,NT,270.0,,,256.0,0.95,Diesel,2017
+"Ampilatwatja (Alparra, Ammaroo)",F,NT,3345.0,,,2373.0,0.71,Diesel,2017
+Amunturangu (Mount Liebig),F,NT,759.0,,,604.0,0.8,Diesel,2017
+Aputula (Finke),F,NT,1004.0,,,720.0,0.72,Diesel,2017
+Areyonga (Utju),F,NT,1078.0,,,757.0,0.7,Diesel,2017
+Atitjere (Harts Range),F,NT,868.0,,,649.0,0.75,Diesel,2017
+Borroloola Generation,F,NT,6344.0,,,4358.0,0.69,Diesel,2017
+Bulla Camp,F,NT,423.0,,,398.0,0.94,Diesel,2017
+Bulman,F,NT,1221.0,,,934.0,0.76,Diesel,2017
+Daly Waters Generation,F,NT,1044.0,,,792.0,0.76,Diesel,2017
+Elliot Generation,F,NT,2703.0,,,1927.0,0.71,Gas,2017
+Engawala (Alcoota),F,NT,548.0,,,435.0,0.79,Diesel,2017
+Epenarra (Wutunugurra),F,NT,683.0,,,579.0,0.85,Diesel,2017
+Eva Valley,F,NT,358.0,,,316.0,0.88,Diesel,2017
+Galiwinku (Elcho Island),F,NT,7021.0,,,4994.0,0.71,Diesel,2017
+Gapuwiyak (Lake Evella),F,NT,2906.0,,,2107.0,0.73,Diesel,2017
+Gunbalanya (Oenpelli),F,NT,4982.0,,,3557.0,0.71,Diesel,2017
+Ikuntji (Haasts Bluff),F,NT,726.0,,,579.0,0.8,Diesel,2017
+Imangara (Murray Downs),F,NT,292.0,,,243.0,0.83,Diesel,2017
+Imanpa (Mount Ebenezer),F,NT,580.0,,,457.0,0.79,Diesel,2017
+Kalkaringi (Wave Hill),F,NT,3006.0,,,1727.0,0.57,Diesel,2017
+Kaltukatjara (Docker River),F,NT,1452.0,,,1042.0,0.72,Diesel,2017
+Lajamanu (Hooker Creek),F,NT,2945.0,,,2112.0,0.72,Diesel,2017
+Laramba (Napperby),F,NT,934.0,,,685.0,0.73,Diesel,2017
+Maningrida,F,NT,8919.0,,,5945.0,0.67,Diesel,2017
+Milikapiti (Snake Bay),F,NT,2093.0,,,1583.0,0.76,Diesel,2017
+Milingimbi,F,NT,3669.0,,,2724.0,0.74,Diesel,2017
+Milyakburra (Bickerton Island),F,NT,944.0,,,690.0,0.73,Diesel,2017
+Minjilang (Croker Island),F,NT,1291.0,,,989.0,0.77,Diesel,2017
+Minyerri (Hodgson Downs),F,NT,2257.0,,,1652.0,0.73,Diesel,2017
+Nauiyu Nambiyu (Daly River),F,NT,3104.0,,,2178.0,0.7,Diesel,2017
+Nguiu (Bathurst Island),F,NT,6508.0,,,4766.0,0.73,Diesel,2017
+Ngukurr (Roper River),F,NT,4573.0,,,3306.0,0.72,Diesel,2017
+Numbulwar (Rose River),F,NT,3031.0,,,2134.0,0.7,Diesel,2017
+Nyirripi (Waite Creek),F,NT,979.0,,,687.0,0.7,Diesel,2017
+Orwaitilla (Canteen Creek),F,NT,962.0,,,679.0,0.71,Diesel,2017
+Palumpa,F,NT,1531.0,,,1072.0,0.7,Diesel,2017
+Papunya,F,NT,1884.0,,,1359.0,0.72,Diesel,2017
+Peppimenarti,F,NT,1208.0,,,873.0,0.72,Diesel,2017
+Pidgeon Hole,F,NT,494.0,,,384.0,0.78,Diesel,2017
+Pirlangimpi (Garden Point),F,NT,2010.0,,,1611.0,0.8,Diesel,2017
+Ramingining,F,NT,3227.0,,,2173.0,0.67,Diesel,2017
+Robinson River,F,NT,1061.0,,,787.0,0.74,Diesel,2017
+Tara (Neutral Junction),F,NT,325.0,,,286.0,0.88,Diesel,2017
+Ti Tree Generation,F,NT,2443.0,,,1588.0,0.65,Diesel,2017
+Timber Creek,F,NT,2883.0,,,2072.0,0.72,Diesel,2017
+Titjikala (Maryvale),F,NT,1113.0,,,765.0,0.69,Diesel,2017
+Umbakumba,F,NT,2631.0,,,2021.0,0.77,Diesel,2017
+Wadeye (Port Keats),F,NT,9420.0,,,6064.0,0.64,Gas,2017
+Walungurru (Kintore),F,NT,1756.0,,,1278.0,0.73,Diesel,2017
+Warruwi (Goulburn Is),F,NT,1895.0,,,1300.0,0.69,Diesel,2017
+Wilora (Stirling),F,NT,293.0,,,256.0,0.88,Diesel,2017
+Wirliyatjarrayi (Willowra),F,NT,888.0,,,633.0,0.71,Diesel,2017
+Yarralin,F,NT,1375.0,,,985.0,0.72,Diesel,2017
+Yuendumu,F,NT,5177.0,,,3576.0,0.69,Diesel,2017
+Channel Island Power Station,F,NT,1039472.0,,,612232.0,0.59,Gas,2017
+Katherine Power Station,F,NT,24293.0,,,17816.0,0.73,Gas,2017
+Kings Canyon,F,NT,874.0,,,699.0,0.8,Solar,2017
+Owen Springs Power Station,F,NT,85233.0,,,50040.0,0.59,Gas,2017
+Ron Goodin Power Station,F,NT,113878.0,,,83638.0,0.73,Gas,2017
+Tennant Creek Power Station,F,NT,29403.0,,,21094.0,0.72,Gas,2017
+Weddell Power Station,F,NT,380063.0,,,220184.0,0.58,Gas,2017
+Yulara Power Station,F,NT,19885.0,,,13173.0,0.66,Gas,2017
+Visy Energy - Coolaroo Co-gen,F,VIC,18290.0,,,40277.0,1.52,Biofuel,2017
+Condamine Power Station,F,QLD,960791.0,,,388742.0,0.4,Gas,2017
+Kemerton Power Station,F,WA,107769.0,,,74562.0,0.67,Gas,2017
+Starfish Hill Wind Farm,F,SA,63834.0,,,117.0,0.0,Wind,2017
+Toora Wind Farm,F,VIC,49514.0,,,259.0,0.0,Wind,2017
+Townsville Power Station,F,QLD,524547.0,,,229293.0,0.43,Gas,2017
+Windy Hill Wind Farm,F,QLD,27826.0,,,45.0,0.0,Wind,2017
+Carnarvon Power Station & Distribution network,F,WA,41241.0,,,24958.0,0.61,Gas,2017
+Denham Power Station & Denham Distribution network,F,WA,3157.0,,,2275.0,0.72,Diesel,2017
+Kalumburu Power Station & Distribution network,F,WA,2270.0,,,1524.0,0.67,Diesel,2017
+Kununurra Power Station & Kununurra Distribution network,F,WA,248.0,,,356.0,1.44,Diesel,2017
+Marble Bar Power Station & Marble Bar Distribution network,F,WA,2290.0,,,1193.0,0.52,Diesel,2017
+Murchison Radio Astronomy Power Station and Distribution Network,F,WA,2404.0,,,1553.0,0.65,Diesel,2017
+Nullagine Power Station & Nullagine Distribution network,F,WA,1114.0,,,616.0,0.55,Diesel,2017
+Onslow Power Station Horizon Power back-up & Onslow Distribtion Network,F,WA,6548.0,,,4927.0,0.67,Gas,2017
+South Hedland Temporary Generation Power Station,F,WA,58520.0,,,39885.0,0.68,Gas,2017
+Wyndham Power Station & Distribution network,F,WA,143.0,,,115.0,0.81,Diesel,2017
+Yungngora Power Station & Yungngora Distribution Network,F,WA,1530.0,,,872.0,0.57,Diesel,2017
+FPC Green Energy,F,QLD,41705.0,,,3561.0,0.04,Biofuel,2017
+Wilga Park Power Station,F,NSW,89631.0,,,49679.0,0.55,Coal Seam Methane,2017
+Musselroe Wind Farm Pty Ltd,F,TAS,601719.0,,,308.0,0.0,Wind,2017
+Woolnorth Bluff point Wind Farm Pty Ltd,F,TAS,230332.0,,,97.0,0.0,Wind,2017
+Woolnorth Studland Bay Wind Farm Pty Ltd,F,TAS,266405.0,,,111.0,0.0,Wind,2017
+SNOWTOWN SOUTH WIND FARM,F,SA,416691.0,,,283.0,0.0,Wind,2017
+Snowtown Wind Farm,F,SA,310426.0,,,468.0,0.0,Wind,2017
+SNOWTOWN WIND FARM STAGE 2,F,SA,406591.0,,,390.0,0.0,Wind,2017
+Angaston Power Station,F,SA,7650.0,,,5624.0,0.69,Liquid Fuel,2017
+Colongra Power Station,F,NSW,14008.0,,,16036.0,0.66,Gas,2017
+Laverton North Power Station,F,VIC,79521.0,,,52074.0,0.61,Gas,2017
+Lonsdale/Port Stanvac Power Station,F,SA,17818.0,,,9421.0,0.51,Diesel,2017
+Snowy Hydro Ltd,F,NSW,5459820.0,,,268141.0,0.0,Hydro,2017
+Valley Power,F,VIC,4109.0,,,6887.0,0.95,Gas,2017
+Moree Solar Farm,F,NSW,143225.0,,,615.0,,Solar,2017
+Challicum Hills Wind Farm,F,VIC,127162.0,,,55.0,0.0,Wind,2017
+Clements Gap Wind Farm,F,SA,160728.0,,,55.0,0.0,Wind,2017
+Codrington Wind Farm,F,VIC,41482.0,,,17.0,0.0,Wind,2017
+Eildon Pondage Hydro,F,VIC,8517.0,,,3.0,0.0,Hydro,2017
+Glenmaggie Hydro,F,VIC,10229.0,,,6.0,0.0,Hydro,2017
+Ord Hydro,F,WA,212622.0,,,60.0,0.0,Hydro,2017
+Portland Wind Farms,F,VIC,467950.0,,,68.0,0.0,Wind,2017
+Taralga Wind Farm,F,NSW,288398.0,,,100.0,0.0,Wind,2017
+The Drop Hydro,F,NSW,5364.0,,,6.0,0.0,Hydro,2017
+William Hovell Hydro,F,VIC,5467.0,,,4.0,0.0,Hydro,2017
+Yambuk Wind Farm,F,VIC,86713.0,,,20.0,0.0,Wind,2017
+Barron Gorge Power Station,F,QLD,127770.0,,,937.0,0.01,Hydro,2017
+Kareeya Power Station,F,QLD,487803.0,,,741.0,0.0,Hydro,2017
+Mackay Gas Turbine,F,QLD,390.0,,,496.0,1.27,Diesel,2017
+Mica Creek Power Station,F,QLD,5022.0,,,7925.0,1.3,Gas,2017
+Stanwell Power Station,F,QLD,9267250.0,,,7971930.0,0.86,Black Coal,2017
+Tarong Power Stations,F,QLD,12311031.0,,,10712635.0,0.87,Black Coal,2017
+Vales Point Power Station,F,NSW,8130715.0,,,6941108.0,0.85,Black Coal,2017
+Dry Creek Power Station,F,SA,9695.0,,,12006.0,1.2,Gas,2017
+Mintaro Power Station,F,SA,29629.0,,,23163.0,0.78,Gas,2017
+Port Lincoln Power Station,F,SA,2212.0,,,4401.0,1.82,Diesel,2017
+Snuggery Power Station,F,SA,3197.0,,,4089.0,1.13,Diesel,2017
+Kalgoorlie Power Station,F,WA,255819.0,,,145265.0,0.57,Gas,2017
+Kambalda Power Station,F,WA,259556.0,,,143358.0,0.55,Gas,2017
+Leinster Power Station,F,WA,313843.0,,,168384.0,0.54,Gas,2017
+Mt Keith Power Station,F,WA,378016.0,,,219180.0,0.58,Gas,2017
+Solomon Power Station,F,WA,273578.0,,,175216.0,0.64,Gas,2017
+South Hedland Power Station,F,WA,69614.0,,,38842.0,0.56,Gas,2017
+Cocos Keeling Islands - Home Island Generation,F,WA,2511.0,,,1757.0,0.7,Liquid Fuel,2017
+Cocos Keeling Islands - West Island Generation,F,WA,2523.0,,,1896.0,0.75,Liquid Fuel,2017
+Utilities Production and Supply,F,WA,33088.0,,,41695.0,1.26,Gas,2017
+Cathedral Rocks Wind Farm,F,SA,,,,184.0,,Wind,2018
+Gunning Wind Farm,F,NSW,,,,249.0,,Wind,2018
+Mt Gellibrand Wind Farm,F,VIC,,,,22.0,,Wind,2018
+Waubra Wind Farm,F,VIC,,,,1098.0,,Wind,2018
+Banimboola Hydro,F,VIC,,,,63.0,,Hydro,2018
+Bayswater Power Station,F,NSW,,,,13725965.0,,Black Coal,2018
+Bogong Power Station,F,VIC,,,,934.0,,Hydro,2018
+Broken Hill Solar Plant,F,NSW,,,,423.0,,Solar,2018
+Burrendong Hydro,F,NSW,,,,37.0,,Hydro,2018
+Clover Hydro,F,VIC,,,,270.0,,Hydro,2018
+Coopers Cogeneration,F,SA,,,,17509.0,,Gas,2018
+Copeton Hydro,F,NSW,,,,44.0,,Hydro,2018
+Dartmouth Hydro,F,VIC,,,,637.0,,Hydro,2018
+Eildon Hydro,F,VIC,,,,680.0,,Hydro,2018
+Glenbawn Hydro,F,NSW,,,,11.0,,Hydro,2018
+Glenorchy Landfill Generation,F,TAS,,,,518.0,,Landfill Gas,2018
+Hallett (Stage 1) Wind Farm,F,SA,,,,287.0,,Wind,2018
+Hallett (Stage 2) Wind Farm,F,SA,,,,229.0,,Wind,2018
+Hallett (Stage 4) Wind Farm,F,SA,,,,529.0,,Wind,2018
+Hallett (Stage 5) Wind Farm,F,SA,,,,286.0,,Wind,2018
+Hobart Landfill Generation,F,TAS,,,,359.0,,Landfill Gas,2018
+Hunter Valley Gas Turbines,F,NSW,,,,1969.0,,Gas,2018
+Kemps Creek Landfill Generation,F,NSW,,,,651.0,,Landfill Gas,2018
+Kincumber Landfill Generation,F,NSW,,,,161.0,,Landfill Gas,2018
+Liddell Power Station,F,NSW,,,,7840239.0,,Black Coal,2018
+Loy Yang Power Station and Mine,F,VIC,,,,20107115.0,,Brown Coal,2018
+Macarthur Wind Farm,F,VIC,,,,3257.0,,Wind,2018
+McKay Creek Hydro,F,VIC,,,,4699.0,,Hydro,2018
+Moranbah Power Station,F,QLD,,,,33575.0,,Coal Seam Methane,2018
+Nyngan Solar Plant,F,NSW,,,,913.0,,Solar,2018
+Oaklands Hill Wind Farm,F,VIC,,,,694.0,,Wind,2018
+Pindari Hydro,F,NSW,,,,22.0,,Hydro,2018
+Rockingham Landfill Generation,F,WA,,,,1480.0,,Landfill Gas,2018
+Rubicon Hydro Scheme,F,VIC,,,,39.0,,Hydro,2018
+Shoalhaven Landfill Generation,F,NSW,,,,85.0,,Landfill Gas,2018
+Somerton Power Station,F,VIC,,,,63291.0,,Gas,2018
+Torrens Island Power Station,F,SA,,,,1581207.0,,Gas,2018
+Wattle Point Wind Farm,F,SA,,,,219.0,,Wind,2018
+Werribee Biogas Generator,F,VIC,,,,4245.0,,Biogas,2018
+West Kiewa Hydro,F,VIC,,,,1272.0,,Hydro,2018
+Wilpena Pound Solar Generation,F,SA,,,,686.0,,Solar,2018
+Woy Woy Landfill Generation,F,NSW,,,,474.0,,Landfill Gas,2018
+Yarrawonga Hydro,F,VIC,,,,40.0,,Hydro,2018
+Alinta Pinjarra Generation Facility,F,WA,,,,1410553.0,,Gas,2018
+Diamantina Power Station,F,QLD,,,,656938.0,,Gas,2018
+Emu Downs Solar Farm,F,WA,,,,33.0,,Solar,2018
+Emu Downs Wind Farm,F,WA,,,,396.0,,Wind,2018
+Braemar 2 Power Station,F,QLD,,,,158353.0,,Coal Seam Methane,2018
+Karratha Power Station,F,WA,,,,63721.0,,Gas,2018
+Osborne facility,F,SA,,,,542656.0,,Gas,2018
+Facility,F,VIC,,,,1707.0,,Wind,2018
+Smithfield Power Partnership,F,NSW,,,,35109.0,,Gas,2018
+Bald Hills Wind Farm Pty Ltd,F,VIC,,,,927.0,,Wind,2018
+New Gullen Range Wind Farm Pty Ltd,F,NSW,,,,231.0,,Wind,2018
+Yarnima Power Station,F,WA,,,,309875.0,,Gas,2018
+Bluewaters Power 1,F,WA,,,,1444218.0,,Black Coal,2018
+Bluewaters Power 2,F,WA,,,,1522333.0,,Black Coal,2018
+Enwave Central Park Pty Ltd,F,NSW,,,,2857.0,,Gas,2018
+Enwave Mascot Pty Ltd,F,NSW,,,,17143.0,,Gas,2018
+Callide B Power Station,F,QLD,,,,5103540.0,,Black Coal,2018
+Kogan Creek Power Station,F,QLD,,,,4360686.0,,Black Coal,2018
+Wivenhoe Power Station,F,QLD,,,,57695.0,,Hydro,2018
+Canunda Wind Farm,F,SA,,,,33.0,,Wind,2018
+Broadwater Power Plant,F,NSW,,,,8143.0,,Bagasse,2018
+Condong Power Plant,F,NSW,,,,6699.0,,Bagasse,2018
+Facility,F,VIC,,,,83.0,,Wind,2018
+White Rock Wind Farm Pty Ltd,F,NSW,,,,839.0,,Wind,2018
+Cue Town Powerstation,F,WA,,,,2060.0,,Diesel,2018
+Meekatharra Town Powerstation,F,WA,,,,4610.0,,Diesel,2018
+Mt Magnet Town Powerstation,F,WA,,,,2140.0,,Gas,2018
+Norseman Gold Power Station,F,WA,,,,3213.0,,Diesel,2018
+Sandstone Town Powerstation,F,WA,,,,528.0,,Diesel,2018
+Wiluna Town Powerstation,F,WA,,,,1706.0,,Diesel,2018
+Yalgoo Town Powerstation,F,WA,,,,760.0,,Diesel,2018
+Cullerin Range Wind Farm,F,NSW,,,,110.0,,Wind,2018
+Collgar Wind Farm,F,WA,,,,978.0,,Wind,2018
+Boco Rock Wind Farm Pty Ltd,F,NSW,,,,1149.0,,Wind,2018
+Royalla Solar Farm,F,ACT,,,,181.0,,Solar,2018
+Glennies Creek WCMG Power Station,F,NSW,,,,40164.0,,Waste Coal Mine Gas,2018
+Oaky Creek II WCMG Power Station,F,QLD,,,,55057.0,,Waste Coal Mine Gas,2018
+Oaky Creek WCMG Power Station,F,QLD,,,,68592.0,,Waste Coal Mine Gas,2018
+Tahmoor WCMG Power Station,F,NSW,,,,18923.0,,Waste Coal Mine Gas,2018
+Appin CSM Power Station,F,NSW,,,,73634.0,,Waste Coal Mine Gas,2018
+Tower CSM Power Station,F,NSW,,,,143425.0,,Waste Coal Mine Gas,2018
+German Creek CMM Power Station,F,QLD,,,,160373.0,,Waste Coal Mine Gas,2018
+Mugga Lane LFG Power Station,F,ACT,,,,2014.0,,Landfill Gas,2018
+West Belconnen LFG Power Station,F,ACT,,,,160.0,,Landfill Gas,2018
+Belrose LFG Power Station,F,NSW,,,,185.0,,Landfill Gas,2018
+Eastern Creek LFG Power Station,F,NSW,,,,526.0,,Landfill Gas,2018
+Grange Avenue LFG Power Station,F,NSW,,,,329.0,,Landfill Gas,2018
+Jack's Gully LFG Power Station,F,NSW,,,,800.0,,Landfill Gas,2018
+Lucas Heights 1 LFG Power Station,F,NSW,,,,900.0,,Landfill Gas,2018
+Lucas Heights 2 LFG Power Station,F,NSW,,,,6381.0,,Landfill Gas,2018
+Browns Plains LFG Power Station,F,QLD,,,,875.0,,Landfill Gas,2018
+Roghan Road LFG Power Station,F,QLD,,,,107.0,,Landfill Gas,2018
+Wingfield 1 LFG Power Station,F,SA,,,,1001.0,,Landfill Gas,2018
+Wingfield 2 LFG Power Station,F,SA,,,,940.0,,Landfill Gas,2018
+Berwick LFG Power Station,F,VIC,,,,1097.0,,Landfill Gas,2018
+Broadmeadows LFG Power Station,F,VIC,,,,952.0,,Landfill Gas,2018
+Brooklyn LFG Power Station,F,VIC,,,,707.0,,Landfill Gas,2018
+Clayton LFG Power Station,F,VIC,,,,5056.0,,Landfill Gas,2018
+Corio LFG Power Station,F,VIC,,,,484.0,,Landfill Gas,2018
+Springvale LFG Power Station,F,VIC,,,,791.0,,Landfill Gas,2018
+McArthur River Power Station,F,NT,,,,134067.0,,Gas,2018
+Pine Creek A Power Station,F,NT,,,,83976.0,,Gas,2018
+Broome LNG Power Station,F,WA,,,,77522.0,,Gas,2018
+Derby LNG Power Station,F,WA,,,,19928.0,,Gas,2018
+Fitzroy Crossing LNG Power Station,F,WA,,,,9437.0,,Gas,2018
+Halls Creek LNG Power Station,F,WA,,,,7253.0,,Gas,2018
+Looma NGD Power Station,F,WA,,,,2065.0,,Diesel,2018
+Grosvenor 1 WCMG Power Station,F,QLD,,,,86059.0,,Waste Coal Mine Gas,2018
+Grosvenor 2 WCMG Power Station,F,QLD,,,,48259.0,,Waste Coal Mine Gas,2018
+Moranbah North CMM Power Station,F,QLD,,,,260078.0,,Waste Coal Mine Gas,2018
+Albany Wind Farm,F,WA,,,,22.0,,Wind,2018
+Bremer Bay Wind Diesel Power Station,F,WA,,,,66.0,,Wind,2018
+Cockburn Power Station,F,WA,,,,45893.0,,Gas,2018
+Collie Power Station,F,WA,,,,1848693.0,,Black Coal,2018
+Coral Bay Wind Diesel Power Station,F,WA,,,,1592.0,,Wind,2018
+Denham Wind Farm,F,WA,,,,1.0,,Wind,2018
+Esperance Wind Farm,F,WA,,,,6.0,,Wind,2018
+Greenough River Solar Farm,F,WA,,,,113.0,,Solar,2018
+Hopetoun Wind Diesel Power Station,F,WA,,,,2134.0,,Wind,2018
+Kalbarri Wind Farm,F,WA,,,,1.0,,Wind,2018
+Kalgoorlie Gas Turbine Station,F,WA,,,,1402.0,,Gas,2018
+Kwinana Power Station,F,WA,,,,429764.0,,Gas,2018
+Muja Power Station,F,WA,,,,3982663.0,,Black Coal,2018
+Mungarra Gas Turbine Station,F,WA,,,,15542.0,,Gas,2018
+Pinjar Gas Turbine Station,F,WA,,,,446643.0,,Gas,2018
+Ravensthorpe Power Station,F,WA,,,,146.0,,Diesel,2018
+Ardyaloon Facility,F,WA,,,,1420.0,,Diesel,2018
+Beagle Bay Facility,F,WA,,,,1263.0,,Diesel,2018
+Bidyadanga Facility,F,WA,,,,2117.0,,Diesel,2018
+Coober Pedy Facility,F,SA,,,,2913.0,,Wind,2018
+Djarindjin Facility,F,WA,,,,1390.0,,Diesel,2018
+Gascoyne Facility,F,WA,,,,586.0,,Diesel,2018
+Laverton Facility,F,WA,,,,3064.0,,Diesel,2018
+Leonora Facility,F,WA,,,,6248.0,,Gas,2018
+Menzies Facility,F,WA,,,,538.0,,Diesel,2018
+Warmun Facility,F,WA,,,,1976.0,,Diesel,2018
+Barcaldine Power Station Facility,F,QLD,,,,4706.0,,Gas,2018
+Energy Impact - Bromelton Peak Generation Plant - Facility,F,QLD,,,,694.0,,Diesel,2018
+Energy Impact - Generation - Facility,F,QLD,,,,384.0,,Diesel,2018
+Hallett Power Station,F,SA,,,,20635.0,,Gas,2018
+Jeeralang Power Station,F,VIC,,,,100090.0,,Gas,2018
+Mt Piper Power Station,F,NSW,,,,6841302.0,,Black Coal,2018
+Newport Power Station,F,VIC,,,,559518.0,,Gas,2018
+Tallawarra Power Station,F,NSW,,,,550385.0,,Gas,2018
+Waterloo Wind Farm,F,SA,,,,35.0,,Wind,2018
+Yallourn Power Station,F,VIC,,,,13856313.0,,Brown Coal,2018
+Newgen Neerabup Power Station,F,WA,,,,156947.0,,Gas,2018
+Oakey Power Station,F,QLD,,,,49280.0,,Gas,2018
+Esperance Power Station,F,WA,,,,55006.0,,Gas,2018
+Essential Energy Generation Facility - Broken Hill Gas Turbine,F,NSW,,,,615.0,,Diesel,2018
+Exmouth Power Station Pty Ltd,F,WA,,,,17343.0,,Gas,2018
+Solomon Power Station,F,WA,,,,115169.0,,Gas,2018
+Kidston Solar One - Solar – Qld,F,QLD,,,,0.0,,Solar,2018
+Parkeston Power Station,F,WA,,,,92650.0,,Gas,2018
+Wyangala A,F,NSW,,,,0.0,,Hydro,2018
+Wyangala B,F,NSW,,,,0.0,,Hydro,2018
+Bastyan Hydro Power Station,F,TAS,,,,23.0,,Hydro,2018
+Butlers Gorge Hydro Power Station,F,TAS,,,,0.0,,Hydro,2018
+Catagunya Hydro Power Station,F,TAS,,,,21.0,,Hydro,2018
+Cethana Hydro Power Station,F,TAS,,,,276.0,,Hydro,2018
+Cluny Hydro Power Station,F,TAS,,,,40.0,,Hydro,2018
+Devils Gate Hydro Power Station,F,TAS,,,,20.0,,Hydro,2018
+Fisher Hydro Power Station,F,TAS,,,,0.0,,Hydro,2018
+Flinders Island Power Station,F,TAS,,,,1906.0,,Wind,2018
+Gordon Hydro Power Station,F,TAS,,,,59.0,,Hydro,2018
+John Butters Hydro Power Station,F,TAS,,,,334.0,,Hydro,2018
+King Island Power Station,F,TAS,,,,4199.0,,Wind,2018
+Lake Echo Hydro Power Station,F,TAS,,,,13.0,,Hydro,2018
+Lake Margaret Lower Hydro Power station,F,TAS,,,,2.0,,Hydro,2018
+Lake Margaret Upper Hydro Power Station,F,TAS,,,,8.0,,Hydro,2018
+Lemonthyme Hydro Power Station,F,TAS,,,,36.0,,Hydro,2018
+Liapootah Hydro Power Station,F,TAS,,,,57.0,,Hydro,2018
+Mackintosh Hydro Power Station,F,TAS,,,,113.0,,Hydro,2018
+Meadowbank Hydro Power Station,F,TAS,,,,16.0,,Hydro,2018
+Paloona Hydro Power Station,F,TAS,,,,12.0,,Hydro,2018
+Parangana Hydro Power Station,F,TAS,,,,0.0,,Hydro,2018
+Poatina Hydro Power Station,F,TAS,,,,854.0,,Hydro,2018
+Reece Hydro Power Station,F,TAS,,,,1271.0,,Hydro,2018
+Repulse Hydro Power Station,F,TAS,,,,13.0,,Hydro,2018
+Rowallan Hydro Power Station,F,TAS,,,,2.0,,Hydro,2018
+Tamar Valley Power Station,F,TAS,,,,354911.0,,Gas,2018
+Tarraleah Hydro Power Station,F,TAS,,,,85.0,,Hydro,2018
+Tods Corner Hydro Power Station,F,TAS,,,,7.0,,Hydro,2018
+Trevallyn Hydro Power Station,F,TAS,,,,47.0,,Hydro,2018
+Tribute Hydro Power Station,F,TAS,,,,45.0,,Hydro,2018
+Tungatinah Hydro Power Station,F,TAS,,,,107.0,,Hydro,2018
+Wayatinah Hydro Power Station,F,TAS,,,,33.0,,Hydro,2018
+Wilmot Hydro Power Station,F,TAS,,,,32.0,,Hydro,2018
+Alinta Wind Farm,F,WA,,,,762.0,,Wind,2018
+Capital East Solar Farm,F,NSW,,,,5.0,,Solar,2018
+Capital Wind Farm,F,NSW,,,,995.0,,Wind,2018
+"Lake Bonney Stage 1,2 & 3 Wind Farm",F,SA,,,,663.0,,Wind,2018
+Woodlawn Wind Farm,F,NSW,,,,265.0,,Wind,2018
+Kwinana Cogeneration Plant,F,WA,,,,454837.0,,Gas,2018
+Barcaldine Remote Community Solar Farm Pty Ltd,F,QLD,,,,123.0,,Solar,2018
+Kiata Wind Farm Pty Ltd,F,VIC,,,,134.0,,Wind,2018
+Kalamunda Power Station,F,WA,,,,6.0,,Diesel,2018
+Red Hill LFG Power Station,F,WA,,,,1629.0,,Landfill Gas,2018
+Tamala Park LFG Power Station,F,WA,,,,2678.0,,Landfill Gas,2018
+Albury Renewable Energy Facility,F,NSW,,,,427.0,,Landfill Gas,2018
+Atlas Renewable Energy Facility,F,WA,,,,128.0,,Landfill Gas,2018
+Awaba Renewable Energy Facility,F,NSW,,,,451.0,,Landfill Gas,2018
+Ballarat Renewable Energy Facility,F,VIC,,,,396.0,,Landfill Gas,2018
+Bendigo Renewable Energy Facility,F,VIC,,,,236.0,,Landfill Gas,2018
+Birkdale Renewable Energy Facility,F,QLD,,,,328.0,,Landfill Gas,2018
+Darwin Renewable Energy Facility,F,NT,,,,504.0,,Landfill Gas,2018
+Eastern Creek 2 Renewable Energy Facility,F,NSW,,,,3036.0,,Landfill Gas,2018
+Hampton Park Renewable Energy Facility,F,VIC,,,,3266.0,,Landfill Gas,2018
+Ipswich Renewable Energy Facility,F,QLD,,,,299.0,,Landfill Gas,2018
+Mornington Peninsula Renewable Energy Facility,F,VIC,,,,343.0,,Landfill Gas,2018
+NAWMA Renewable Energy Facility,F,SA,,,,311.0,,Landfill Gas,2018
+NAWMA Solar Facility,F,SA,,,,0.0,,Solar,2018
+Newcastle Renewable Energy Facility,F,NSW,,,,998.0,,Landfill Gas,2018
+Remount Renewable Energy Facility,F,TAS,,,,456.0,,Landfill Gas,2018
+Rochedale Renewable Energy Facility,F,QLD,,,,2108.0,,Landfill Gas,2018
+Shepparton Renewable Energy Facility,F,VIC,,,,296.0,,Landfill Gas,2018
+South Cardup Renewable Energy Facility,F,WA,,,,1656.0,,Landfill Gas,2018
+Stapylton Renewable Energy Facility,F,QLD,,,,1122.0,,Landfill Gas,2018
+Swanbank Renewable Energy Facility,F,QLD,,,,699.0,,Landfill Gas,2018
+Wollert Renewable Energy Facility,F,VIC,,,,3244.0,,Landfill Gas,2018
+Wyndham Renewable Energy Facility,F,VIC,,,,759.0,,Landfill Gas,2018
+Wyong Renewable Energy Facility,F,NSW,,,,1059.0,,Landfill Gas,2018
+Burrinjuck Hydro,F,NSW,,,,38.0,,Hydro,2018
+Hume Hydro,F,NSW,,,,152.0,,Hydro,2018
+Keepit Hydro,F,NSW,,,,68.0,,Hydro,2018
+Mt Mercer Wind farm Pty Ltd,F,VIC,,,,69.0,,Wind,2018
+Mt Millar Wind Farm Pty Ltd,F,SA,,,,54.0,,Wind,2018
+Alfred Hospital Cogeneration Plant,F,VIC,,,,16364.0,,Gas,2018
+Dandenong Hospital Cogeneration Plant,F,VIC,,,,16259.0,,Gas,2018
+Geelong Hospital Cogeneration Plant,F,VIC,,,,12657.0,,Gas,2018
+Royal Melbourne Hospital Cogeneration Plant,F,VIC,,,,31008.0,,Gas,2018
+ST. Vincent’s Hospital Cogeneration Plant,F,VIC,,,,15634.0,,Gas,2018
+Mortons Lane Windfarm Pty Ltd,F,VIC,,,,57.0,,Wind,2018
+Mumbida Wind Farm Pty Ltd,F,WA,,,,474.0,,Wind,2018
+DEGRUSSA SOLAR PROJECT PTY LTD,F,WA,,,,430.0,,Solar,2018
+DUBBO SOLAR HUB PTY LTD,F,NSW,,,,16.0,,Solar,2018
+GRIFFITH SOLAR FARM PTY LTD,F,NSW,,,,60.0,,Solar,2018
+HORNSDALE POWER RESERVE PTY LTD,F,SA,,,,13118.0,,Battery,2018
+HWF1 PTY LTD,F,SA,,,,119.0,,Wind,2018
+HWF2 PTY LTD,F,SA,,,,113.0,,Wind,2018
+HWF3 PTY LTD,F,SA,,,,95.0,,Wind,2018
+PARKES SOLAR FARM PTY LTD,F,NSW,,,,145.0,,Solar,2018
+Kwinana Gas Fired Power Station,F,WA,,,,811085.0,,Gas,2018
+Gladstone Power Station,F,QLD,,,,8547021.0,,Black Coal,2018
+Onslow Power Station,F,WA,,,,8704.0,,Gas,2018
+Australand,F,NSW,,,,377.0,,Gas,2018
+Ballarat Solar Park,F,VIC,,,,2.0,,Solar,2018
+Bendigo Solar Park,F,VIC,,,,4.0,,Solar,2018
+Blackmores,F,NSW,,,,964.0,,Gas,2018
+Bond,F,NSW,,,,598.0,,Gas,2018
+Chifley Square,F,NSW,,,,625.0,,Gas,2018
+Dandenong,F,VIC,,,,592.0,,Gas,2018
+Darling Downs Power Station,F,QLD,,,,944682.0,,Gas,2018
+Drapac,F,VIC,,,,403.0,,Gas,2018
+Eraring Power Station,F,NSW,,,,14914916.0,,Black Coal,2018
+Exhibition Street,F,VIC,,,,1484.0,,Gas,2018
+Kent Street,F,NSW,,,,2006.0,,Gas,2018
+La Trobe,F,VIC,,,,377.0,,Gas,2018
+Ladbroke Grove Power Station,F,SA,,,,103852.0,,Gas,2018
+Mirvac,F,NSW,,,,2852.0,,Gas,2018
+Mortlake Power Station,F,VIC,,,,707978.0,,Gas,2018
+Mount,F,NSW,,,,1204.0,,Gas,2018
+Mt Stuart Power Station,F,QLD,,,,13869.0,,Kerosene,2018
+Quarantine Power Station,F,SA,,,,125361.0,,Gas,2018
+Roma Power Station,F,QLD,,,,21667.0,,Gas,2018
+Shoalhaven Scheme,F,NSW,,,,116371.0,,Hydro,2018
+Stockland Headquarters,F,NSW,,,,905.0,,Gas,2018
+University of NSW,F,NSW,,,,1398.0,,Gas,2018
+Uranquinty Power Station,F,NSW,,,,340854.0,,Gas,2018
+Millmerran Power Station (facility),F,QLD,,,,5794351.0,,Black Coal,2018
+Waterloo Wind Farm,F,SA,,,,270.0,,Wind,2018
+Pelican Point Power Station,F,SA,,,,1088112.0,,Gas,2018
+Kwinana Swift Power Station,F,WA,,,,70022.0,,Gas,2018
+Cape Lambert Power Station,F,WA,,,,94474.0,,Gas,2018
+Paraburdoo Power Station,F,WA,,,,278826.0,,Gas,2018
+West Angelas Power Station,F,WA,,,,243391.0,,Gas,2018
+Yurralyi Maya Power Station,F,WA,,,,330538.0,,Gas,2018
+Bairnsdale Power Station,F,VIC,,,,137803.0,,Gas,2018
+Braemar Power Station,F,QLD,,,,250678.0,,Coal Seam Methane,2018
+Loy Yang B Power Station,F,VIC,,,,10132776.0,,Brown Coal,2018
+Newman Power Station,F,WA,,,,188790.0,,Gas,2018
+Port Hedland Power Station,F,WA,,,,400838.0,,Gas,2018
+Wagerup Power Station,F,WA,,,,194988.0,,Gas,2018
+Alpurrurulam (Lake Nash),F,NT,,,,1178.0,,Diesel,2018
+Amanbidgi (Kildurk),F,NT,,,,250.0,,Diesel,2018
+"Ampilatwatja (Alparra, Ammaroo)",F,NT,,,,2229.0,,Diesel,2018
+Amunturangu (Mount Liebig),F,NT,,,,559.0,,Diesel,2018
+Aputula (Finke),F,NT,,,,697.0,,Diesel,2018
+Areyonga (Utju),F,NT,,,,694.0,,Diesel,2018
+Atitjere (Harts Range),F,NT,,,,696.0,,Diesel,2018
+Borroloola Generation,F,NT,,,,4359.0,,Diesel,2018
+Bulla Camp,F,NT,,,,389.0,,Diesel,2018
+Bulman,F,NT,,,,896.0,,Diesel,2018
+Daly Waters Generation,F,NT,,,,813.0,,Diesel,2018
+Elliot Generation,F,NT,,,,2020.0,,Gas,2018
+Engawala (Alcoota),F,NT,,,,422.0,,Diesel,2018
+Epenarra (Wutunugurra),F,NT,,,,613.0,,Diesel,2018
+Eva Valley,F,NT,,,,298.0,,Diesel,2018
+Galiwinku (Elcho Island),F,NT,,,,4954.0,,Diesel,2018
+Gapuwiyak (Lake Evella),F,NT,,,,2177.0,,Diesel,2018
+Gunbalanya (Oenpelli),F,NT,,,,3642.0,,Diesel,2018
+Ikuntji (Haasts Bluff),F,NT,,,,578.0,,Diesel,2018
+Imangara (Murray Downs),F,NT,,,,237.0,,Diesel,2018
+Imanpa (Mount Ebenezer),F,NT,,,,449.0,,Diesel,2018
+Kalkaringi (Wave Hill),F,NT,,,,1859.0,,Diesel,2018
+Kaltukatjara (Docker River),F,NT,,,,992.0,,Diesel,2018
+Lajamanu (Hooker Creek),F,NT,,,,2051.0,,Diesel,2018
+Laramba (Napperby),F,NT,,,,689.0,,Diesel,2018
+Maningrida,F,NT,,,,5349.0,,Diesel,2018
+Milikapiti (Snake Bay),F,NT,,,,1591.0,,Diesel,2018
+Milingimbi,F,NT,,,,2766.0,,Diesel,2018
+Milyakburra (Bickerton Island),F,NT,,,,653.0,,Diesel,2018
+Minjilang (Croker Island),F,NT,,,,1051.0,,Diesel,2018
+Minyerri (Hodgson Downs),F,NT,,,,1708.0,,Diesel,2018
+Nauiyu Nambiyu (Daly River),F,NT,,,,2018.0,,Diesel,2018
+Nguiu (Bathurst Island),F,NT,,,,4927.0,,Diesel,2018
+Ngukurr (Roper River),F,NT,,,,3355.0,,Diesel,2018
+Numbulwar (Rose River),F,NT,,,,2138.0,,Diesel,2018
+Nyirripi (Waite Creek),F,NT,,,,619.0,,Diesel,2018
+Orwaitilla (Canteen Creek),F,NT,,,,706.0,,Diesel,2018
+Palumpa,F,NT,,,,1040.0,,Diesel,2018
+Papunya,F,NT,,,,1373.0,,Diesel,2018
+Peppimenarti,F,NT,,,,853.0,,Diesel,2018
+Pidgeon Hole,F,NT,,,,377.0,,Diesel,2018
+Pirlangimpi (Garden Point),F,NT,,,,1530.0,,Diesel,2018
+Ramingining,F,NT,,,,1871.0,,Diesel,2018
+Robinson River,F,NT,,,,839.0,,Diesel,2018
+Tara (Neutral Junction),F,NT,,,,276.0,,Diesel,2018
+Ti Tree Generation,F,NT,,,,1703.0,,Diesel,2018
+Timber Creek,F,NT,,,,2114.0,,Diesel,2018
+Titjikala (Maryvale),F,NT,,,,745.0,,Diesel,2018
+Umbakumba,F,NT,,,,1945.0,,Diesel,2018
+Wadeye (Port Keats),F,NT,,,,5651.0,,Gas,2018
+Walungurru (Kintore),F,NT,,,,1116.0,,Diesel,2018
+Warruwi (Goulburn Is),F,NT,,,,1260.0,,Diesel,2018
+Wilora (Stirling),F,NT,,,,277.0,,Diesel,2018
+Wirliyatjarrayi (Willowra),F,NT,,,,697.0,,Diesel,2018
+Yarralin,F,NT,,,,929.0,,Diesel,2018
+Yuendumu,F,NT,,,,3361.0,,Diesel,2018
+Channel Island Power Station,F,NT,,,,615463.0,,Gas,2018
+Katherine Power Station,F,NT,,,,15454.0,,Gas,2018
+Kings Canyon,F,NT,,,,864.0,,Solar,2018
+Owen Springs Power Station,F,NT,,,,46056.0,,Gas,2018
+Ron Goodin Power Station,F,NT,,,,90139.0,,Gas,2018
+Tennant Creek Power Station,F,NT,,,,20950.0,,Gas,2018
+Weddell Power Station,F,NT,,,,214572.0,,Gas,2018
+Yulara Power Station,F,NT,,,,12751.0,,Gas,2018
+Visy Energy - Coolaroo Co-gen,F,VIC,,,,36916.0,,Biofuel,2018
+Visy Power Generation - Smithfield Energy Facility,F,NSW,,,,4237.0,,Gas,2018
+Condamine Power Station,F,QLD,,,,377557.0,,Gas,2018
+Kemerton Power Station,F,WA,,,,52344.0,,Gas,2018
+Starfish Hill Wind Farm,F,SA,,,,75.0,,Wind,2018
+Toora Wind Farm,F,VIC,,,,243.0,,Wind,2018
+Townsville Power Station,F,QLD,,,,115534.0,,Coal Seam Methane,2018
+Windy Hill Wind Farm,F,QLD,,,,43.0,,Wind,2018
+Carnarvon Power Station & Distribution network,F,WA,,,,22440.0,,Gas,2018
+Denham Power Station & Denham Distribution network,F,WA,,,,2674.0,,Diesel,2018
+Kalumburu Power Station & Distribution network,F,WA,,,,1434.0,,Diesel,2018
+Kununurra Power Station & Kununurra Distribution network,F,WA,,,,267.0,,Diesel,2018
+Marble Bar Power Station & Marble Bar Distribution network,F,WA,,,,1091.0,,Diesel,2018
+Murchison Radio Astronomy Power Station and Distribution Network,F,WA,,,,2397.0,,Diesel,2018
+Nullagine Power Station & Nullagine Distribution network,F,WA,,,,620.0,,Diesel,2018
+Onslow Power Station Horizon Power back-up & Onslow Distribtion Network,F,WA,,,,4539.0,,Gas,2018
+Wyndham Power Station & Distribution network,F,WA,,,,113.0,,Diesel,2018
+Yungngora Power Station & Yungngora Distribution Network,F,WA,,,,966.0,,Diesel,2018
+Wonthaggi Wind Farm,F,VIC,,,,66.0,,Wind,2018
+FPC Green Energy,F,QLD,,,,4562.0,,Bagasse,2018
+Wilga Park Power Station,F,NSW,,,,50006.0,,Coal Seam Methane,2018
+Musselroe Wind Farm Pty Ltd,F,TAS,,,,343.0,,Wind,2018
+Woolnorth Bluff point Wind Farm Pty Ltd,F,TAS,,,,113.0,,Wind,2018
+Woolnorth Studland Bay Wind Farm Pty Ltd,F,TAS,,,,109.0,,Wind,2018
+SNOWTOWN SOUTH WIND FARM,F,SA,,,,189.0,,Wind,2018
+Snowtown Wind Farm,F,SA,,,,451.0,,Wind,2018
+SNOWTOWN WIND FARM STAGE 2,F,SA,,,,252.0,,Wind,2018
+Angaston Power Station,F,SA,,,,2249.0,,Diesel,2018
+Colongra Power Station,F,NSW,,,,15043.0,,Gas,2018
+Laverton North Power Station,F,VIC,,,,111411.0,,Gas,2018
+Lonsdale/Port Stanvac Power Station,F,SA,,,,4129.0,,Diesel,2018
+Snowy Hydro Ltd,F,NSW,,,,216445.0,,Hydro,2018
+Valley Power,F,VIC,,,,20336.0,,Gas,2018
+Moree Solar Farm,F,NSW,,,,636.0,,Solar,2018
+Challicum Hills Wind Farm,F,VIC,,,,58.0,,Wind,2018
+Clements Gap Wind Farm,F,SA,,,,120.0,,Wind,2018
+Codrington Wind Farm,F,VIC,,,,23.0,,Wind,2018
+Crowlands Wind Farm,F,VIC,,,,1086.0,,Wind,2018
+Eildon Pondage Hydro,F,VIC,,,,2.0,,Hydro,2018
+Glenmaggie Hydro,F,VIC,,,,5.0,,Hydro,2018
+Ord Hydro,F,WA,,,,29.0,,Hydro,2018
+Portland Wind Farms,F,VIC,,,,60.0,,Wind,2018
+Taralga Wind Farm,F,NSW,,,,91.0,,Wind,2018
+The Drop Hydro,F,NSW,,,,5.0,,Hydro,2018
+William Hovell Hydro,F,VIC,,,,4.0,,Hydro,2018
+Yaloak South Wind Farm,F,VIC,,,,164.0,,Wind,2018
+Yambuk Wind Farm,F,VIC,,,,37.0,,Wind,2018
+Barron Gorge Power Station,F,QLD,,,,675.0,,Hydro,2018
+Kareeya Power Station,F,QLD,,,,1733.0,,Hydro,2018
+Mackay Gas Turbine,F,QLD,,,,261.0,,Diesel,2018
+Mica Creek Power Station,F,QLD,,,,91696.0,,Gas,2018
+Stanwell Power Station,F,QLD,,,,7637735.0,,Black Coal,2018
+Swanbank E Power Station,F,QLD,,,,262428.0,,Gas,2018
+Tarong Power Stations,F,QLD,,,,10473950.0,,Black Coal,2018
+Vales Point Power Station,F,NSW,,,,7015626.0,,Black Coal,2018
+SWF 1 Operations Holdings Pty Ltd,F,NSW,,,,3555.0,,Wind,2018
+Dry Creek Power Station,F,SA,,,,11006.0,,Gas,2018
+Mintaro Power Station,F,SA,,,,32456.0,,Gas,2018
+Port Lincoln Power Station,F,SA,,,,3001.0,,Diesel,2018
+Snuggery Power Station,F,SA,,,,1276.0,,Diesel,2018
+Midlands Power Station,F,TAS,,,,0.0,,Hydro,2018
+Kalgoorlie Power Station,F,WA,,,,148040.0,,Gas,2018
+Kambalda Power Station,F,WA,,,,148433.0,,Gas,2018
+Leinster Power Station,F,WA,,,,169107.0,,Gas,2018
+Mt Keith Power Station,F,WA,,,,222682.0,,Gas,2018
+Solomon Power Station,F,WA,,,,58143.0,,Gas,2018
+South Hedland Power Station,F,WA,,,,208477.0,,Gas,2018
+Cocos Keeling Islands - Home Island Generation,F,WA,,,,1735.0,,Diesel,2018
+Cocos Keeling Islands - West Island Generation,F,WA,,,,1981.0,,Diesel,2018
+Weipa Solar Power Station,F,QLD,,,,4.0,,Solar,2018
+YPF UTILITIES PRODUCTION AND SUPPLY,F,WA,,,,28078.0,,Gas,2018
+Cathedral Rocks Wind Farm,F,SA,,,,252.0,,Wind,2019
+Gunning Wind Farm,F,NSW,,,,239.0,,Wind,2019
+Mt Gellibrand Wind Farm,F,VIC,,,,900.0,,Wind,2019
+Waubra Wind Farm,F,VIC,,,,993.0,,Wind,2019
+Banimboola Hydro,F,VIC,,,,21.0,,Hydro,2019
+Bayswater Power Station,F,NSW,,,,14115413.0,,Black Coal,2019
+Bogong Power Station,F,VIC,,,,939.0,,Hydro,2019
+Broken Hill Solar Plant,F,NSW,,,,425.0,,Solar,2019
+Burrendong Hydro,F,NSW,,,,54.0,,Hydro,2019
+Clover Hydro,F,VIC,,,,298.0,,Hydro,2019
+Coopers Cogeneration,F,SA,,,,10449.0,,Gas,2019
+Copeton Hydro,F,NSW,,,,28.0,,Hydro,2019
+Dartmouth Hydro,F,VIC,,,,179.0,,Hydro,2019
+Eildon Hydro,F,VIC,,,,1463.0,,Hydro,2019
+Glenbawn Hydro,F,NSW,,,,10.0,,Hydro,2019
+Glenorchy Landfill Generation,F,TAS,,,,105.0,,Landfill Gas,2019
+Hallett (Stage 1) Wind Farm,F,SA,,,,303.0,,Wind,2019
+Hallett (Stage 2) Wind Farm,F,SA,,,,225.0,,Wind,2019
+Hallett (Stage 4) Wind Farm,F,SA,,,,495.0,,Wind,2019
+Hallett (Stage 5) Wind Farm,F,SA,,,,235.0,,Wind,2019
+Hobart Landfill Generation,F,TAS,,,,74.0,,Landfill Gas,2019
+Hunter Valley Gas Turbines,F,NSW,,,,3790.0,,Gas,2019
+Kemps Creek Landfill Generation,F,NSW,,,,66.0,,Landfill Gas,2019
+Kincumber Landfill Generation,F,NSW,,,,32.0,,Landfill Gas,2019
+Liddell Power Station,F,NSW,,,,8528422.0,,Black Coal,2019
+Loy Yang Power Station and Mine,F,VIC,,,,18798519.0,,Brown Coal,2019
+Macarthur Wind Farm,F,VIC,,,,3476.0,,Wind,2019
+McKay Creek Hydro,F,VIC,,,,5221.0,,Hydro,2019
+Moranbah Power Station,F,QLD,,,,5205.0,,Coal Seam Methane,2019
+Nyngan Solar Plant,F,NSW,,,,913.0,,Solar,2019
+Oaklands Hill Wind Farm,F,VIC,,,,707.0,,Wind,2019
+Pindari Hydro,F,NSW,,,,24.0,,Hydro,2019
+Rockingham Landfill Generation,F,WA,,,,186.0,,Landfill Gas,2019
+Rubicon Hydro Scheme,F,VIC,,,,268.0,,Hydro,2019
+Silverton Wind Farm,F,NSW,,,,924.0,,Wind,2019
+Somerton Power Station,F,VIC,,,,76435.0,,Gas,2019
+Torrens Island Power Station,F,SA,,,,1502265.0,,Gas,2019
+Wattle Point Wind Farm,F,SA,,,,209.0,,Wind,2019
+Werribee Biogas Generator,F,VIC,,,,902.0,,Sludge Biogas,2019
+West Kiewa Hydro,F,VIC,,,,1173.0,,Hydro,2019
+Wilpena Pound Solar Generation,F,SA,,,,683.0,,Solar,2019
+Woy Woy Landfill Generation,F,NSW,,,,93.0,,Landfill Gas,2019
+Yarrawonga Hydro,F,VIC,,,,39.0,,Hydro,2019
+Alinta Pinjarra Generation Facility,F,WA,,,,1416546.0,,Gas,2019
+Badgingarra Wind Farm,F,WA,,,,332.0,,Wind,2019
+Darling Downs Solar Farm Pty Ltd,F,QLD,,,,327.0,,Solar,2019
+Diamantina Power Station,F,QLD,,,,695943.0,,Gas,2019
+Emu Downs Solar Farm,F,WA,,,,78.0,,Solar,2019
+Emu Downs Wind Farm,F,WA,,,,462.0,,Wind,2019
+Braemar 2 Power Station,F,QLD,,,,279764.0,,Coal Seam Methane,2019
+Karratha Power Station,F,WA,,,,59834.0,,Gas,2019
+Osborne facility,F,SA,,,,321789.0,,Gas,2019
+Facility,F,VIC,,,,1166.0,,Wind,2019
+Bald Hills Wind Farm Pty Ltd,F,VIC,,,,830.0,,Wind,2019
+Gullen Solar Pty Ltd,F,NSW,,,,180.0,,Solar,2019
+New Gullen Range Wind Farm Pty Ltd,F,NSW,,,,243.0,,Wind,2019
+Yarnima Power Station,F,WA,,,,307802.0,,Gas,2019
+Bluewaters Power 1,F,WA,,,,1510130.0,,Black Coal,2019
+Bluewaters Power 2,F,WA,,,,1443941.0,,Black Coal,2019
+Enwave Central Park Pty Ltd,F,NSW,,,,4777.0,,Gas,2019
+Enwave Mascot Pty Ltd,F,NSW,,,,17478.0,,Gas,2019
+Callide B Power Station,F,QLD,,,,4597768.0,,Black Coal,2019
+Kogan Creek Power Station,F,QLD,,,,5108944.0,,Black Coal,2019
+Wivenhoe Power Station,F,QLD,,,,161462.0,,Hydro,2019
+Broadwater Power Plant,F,NSW,,,,8465.0,,Bagasse,2019
+Condong Power Plant,F,NSW,,,,6437.0,,Bagasse,2019
+Facility,F,VIC,,,,97.0,,Wind,2019
+White Rock Wind Farm Pty Ltd,F,NSW,,,,481.0,,Wind,2019
+Appin CSM Power Station,F,NSW,,,,157667.0,,Waste Coal Mine Gas,2019
+Ardyaloon Facility,F,WA,,,,1291.0,,Diesel,2019
+Beagle Bay Facility,F,WA,,,,1239.0,,Diesel,2019
+Belrose LFG Power Station,F,NSW,,,,163.0,,Landfill Gas,2019
+Berwick LFG Power Station,F,VIC,,,,785.0,,Landfill Gas,2019
+Bidyadanga Facility,F,WA,,,,2196.0,,Diesel,2019
+Broadmeadows LFG Power Station,F,VIC,,,,780.0,,Landfill Gas,2019
+Brooklyn LFG Power Station,F,VIC,,,,562.0,,Landfill Gas,2019
+Broome LNG Power Station,F,WA,,,,76055.0,,Gas,2019
+Browns Plains LFG Power Station,F,QLD,,,,852.0,,Landfill Gas,2019
+Clayton LFG Power Station,F,VIC,,,,4714.0,,Landfill Gas,2019
+Coober Pedy Facility,F,SA,,,,1846.0,,Wind,2019
+Corio LFG Power Station,F,VIC,,,,393.0,,Landfill Gas,2019
+Cullerin Range Wind Farm,F,NSW,,,,106.0,,Wind,2019
+Derby LNG Power Station,F,WA,,,,20497.0,,Gas,2019
+Djarindjin Facility,F,WA,,,,1282.0,,Diesel,2019
+Eastern Creek LFG Power Station,F,NSW,,,,370.0,,Landfill Gas,2019
+Fitzroy Crossing LNG Power Station,F,WA,,,,10069.0,,Gas,2019
+Gascoyne Facility,F,WA,,,,591.0,,Diesel,2019
+German Creek CMM Power Station,F,QLD,,,,166725.0,,Waste Coal Mine Gas,2019
+Glennies Creek WCMG Power Station,F,NSW,,,,39311.0,,Waste Coal Mine Gas,2019
+Grange Avenue LFG Power Station,F,NSW,,,,267.0,,Landfill Gas,2019
+Grosvenor 1 WCMG Power Station,F,QLD,,,,83617.0,,Waste Coal Mine Gas,2019
+Grosvenor 2 WCMG Power Station,F,QLD,,,,65361.0,,Waste Coal Mine Gas,2019
+Halls Creek LNG Power Station,F,WA,,,,8201.0,,Gas,2019
+Jack's Gully LFG Power Station,F,NSW,,,,640.0,,Landfill Gas,2019
+Kalamunda Power Station,F,WA,,,,7.0,,Diesel,2019
+Laverton Facility,F,WA,,,,2748.0,,Diesel,2019
+Leonora Facility,F,WA,,,,6247.0,,Gas,2019
+Looma NGD power Station,F,WA,,,,2053.0,,Diesel,2019
+Lucas Heights 1 LFG Power Station,F,NSW,,,,840.0,,Landfill Gas,2019
+Lucas Heights 2 LFG Power Station,F,NSW,,,,6009.0,,Landfill Gas,2019
+McArthur River Power Station,F,NT,,,,139771.0,,Gas,2019
+Menzies Facility,F,WA,,,,562.0,,Diesel,2019
+Moranbah North CMM Power Station,F,QLD,,,,245998.0,,Waste Coal Mine Gas,2019
+Mugga Lane LFG Power Station,F,ACT,,,,1682.0,,Landfill Gas,2019
+Oaky Creek II WCMG Power Station,F,QLD,,,,55809.0,,Waste Coal Mine Gas,2019
+Oaky Creek WCMG Power Station,F,QLD,,,,68128.0,,Waste Coal Mine Gas,2019
+Pine Creek A Power Station,F,NT,,,,85034.0,,Gas,2019
+Red Hill LFG Power Station,F,WA,,,,1270.0,,Landfill Gas,2019
+Roghan Road LFG Power Station,F,QLD,,,,45.0,,Landfill Gas,2019
+Springvale LFG Power Station,F,VIC,,,,637.0,,Landfill Gas,2019
+Tahmoor WCMG Power Station,F,NSW,,,,26064.0,,Waste Coal Mine Gas,2019
+Tamala Park LFG Power Station,F,WA,,,,1814.0,,Landfill Gas,2019
+Tower CSM Power Station,F,NSW,,,,70284.0,,Waste Coal Mine Gas,2019
+Warmun Facility,F,WA,,,,2109.0,,Diesel,2019
+Weipa Solar Power Station,F,QLD,,,,11.0,,Solar,2019
+West Belconnen LFG Power Station,F,ACT,,,,137.0,,Landfill Gas,2019
+Wingfield 1 LFG Power Station,F,SA,,,,755.0,,Landfill Gas,2019
+Wingfield 2 LFG Power Station,F,SA,,,,607.0,,Landfill Gas,2019
+Wonthaggi Wind Farm,F,VIC,,,,55.0,,Wind,2019
+Clare Solar Farm,F,QLD,,,,1060.0,,Solar,2019
+Cue Town Powerstation,F,WA,,,,2379.0,,Diesel,2019
+Meekatharra Town Powerstation,F,WA,,,,4359.0,,Diesel,2019
+Mt Magnet Town Powerstation,F,WA,,,,2411.0,,Gas,2019
+Norseman Gold Power Station,F,WA,,,,2602.0,,Diesel,2019
+Sandstone Town Powerstation,F,WA,,,,502.0,,Diesel,2019
+Wiluna Town Powerstation,F,WA,,,,1792.0,,Diesel,2019
+Yalgoo Town Powerstation,F,WA,,,,752.0,,Diesel,2019
+Collgar Wind Farm,F,WA,,,,868.0,,Wind,2019
+Boco Rock Wind Farm Pty Ltd,F,NSW,,,,812.0,,Wind,2019
+Vales Point Power Station,F,NSW,,,,6802304.0,,Black Coal,2019
+Royalla Solar Farm,F,ACT,,,,181.0,,Solar,2019
+GESS ProjectCo Pty Ltd,F,VIC,,,,1196.0,,Battery,2019
+Hamilton Solar Farm Pty Ltd,F,QLD,,,,41.0,,Solar,2019
+The Daydream Solar Farm Trust,F,QLD,,,,34.0,,Solar,2019
+The Hayman Solar Farm Trust,F,QLD,,,,16.0,,Solar,2019
+Whitsunday Solar Farm Pty,F,QLD,,,,40.0,,Solar,2019
+Albany Wind Farm,F,WA,,,,13.0,,Wind,2019
+Bremer Bay Wind Diesel Power Station,F,WA,,,,15.0,,Wind,2019
+Cockburn Power Station,F,WA,,,,37334.0,,Gas,2019
+Collie Power Station,F,WA,,,,1442981.0,,Black Coal,2019
+Coral Bay Wind Diesel Power Station,F,WA,,,,1696.0,,Diesel,2019
+Denham Wind Farm,F,WA,,,,1.0,,Wind,2019
+Esperance Wind Farm,F,WA,,,,7.0,,Wind,2019
+Hopetoun Wind Diesel Power Station,F,WA,,,,2138.0,,Diesel,2019
+Kalbarri Wind Farm,F,WA,,,,2.0,,Wind,2019
+Kalgoorlie Gas Turbine Station,F,WA,,,,2998.0,,Gas,2019
+Kwinana Power Station,F,WA,,,,463992.0,,Gas,2019
+Muja Power Station,F,WA,,,,3530016.0,,Black Coal,2019
+Mungarra Gas Turbine Station,F,WA,,,,4294.0,,Gas,2019
+Pinjar Gas Turbine Station,F,WA,,,,428939.0,,Gas,2019
+Ravensthorpe Power Station,F,WA,,,,187.0,,Diesel,2019
+Aurukun Remote generation,F,QLD,,,,4414.0,,Diesel,2019
+Badu Island Remote Generation,F,QLD,,,,2132.0,,Diesel,2019
+Bamaga Remote Generation,F,QLD,,,,9921.0,,Diesel,2019
+Barcaldine Power Station Facility,F,QLD,,,,5948.0,,Gas,2019
+Bedourie Remote Generation,F,QLD,,,,929.0,,Diesel,2019
+Birdsville Remote Generation,F,QLD,,,,1259.0,,Diesel,2019
+Boigu Island Remote Generation,F,QLD,,,,881.0,,Diesel,2019
+Boulia Remote Generation,F,QLD,,,,1729.0,,Diesel,2019
+Burketown Remote Generation,F,QLD,,,,2038.0,,Diesel,2019
+Camooweal Remote Generation,F,QLD,,,,1658.0,,Diesel,2019
+Coconut Island Remote Generation,F,QLD,,,,756.0,,Diesel,2019
+Coen Remote Generation,F,QLD,,,,1164.0,,Diesel,2019
+Darnley Island Remote Generation,F,QLD,,,,1029.0,,Diesel,2019
+Dauan Island Remote Generation,F,QLD,,,,627.0,,Diesel,2019
+Doomadgee Remote Generation,F,QLD,,,,4474.0,,Diesel,2019
+Energy Impact - Bromelton Peak Generation Plant - Facility,F,QLD,,,,647.0,,Diesel,2019
+Energy Impact - Generation - Facility,F,QLD,,,,233.0,,Diesel,2019
+Gununa Remote Generation,F,QLD,,,,4282.0,,Diesel,2019
+Hammond Island,F,QLD,,,,527.0,,Diesel,2019
+Jundah Remote Generation,F,QLD,,,,750.0,,Diesel,2019
+Kowanyama Remote Generation,F,QLD,,,,3427.0,,Diesel,2019
+Kubin Island Remote Generation,F,QLD,,,,1450.0,,Diesel,2019
+Lockhart River Remote Generation,F,QLD,,,,1843.0,,Diesel,2019
+Mabuig Island Remote Generation,F,QLD,,,,807.0,,Diesel,2019
+Mapoon Remote Generation,F,QLD,,,,1066.0,,Diesel,2019
+Murray Island Remote Generation,F,QLD,,,,1454.0,,Diesel,2019
+Palm Island Remote Generation,F,QLD,,,,5442.0,,Diesel,2019
+Pormpuraaw,F,QLD,,,,2246.0,,Diesel,2019
+Sabai Island Remote Generation,F,QLD,,,,1088.0,,Diesel,2019
+Stephen Island Remote Generation,F,QLD,,,,315.0,,Diesel,2019
+Thursday Island Remote Generation,F,QLD,,,,16454.0,,Diesel,2019
+Warraber Island Remote Generation,F,QLD,,,,946.0,,Diesel,2019
+Wasaga Remote Generation,F,QLD,,,,3088.0,,Diesel,2019
+Windorah Remote Generation,F,QLD,,,,787.0,,Diesel,2019
+Yam Island,F,QLD,,,,1066.0,,Diesel,2019
+York Island,F,QLD,,,,941.0,,Diesel,2019
+Hallett Power Station,F,SA,,,,21687.0,,Gas,2019
+Jeeralang Power Station,F,VIC,,,,117565.0,,Gas,2019
+Mt Piper Power Station,F,NSW,,,,5944955.0,,Black Coal,2019
+Newport Power Station,F,VIC,,,,406760.0,,Gas,2019
+Tallawarra Power Station,F,NSW,,,,362582.0,,Gas,2019
+Yallourn Power Station,F,VIC,,,,13467202.0,,Brown Coal,2019
+Newgen Neerabup Power Station,F,WA,,,,115836.0,,Gas,2019
+Oakey Power Station,F,QLD,,,,13838.0,,Gas,2019
+Esperance Power Station,F,WA,,,,51930.0,,Gas,2019
+Essential Energy Generation Facility - Broken Hill Gas Turbine,F,NSW,,,,261.0,,Diesel,2019
+Exmouth Power Station Pty Ltd,F,WA,,,,17269.0,,Gas,2019
+Solomon Power Station,F,WA,,,,182117.0,,Gas,2019
+Crookwell 2 Wind farm,F,NSW,,,,497.0,,Wind,2019
+Parkeston Power Station,F,WA,,,,99889.0,,Gas,2019
+Wyangala A,F,NSW,,,,0.0,,Hydro,2019
+Bastyan Hydro Power Station,F,TAS,,,,23.0,,Hydro,2019
+Butlers Gorge Hydro Power Station,F,TAS,,,,0.0,,Hydro,2019
+Catagunya Hydro Power Station,F,TAS,,,,30.0,,Hydro,2019
+Cethana Hydro Power Station,F,TAS,,,,445.0,,Hydro,2019
+Cluny Hydro Power Station,F,TAS,,,,21.0,,Hydro,2019
+Devils Gate Hydro Power Station,F,TAS,,,,44.0,,Hydro,2019
+Fisher Hydro Power Station,F,TAS,,,,0.0,,Hydro,2019
+Flinders Island Power Station,F,TAS,,,,1972.0,,Wind,2019
+Gordon Hydro Power Station,F,TAS,,,,129.0,,Hydro,2019
+John Butters Hydro Power Station,F,TAS,,,,350.0,,Hydro,2019
+King Island Power Station,F,TAS,,,,4223.0,,Wind,2019
+Lake Echo Hydro Power Station,F,TAS,,,,16.0,,Hydro,2019
+Lake Margaret Lower Hydro Power station,F,TAS,,,,5.0,,Hydro,2019
+Lake Margaret Upper Hydro Power Station,F,TAS,,,,2.0,,Hydro,2019
+Lemonthyme Hydro Power Station,F,TAS,,,,44.0,,Hydro,2019
+Liapootah Hydro Power Station,F,TAS,,,,68.0,,Hydro,2019
+Mackintosh Hydro Power Station,F,TAS,,,,35.0,,Hydro,2019
+Meadowbank Hydro Power Station,F,TAS,,,,21.0,,Hydro,2019
+Paloona Hydro Power Station,F,TAS,,,,19.0,,Hydro,2019
+Parangana Hydro Power Station,F,TAS,,,,0.0,,Hydro,2019
+Poatina Hydro Power Station,F,TAS,,,,1243.0,,Hydro,2019
+Reece Hydro Power Station,F,TAS,,,,1427.0,,Hydro,2019
+Rowallan Hydro Power Station,F,TAS,,,,0.0,,Hydro,2019
+Tamar Valley Power Station,F,TAS,,,,218949.0,,Gas,2019
+Tarraleah Hydro Power Station,F,TAS,,,,116.0,,Hydro,2019
+Tods Corner Hydro Power Station,F,TAS,,,,7.0,,Hydro,2019
+Trevallyn Hydro Power Station,F,TAS,,,,39.0,,Hydro,2019
+Tribute Hydro Power Station,F,TAS,,,,50.0,,Hydro,2019
+Tungatinah Hydro Power Station,F,TAS,,,,142.0,,Hydro,2019
+Wayatinah Hydro Power Station,F,TAS,,,,54.0,,Hydro,2019
+Wilmot Hydro Power Station,F,TAS,,,,44.0,,Hydro,2019
+Baking Board Solar Farm,F,QLD,,,,55.0,,Solar,2019
+Karratha Solar Power No 1 Pty Ltd,F,WA,,,,9.0,,Solar,2019
+Mount Majura Solar Farm,F,ACT,,,,1.0,,Solar,2019
+Swan Hill Solar Farm,F,VIC,,,,108.0,,Solar,2019
+Williamsdale Solar Farm,F,ACT,,,,60.0,,Solar,2019
+Alinta Wind Farm,F,WA,,,,642.0,,Wind,2019
+Bodangora Wind Farm,F,NSW,,,,143.0,,Wind,2019
+Capital Wind Farm,F,NSW,,,,909.0,,Wind,2019
+"Lake Bonney Stage 1,2 & 3 Wind Farm",F,SA,,,,924.0,,Wind,2019
+Smithfield Gas Turbine,F,NSW,,,,1963.0,,Gas,2019
+Woodlawn Wind Farm,F,NSW,,,,224.0,,Wind,2019
+Canunda Wind Farm,F,SA,,,,114.0,,Wind,2019
+Dry Creek Power Station,F,SA,,,,8573.0,,Gas,2019
+Mintaro Power Station,F,SA,,,,9620.0,,Gas,2019
+Pelican Point Power Station,F,SA,,,,1224197.0,,Gas,2019
+Port Lincoln Power Station,F,SA,,,,4568.0,,Diesel,2019
+Snuggery Power Station,F,SA,,,,2192.0,,Diesel,2019
+KARADOC SOLAR FARM,F,VIC,,,,326.0,,Solar,2019
+Barcaldine Remote Community Solar Farm Pty Ltd,F,QLD,,,,122.0,,Solar,2019
+Kiata Wind Farm Pty Ltd,F,VIC,,,,172.0,,Wind,2019
+Benaraby LFGE Station,F,QLD,,,,467.0,,Landfill Gas,2019
+Bunya LFGE Station,F,QLD,,,,342.0,,Landfill Gas,2019
+Caboolture LFGE Station,F,QLD,,,,672.0,,Landfill Gas,2019
+Dakabin LFGE Station,F,QLD,,,,633.0,,Landfill Gas,2019
+Maryborough LFGE Station,F,QLD,,,,513.0,,Landfill Gas,2019
+Willawong LFGE Station,F,QLD,,,,305.0,,Landfill Gas,2019
+Emerald Solar Park,F,QLD,,,,1.0,,Solar,2019
+Lilyvale Solar Farm,F,QLD,,,,226.0,,Solar,2019
+Albury Renewable Energy Facility,F,NSW,,,,344.0,,Landfill Gas,2019
+Awaba Renewable Energy Facility,F,NSW,,,,301.0,,Landfill Gas,2019
+Ballarat Renewable Energy Facility,F,VIC,,,,386.0,,Landfill Gas,2019
+Bendigo Renewable Energy Facility,F,VIC,,,,216.0,,Landfill Gas,2019
+Birkdale Renewable Energy Facility,F,QLD,,,,285.0,,Landfill Gas,2019
+Copping Renewable Energy Facility,F,TAS,,,,161.0,,Landfill Gas,2019
+Darwin Renewable Energy Facility,F,NT,,,,492.0,,Landfill Gas,2019
+Drysdale Renewable Energy Facility,F,VIC,,,,199.0,,Landfill Gas,2019
+Eastern Creek 2 Renewable Energy Facility,F,NSW,,,,2813.0,,Landfill Gas,2019
+Hampton Park Renewable Energy Facility,F,VIC,,,,3252.0,,Landfill Gas,2019
+Ipswich Renewable Energy Facility,F,QLD,,,,241.0,,Landfill Gas,2019
+Mornington Peninsula Renewable Energy Facility,F,VIC,,,,344.0,,Landfill Gas,2019
+NAWMA Renewable Energy Facility,F,SA,,,,531.0,,Landfill Gas,2019
+NAWMA Solar Facility,F,SA,,,,0.0,,Solar,2019
+Newcastle Renewable Energy Facility,F,NSW,,,,995.0,,Landfill Gas,2019
+Remount Renewable Energy Facility,F,TAS,,,,496.0,,Landfill Gas,2019
+Rochedale Renewable Energy Facility,F,QLD,,,,2182.0,,Landfill Gas,2019
+Shepparton Renewable Energy Facility,F,VIC,,,,357.0,,Landfill Gas,2019
+South Cardup Renewable Energy Facility,F,WA,,,,1674.0,,Landfill Gas,2019
+Stapylton Renewable Energy Facility,F,QLD,,,,1295.0,,Landfill Gas,2019
+Swanbank Renewable Energy Facility,F,QLD,,,,692.0,,Landfill Gas,2019
+Wollert Renewable Energy Facility,F,VIC,,,,3264.0,,Landfill Gas,2019
+Wyndham Renewable Energy Facility,F,VIC,,,,1375.0,,Landfill Gas,2019
+Wyong Renewable Energy Facility,F,NSW,,,,1070.0,,Landfill Gas,2019
+Longreach SF,F,QLD,,,,0.0,,Solar,2019
+Kwinana Cogeneration Plant,F,WA,,,,444053.0,,Gas,2019
+Burrinjuck Hydro,F,NSW,,,,103.0,,Hydro,2019
+Hume Hydro,F,NSW,,,,142.0,,Hydro,2019
+Mt Mercer Wind farm Pty Ltd,F,VIC,,,,165.0,,Wind,2019
+Mt Millar Wind Farm Pty Ltd,F,SA,,,,63.0,,Wind,2019
+Alfred Hospital Cogeneration Plant,F,VIC,,,,14779.0,,Gas,2019
+Dandenong Hospital Cogeneration Plant,F,VIC,,,,14573.0,,Gas,2019
+Geelong Hospital Cogeneration Plant,F,VIC,,,,13753.0,,Gas,2019
+Royal Melbourne Hospital Cogeneration Plant,F,VIC,,,,30143.0,,Gas,2019
+ST. Vincent’s Hospital Cogeneration Plant,F,VIC,,,,15199.0,,Gas,2019
+Mortons Lane Windfarm Pty Ltd,F,VIC,,,,0.0,,Wind,2019
+Mumbida Wind Farm Pty Ltd,F,WA,,,,400.0,,Wind,2019
+COLEAMBALLY SOLAR PTY LTD,F,NSW,,,,1110.0,,Solar,2019
+DEGRUSSA SOLAR PROJECT PTY LTD,F,WA,,,,286.0,,Solar,2019
+DUBBO SOLAR HUB PTY LTD,F,NSW,,,,89.0,,Solar,2019
+GRIFFITH SOLAR FARM PTY LTD,F,NSW,,,,117.0,,Solar,2019
+HORNSDALE POWER RESERVE PTY LTD,F,SA,,,,4259.0,,Battery,2019
+HWF1 Pty Ltd,F,SA,,,,137.0,,Wind,2019
+HWF2 Pty Ltd,F,SA,,,,140.0,,Wind,2019
+HWF3 PTY LTD,F,SA,,,,138.0,,Wind,2019
+NUMURKAH SOLAR FARM PTY LTD,F,VIC,,,,297.0,,Solar,2019
+PARKES SOLAR FARM PTY LTD,F,NSW,,,,293.0,,Solar,2019
+Kwinana Gas Fired Power Station,F,WA,,,,793159.0,,Gas,2019
+Gladstone Power Station,F,QLD,,,,7917199.0,,Black Coal,2019
+Australand,F,NSW,,,,0.0,,Gas,2019
+Ballarat Solar Park,F,VIC,,,,2.0,,Solar,2019
+Bendigo Solar Park,F,VIC,,,,4.0,,Solar,2019
+Blackmores,F,NSW,,,,1010.0,,Gas,2019
+Bond,F,NSW,,,,489.0,,Gas,2019
+Chifley Square,F,NSW,,,,588.0,,Gas,2019
+Darling Downs Power Station,F,QLD,,,,456504.0,,Gas,2019
+Drapac,F,VIC,,,,413.0,,Gas,2019
+Eraring Power Station,F,NSW,,,,15457965.0,,Black Coal,2019
+Exhibition Street,F,VIC,,,,1252.0,,Gas,2019
+Kent Street,F,NSW,,,,1738.0,,Gas,2019
+La Trobe,F,VIC,,,,434.0,,Gas,2019
+Ladbroke Grove Power Station,F,SA,,,,84868.0,,Gas,2019
+Mirvac,F,NSW,,,,2932.0,,Gas,2019
+Mortlake Power Station,F,VIC,,,,683530.0,,Gas,2019
+Mount,F,NSW,,,,1248.0,,Gas,2019
+Mt Stuart Power Station,F,QLD,,,,14232.0,,Kerosene,2019
+Quarantine Power Station,F,SA,,,,126532.0,,Gas,2019
+Roma Power Station,F,QLD,,,,16979.0,,Gas,2019
+Shoalhaven Scheme,F,NSW,,,,238958.0,,Hydro,2019
+Stockland Headquarters,F,NSW,,,,814.0,,Gas,2019
+University of NSW,F,NSW,,,,1427.0,,Gas,2019
+Uranquinty Power Station,F,NSW,,,,213348.0,,Gas,2019
+Millmerran Power Station (facility),F,QLD,,,,5050431.0,,Black Coal,2019
+Ross River Solar Farm,F,QLD,,,,580.0,,Solar,2019
+Waterloo Wind Farm,F,SA,,,,277.0,,Wind,2019
+Kwinana Swift Power Station,F,WA,,,,62550.0,,Gas,2019
+Bairnsdale Power Station,F,VIC,,,,105093.0,,Gas,2019
+Braemar Power Station,F,QLD,,,,232421.0,,Coal Seam Methane,2019
+Loy Yang B Power Station,F,VIC,,,,9564120.0,,Brown Coal,2019
+Newman Power Station,F,WA,,,,191945.0,,Gas,2019
+Port Hedland Power Station,F,WA,,,,387531.0,,Gas,2019
+Wagerup Power Station,F,WA,,,,304558.0,,Gas,2019
+Alpurrurulam (Lake Nash),F,NT,,,,1137.0,,Diesel,2019
+Amanbidgi (Kildurk),F,NT,,,,265.0,,Diesel,2019
+"Ampilatwatja (Alparra, Ammaroo)",F,NT,,,,2412.0,,Diesel,2019
+Amunturangu (Mount Liebig),F,NT,,,,546.0,,Diesel,2019
+Aputula (Finke),F,NT,,,,616.0,,Diesel,2019
+Areyonga (Utju),F,NT,,,,651.0,,Diesel,2019
+Atitjere (Harts Range),F,NT,,,,672.0,,Diesel,2019
+Borroloola Generation,F,NT,,,,4177.0,,Diesel,2019
+Bulla Camp,F,NT,,,,303.0,,Diesel,2019
+Bulman,F,NT,,,,879.0,,Diesel,2019
+Daly Waters Generation,F,NT,,,,890.0,,Diesel,2019
+Elliot Generation,F,NT,,,,2208.0,,Gas,2019
+Engawala (Alcoota),F,NT,,,,417.0,,Diesel,2019
+Epenarra (Wutunugurra),F,NT,,,,671.0,,Diesel,2019
+Eva Valley,F,NT,,,,287.0,,Diesel,2019
+Galiwinku (Elcho Island),F,NT,,,,4702.0,,Diesel,2019
+Gapuwiyak (Lake Evella),F,NT,,,,2117.0,,Diesel,2019
+Gunbalanya (Oenpelli),F,NT,,,,3536.0,,Diesel,2019
+Ikuntji (Haasts Bluff),F,NT,,,,624.0,,Diesel,2019
+Imangara (Murray Downs),F,NT,,,,278.0,,Diesel,2019
+Imanpa (Mount Ebenezer),F,NT,,,,439.0,,Diesel,2019
+Kalkaringi (Wave Hill),F,NT,,,,2025.0,,Diesel,2019
+Kaltukatjara (Docker River),F,NT,,,,1053.0,,Diesel,2019
+Lajamanu (Hooker Creek),F,NT,,,,2029.0,,Diesel,2019
+Laramba (Napperby),F,NT,,,,685.0,,Diesel,2019
+Maningrida,F,NT,,,,5285.0,,Diesel,2019
+Milikapiti (Snake Bay),F,NT,,,,1664.0,,Diesel,2019
+Milingimbi,F,NT,,,,2441.0,,Diesel,2019
+Milyakburra (Bickerton Island),F,NT,,,,575.0,,Diesel,2019
+Minjilang (Croker Island),F,NT,,,,922.0,,Diesel,2019
+Minyerri (Hodgson Downs),F,NT,,,,1627.0,,Diesel,2019
+Nauiyu Nambiyu (Daly River),F,NT,,,,1110.0,,Diesel,2019
+Nguiu (Bathurst Island),F,NT,,,,4893.0,,Diesel,2019
+Ngukurr (Roper River),F,NT,,,,3269.0,,Diesel,2019
+Numbulwar (Rose River),F,NT,,,,2087.0,,Diesel,2019
+Nyirripi (Waite Creek),F,NT,,,,642.0,,Diesel,2019
+Orwaitilla (Canteen Creek),F,NT,,,,674.0,,Diesel,2019
+Palumpa,F,NT,,,,1024.0,,Diesel,2019
+Papunya,F,NT,,,,1399.0,,Diesel,2019
+Peppimenarti,F,NT,,,,924.0,,Diesel,2019
+Pidgeon Hole,F,NT,,,,365.0,,Diesel,2019
+Pirlangimpi (Garden Point),F,NT,,,,1572.0,,Diesel,2019
+Ramingining,F,NT,,,,2015.0,,Diesel,2019
+Robinson River,F,NT,,,,781.0,,Diesel,2019
+Tara (Neutral Junction),F,NT,,,,257.0,,Diesel,2019
+Ti Tree Generation,F,NT,,,,1884.0,,Diesel,2019
+Timber Creek,F,NT,,,,2122.0,,Diesel,2019
+Titjikala (Maryvale),F,NT,,,,695.0,,Diesel,2019
+Umbakumba,F,NT,,,,1916.0,,Diesel,2019
+Wadeye (Port Keats),F,NT,,,,5817.0,,Gas,2019
+Walungurru (Kintore),F,NT,,,,1108.0,,Diesel,2019
+Warruwi (Goulburn Is),F,NT,,,,1219.0,,Diesel,2019
+Wilora (Stirling),F,NT,,,,274.0,,Diesel,2019
+Wirliyatjarrayi (Willowra),F,NT,,,,776.0,,Diesel,2019
+Yarralin,F,NT,,,,1004.0,,Diesel,2019
+Yuendumu,F,NT,,,,3677.0,,Diesel,2019
+Channel Island Power Station,F,NT,,,,552216.0,,Gas,2019
+Katherine Power Station,F,NT,,,,28349.0,,Gas,2019
+Kings Canyon,F,NT,,,,1117.0,,Solar,2019
+Owen Springs Power Station,F,NT,,,,51042.0,,Gas,2019
+Ron Goodin Power Station,F,NT,,,,90061.0,,Gas,2019
+Tennant Creek Power Station,F,NT,,,,22756.0,,Gas,2019
+Weddell Power Station,F,NT,,,,215124.0,,Gas,2019
+Yulara Power Station,F,NT,,,,13054.0,,Gas,2019
+Visy Energy - Coolaroo Co-gen,F,VIC,,,,36948.0,,Biofuel,2019
+Visy Power Generation - Smithfield Energy Facility,F,NSW,,,,11731.0,,Gas,2019
+Condamine Power Station,F,QLD,,,,319753.0,,Gas,2019
+Kemerton Power Station,F,WA,,,,35014.0,,Gas,2019
+Mount Emerald Wind farm Pty Ltd,F,QLD,,,,1527.0,,Wind,2019
+Ratch-Australia Collinsville Solar PV Pty Ltd,F,QLD,,,,62.0,,Solar,2019
+Starfish Hill Wind Farm,F,SA,,,,78.0,,Wind,2019
+Toora Wind Farm,F,VIC,,,,265.0,,Wind,2019
+Townsville Power Station,F,QLD,,,,127467.0,,Coal Seam Methane,2019
+Windy Hill Wind Farm,F,QLD,,,,43.0,,Wind,2019
+Carnarvon Power Station & Distribution network,F,WA,,,,24739.0,,Gas,2019
+Denham Power Station & Denham Distribution network,F,WA,,,,2513.0,,Diesel,2019
+Kalumburu Power Station & Distribution network,F,WA,,,,1453.0,,Diesel,2019
+Kununurra Power Station & Kununurra Distribution network,F,WA,,,,218.0,,Diesel,2019
+Marble Bar Power Station & Marble Bar Distribution network,F,WA,,,,1208.0,,Diesel,2019
+Murchison Radio Astronomy Power Station and Distribution Network,F,WA,,,,2149.0,,Diesel,2019
+Nullagine Power Station & Nullagine Distribution network,F,WA,,,,715.0,,Diesel,2019
+Onslow Power Station & Onslow Distribution Network,F,WA,,,,9517.0,,Gas,2019
+Wyndham Power Station & Distribution network,F,WA,,,,40.0,,Diesel,2019
+Yungngora Power Station & Yungngora Distribution Network,F,WA,,,,1003.0,,Diesel,2019
+FPC Green Energy,F,QLD,,,,4835.0,,Bagasse,2019
+Cape Lambert Power Station,F,WA,,,,157571.0,,Gas,2019
+Paraburdoo Power Station,F,WA,,,,225741.0,,Gas,2019
+West Angelas Power Station,F,WA,,,,229903.0,,Gas,2019
+Yurralyi Maya Power Station,F,WA,,,,320417.0,,Gas,2019
+Salt Creek Wind Farm,F,VIC,,,,318.0,,Wind,2019
+Wilga Park Power Station,F,NSW,,,,52506.0,,Coal Seam Methane,2019
+Musselroe Wind Farm Pty LTd,F,TAS,,,,319.0,,Wind,2019
+Woolnorth Bluff Point Wind Farm Pty Ltd,F,TAS,,,,113.0,,Wind,2019
+Woolnorth Studland Bay Wind Farm Pty Ltd,F,TAS,,,,135.0,,Wind,2019
+SNOWTOWN SOUTH WIND FARM,F,SA,,,,221.0,,Wind,2019
+Snowtown Wind Farm,F,SA,,,,402.0,,Wind,2019
+SNOWTOWN WIND FARM STAGE 2,F,SA,,,,280.0,,Wind,2019
+Angaston Power Station,F,SA,,,,1370.0,,Diesel,2019
+Colongra Power Station,F,NSW,,,,22502.0,,Gas,2019
+Laverton North Power Station,F,VIC,,,,69192.0,,Gas,2019
+Lonsdale/Port Stanvac Power Station,F,SA,,,,3911.0,,Diesel,2019
+Snowy Hydro Ltd,F,NSW,,,,283811.0,,Hydro,2019
+Valley Power,F,VIC,,,,17634.0,,Gas,2019
+Moree Solar Farm,F,NSW,,,,663.0,,Solar,2019
+Challicum Hills Wind Farm,F,VIC,,,,61.0,,Wind,2019
+Clements Gap Wind Farm,F,SA,,,,92.0,,Wind,2019
+Codrington Wind Farm,F,VIC,,,,28.0,,Wind,2019
+Crowlands Wind Farm,F,VIC,,,,1623.0,,Wind,2019
+Eildon Pondage Hydro,F,VIC,,,,6.0,,Hydro,2019
+Glenmaggie Hydro,F,VIC,,,,4.0,,Hydro,2019
+Haughton Solar Farm,F,QLD,,,,429.0,,Solar,2019
+Ord Hydro,F,WA,,,,69.0,,Hydro,2019
+Portland Wind Farms,F,VIC,,,,72.0,,Wind,2019
+Taralga Wind Farm,F,NSW,,,,95.0,,Wind,2019
+The Drop Hydro,F,NSW,,,,4.0,,Hydro,2019
+William Hovell Hydro,F,VIC,,,,4.0,,Hydro,2019
+Yaloak South Wind Farm,F,VIC,,,,25.0,,Wind,2019
+Yambuk Wind Farm,F,VIC,,,,32.0,,Wind,2019
+Albany Windfarm,F,WA,,,,22.0,,Wind,2019
+Barron Gorge Power Station,F,QLD,,,,411.0,,Hydro,2019
+Kareeya Power Station,F,QLD,,,,1097.0,,Hydro,2019
+Mackay Gas Turbine,F,QLD,,,,317.0,,Diesel,2019
+Mica Creek Power Station,F,QLD,,,,173132.0,,Gas,2019
+Stanwell Power Station,F,QLD,,,,7457309.0,,Black Coal,2019
+Swanbank E Power Station,F,QLD,,,,239490.0,,Gas,2019
+Tarong Power Stations,F,QLD,,,,10273797.0,,Black Coal,2019
+Coopers Cogeneration,F,SA,,,,8202.0,,Gas,2019
+Glenorchy Landfill,F,TAS,,,,323.0,,Landfill Gas,2019
+Hobart Landfill,F,TAS,,,,281.0,,Landfill Gas,2019
+Kemps Creek Landfill,F,NSW,,,,386.0,,Landfill Gas,2019
+Kincumber Landfill,F,NSW,,,,94.0,,Landfill Gas,2019
+Moranbah Power Station,F,QLD,,,,25065.0,,Coal Seam Methane,2019
+Rockingham Landfill,F,WA,,,,965.0,,Landfill Gas,2019
+Werribee Biogas,F,VIC,,,,2530.0,,Sludge Biogas,2019
+Woy Woy Landfill,F,NSW,,,,327.0,,Landfill Gas,2019
+SWF 1 Operations Holdings Pty Ltd,F,NSW,,,,2240.0,,Wind,2019
+Kalgoorlie Power Station,F,WA,,,,153301.0,,Gas,2019
+Kambalda Power Station,F,WA,,,,152822.0,,Gas,2019
+Leinster Power Station,F,WA,,,,169412.0,,Gas,2019
+Mt Keith Power Station,F,WA,,,,221404.0,,Gas,2019
+South Hedland Power Station,F,WA,,,,240129.0,,Gas,2019
+Tailem Bend Solar farm,F,SA,,,,292.0,,Solar,2019
+Cocos Keeling Islands - Home Island Generation,F,WA,,,,1737.0,,Diesel,2019
+Cocos Keeling Islands - West Island Generation,F,WA,,,,2051.0,,Diesel,2019
+YPF UTILITIES PRODUCTION AND SUPPLY,F,WA,,,,19753.0,,Gas,2019
