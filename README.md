@@ -1,109 +1,108 @@
 # NEM Monitoring Dashboard
 
-Real-time monitoring stack for Australian NEM facilities built with Python, MQTT, and Streamlit. The project fetches electricity data, cleans and enriches it, publishes the result as a live MQTT stream, and renders an interactive dashboard with maps, charts, and tables.
+Python project that fetches National Electricity Market related data, prepares publishable records, streams them over MQTT, and renders a Streamlit dashboard with a live map, metrics, and a table. The repository is structured as a small data pipeline plus a frontend that subscribes to the pipeline output.
 
-## Why This Project
+## Key Features
 
-- End-to-end data pipeline from external API to live UI
-- Clear missing-data policy and deterministic cleaning
-- MQTT-based real-time delivery with confirmed publishes
-- Resilient dashboard that keeps running while the broker is reconnecting
-- Split local and cloud deployment paths that are easy to explain in interviews
+- Open Electricity API ingestion for operational electricity data
+- CER and NGER facility metadata ingestion and matching
+- Deterministic cleaning and staging into `data/raw/`, `data/staging/`, and `data/mart/`
+- MQTT publish/subscribe flow using `comp5339/task123/measurements/{facility_code}`
+- Streamlit dashboard with a custom facility map component, summary cards, filters, and a cache reset action
+- Optional GitHub Actions control for hosted deployments
+- Lightweight tests for the dashboard and dotenv loader
+
+## Tech Stack
+
+- Python 3.10+
+- Streamlit
+- Pandas and NumPy
+- Paho MQTT
+- Requests
+- Folium and `streamlit-folium`
+- Docker Compose for the local Mosquitto broker
+
+## Repository Structure
+
+- `app/streamlit_app.py`: Streamlit wrapper entrypoint
+- `scripts/run_publisher.py`: publisher wrapper entrypoint
+- `src/publisher/`: fetch, clean, align, and publish data
+- `src/dashboard/`: runtime state, MQTT subscriber, and Streamlit rendering
+- `src/shared/`: shared dotenv, paths, topics, and stream cache helpers
+- `broker/`: Mosquitto configuration and runtime volumes
+- `data/`: tracked sample artifacts plus generated pipeline outputs
+- `docs/`: architecture, configuration, deployment, and troubleshooting notes
+- `tests/`: logic tests for the dashboard, publisher, and dotenv loader
 
 ## Architecture
 
 ```mermaid
 flowchart LR
   A[Open Electricity API] --> P[Publisher]
-  S[Static metadata CSVs] --> P
+  B[CER and NGER metadata] --> P
+  P --> C[data/raw and data/staging artifacts]
   P --> M[MQTT broker]
   M --> D[Streamlit dashboard]
-  D --> C[Bounded in-memory cache]
-  C --> V[Metrics, trend chart, map, table]
-  P --> F[data/mart/data_for_publish.csv]
+  D --> S[Bounded in-memory StreamCache]
+  S --> V[Metrics, trend card, map, table]
 ```
 
-The source of truth for the live UI is MQTT plus the in-memory cache, not a database. The publisher now persists artifacts in layered folders under `data/`:
+The runtime flow is:
 
-- `data/raw/`: upstream files with minimal transformation
-- `data/staging/`: cleaned, typed, and deduplicated tables
-- `data/mart/`: publish-ready output
-- `data/cache/`: runtime caches
+1. `src/__init__.py` loads a repo-root `.env` file if one exists.
+2. `scripts/run_publisher.py` calls `src.publisher.cli.main()`.
+3. The publisher prepares CSV artifacts when `data/mart/data_for_publish.csv` is missing, then streams rows as MQTT messages.
+4. `app/streamlit_app.py` calls `src.dashboard.app.main()`.
+5. The dashboard starts an MQTT client, stores accepted messages in a bounded `StreamCache`, and renders from the latest cached snapshot.
 
-## Repository Layout
+## Setup
 
-- `src/publisher/`: data fetch, cleaning, alignment, and MQTT publishing
-- `src/dashboard/`: MQTT subscriber, runtime state, filters, and render logic
-- `src/shared/`: shared MQTT topics and cache helpers
-- `app/streamlit_app.py`: Streamlit entrypoint used by local and hosted runs
-- `scripts/run_publisher.py`: publisher entrypoint used by local runs and CI
-- `docs/data_pipeline_and_missing_values.md`: deeper technical notes on the pipeline and cleaning policy
-- `docs/deployment.md`: cloud/local deployment and operational details
-- `tests/`: logic tests for publisher and dashboard behavior
-
-## Quick Start
-
-### 1. Create and activate a virtual environment
-
-If the repository already has `.venv`, you can use it directly:
-
-```bash
-source .venv/bin/activate
-```
-
-Or create a fresh environment:
+1. Create a virtual environment.
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-### 2. Install dependencies
+2. Install dependencies.
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Start the local MQTT broker
+3. Configure environment variables in your shell or in a repo-root `.env` file.
+
+The code loads `.env` automatically when `src` is imported, so you do not need a separate dotenv loader.
+
+4. Start the local MQTT broker.
 
 ```bash
 docker compose up -d
 ```
 
-### 4. Start the publisher
+## Run Locally
+
+Start the publisher in one terminal:
 
 ```bash
 python scripts/run_publisher.py
 ```
 
-If `data/mart/data_for_publish.csv` already exists, the publisher reuses it. If it does not exist, the publisher rebuilds the data artifacts first.
-
-### 5. Start the dashboard
-
-Open a second terminal:
+Start the dashboard in a second terminal:
 
 ```bash
 streamlit run app/streamlit_app.py
 ```
 
-Then open `http://127.0.0.1:8501`.
-
-## What the Dashboard Shows
-
-- Top-line metrics for the current live snapshot
-- A trend panel for the latest facility message
-- An interactive map of facilities
-- A filterable table of the current snapshot
-- MQTT connection state and cache statistics in the sidebar
-
-If MQTT is unavailable, the page stays up and shows the current connection state instead of crashing.
+Open `http://127.0.0.1:8501`.
 
 ## Configuration
 
-The most important environment variables are:
+See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for the full environment variable matrix.
 
-- `MQTT_BROKER` and `MQTT_PORT`
-- `MQTT_TLS`, `MQTT_USERNAME`, and `MQTT_PASSWORD`
+The most important values are:
+
+- `MQTT_BROKER` / `MQTT_PORT`
 - `MQTT_SUBSCRIBE_TOPIC_FILTER`
 - `MQTT_PUBLISH_TOPIC_TEMPLATE`
 - `OPEN_ELECTRICITY_API_KEY`
@@ -112,22 +111,35 @@ The most important environment variables are:
 - `ENABLE_GITHUB_ACTIONS_CONTROL`
 - `AUTO_START_PUBLISHER`
 
-See [docs/deployment.md](docs/deployment.md) for the full environment matrix and deployment notes.
-
 ## Testing
 
-Run the main logic tests with:
+Run the repository tests with:
 
 ```bash
-pytest -q tests/test_dashboard_logic.py
+pytest -q tests/test_dashboard_logic.py tests/test_dotenv_loader.py
 ```
 
-## Demo Links
+There is no separate lint or build command defined in `requirements.txt` or the repository scripts.
 
-- Render: https://nem-monitoring-dashboard.onrender.com
-- Streamlit Cloud: https://nem-monitoring-dashboard.streamlit.app
+## Deployment Notes
 
-## Related Docs
+- `docker-compose.yml` only starts Mosquitto. It does not start the Python services.
+- `render.yaml` deploys the Streamlit frontend as a web service.
+- The cloud dashboard is frontend-only; live data still depends on an MQTT broker.
+- GitHub Actions control is optional and only works when `ENABLE_GITHUB_ACTIONS_CONTROL=true` and `GITHUB_TOKEN` is configured.
 
+## Known Limitations
+
+- The publisher reuses `data/mart/data_for_publish.csv` if it already exists.
+- When the publisher must rebuild raw Open Electricity artifacts, it uses the hard-coded historical window visible in `src/publisher/cli.py`.
+- The dashboard keeps live state in memory; it does not persist a durable event history.
+- Several features depend on external services: the Open Electricity API, CER downloads, MQTT broker access, and optional GitHub Actions API access.
+
+## Docs
+
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/CONFIGURATION.md](docs/CONFIGURATION.md)
+- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+- [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
 - [docs/data_pipeline_and_missing_values.md](docs/data_pipeline_and_missing_values.md)
-- [docs/deployment.md](docs/deployment.md)
