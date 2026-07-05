@@ -14,12 +14,14 @@ except ImportError:  # pragma: no cover - exercised in dependency-light test env
             HTTPError = RuntimeError
 
         def get(self, *args, **kwargs):
-            raise ModuleNotFoundError("requests is required for Assignment 1 fetches")
+            raise ModuleNotFoundError("requests is required for facility metadata fetches")
 
     requests = _MissingRequests()
 
 from src.shared.paths import raw_data_path, staging_data_path
 
+
+FACILITY_METADATA_DIR = "facility_metadata"
 
 NGER_API_URLS = [
     "https://api.cer.gov.au/datahub-public/v1/api/ODataDataset/NGER/dataset/ID0075?select%3D%2A",
@@ -38,7 +40,7 @@ CER_XLSX_URL = "https://cer.gov.au/document/power-stations-and-projects-status"
 
 
 def clean_nger_data(df: pd.DataFrame) -> pd.DataFrame:
-    """Apply the Assignment 1 NGER cleaning rules."""
+    """Apply the NGER cleaning rules for facility metadata."""
     cleaned = df.copy()
     if "facilityName" in cleaned.columns:
         cleaned["facilityName"] = cleaned["facilityName"].astype("string").str.strip()
@@ -62,7 +64,7 @@ def clean_nger_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def clean_cer_data(df: pd.DataFrame) -> pd.DataFrame:
-    """Apply the Assignment 1 CER cleaning rules."""
+    """Apply the CER cleaning rules for facility metadata."""
     cleaned = df.copy()
     cleaned["powerStation"] = cleaned["powerStation"].astype("string").str.split("-", n=1).str[0].str.strip()
     if "state" in cleaned.columns:
@@ -88,8 +90,8 @@ def clean_cer_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def fetch_nger_raw_data(output_dir: str | Path | None = None) -> pd.DataFrame:
-    """Download the remote NGER source datasets and write data/NGER_data.csv."""
-    output_dir = Path(output_dir) if output_dir is not None else raw_data_path("assignment1")
+    """Download the remote NGER source datasets and write the raw CSV."""
+    output_dir = Path(output_dir) if output_dir is not None else raw_data_path(FACILITY_METADATA_DIR)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     records: list[dict] = []
@@ -114,8 +116,8 @@ def fetch_nger_raw_data(output_dir: str | Path | None = None) -> pd.DataFrame:
 
 
 def fetch_cer_raw_data(output_dir: str | Path | None = None) -> pd.DataFrame:
-    """Download the remote CER XLSX and write data/CER_data.csv."""
-    output_dir = Path(output_dir) if output_dir is not None else raw_data_path("assignment1")
+    """Download the remote CER XLSX and write the raw CSV."""
+    output_dir = Path(output_dir) if output_dir is not None else raw_data_path(FACILITY_METADATA_DIR)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     response = requests.get(CER_XLSX_URL, timeout=120)
@@ -157,14 +159,14 @@ def fetch_cer_raw_data(output_dir: str | Path | None = None) -> pd.DataFrame:
     return combined
 
 
-def clean_assignment1_artifacts(
+def clean_facility_metadata_artifacts(
     source_dir: str | Path | None = None,
     output_dir: str | Path | None = None,
 ) -> dict[str, pd.DataFrame]:
-    """Read raw Assignment 1 CSVs, clean them, and write the clean outputs."""
-    default_source_dir = raw_data_path("assignment1")
-    default_output_dir = staging_data_path("assignment1")
-    source_dir = Path(source_dir) if source_dir is not None else Path(os.getenv("ASSIGNMENT1_DATA_DIR", default_source_dir))
+    """Read raw metadata CSVs, clean them, and write the staged outputs."""
+    default_source_dir = raw_data_path(FACILITY_METADATA_DIR)
+    default_output_dir = staging_data_path(FACILITY_METADATA_DIR)
+    source_dir = Path(source_dir) if source_dir is not None else Path(os.getenv("FACILITY_METADATA_DATA_DIR", default_source_dir))
     output_dir = Path(output_dir) if output_dir is not None else default_output_dir
 
     nger_raw_path = source_dir / "NGER_data.csv"
@@ -186,10 +188,10 @@ def clean_assignment1_artifacts(
     }
 
 
-def fetch_and_clean_assignment1_artifacts(output_dir: str | Path | None = None) -> dict[str, pd.DataFrame]:
-    """Fetch the remote Assignment 1 source files, then clean them into CSV artifacts."""
-    raw_output_dir = Path(output_dir) if output_dir is not None else raw_data_path("assignment1")
-    staging_output_dir = staging_data_path("assignment1")
+def fetch_and_clean_facility_metadata_artifacts(output_dir: str | Path | None = None) -> dict[str, pd.DataFrame]:
+    """Fetch the remote metadata source files, then clean them into CSV artifacts."""
+    raw_output_dir = Path(output_dir) if output_dir is not None else raw_data_path(FACILITY_METADATA_DIR)
+    staging_output_dir = staging_data_path(FACILITY_METADATA_DIR)
     nger_raw = fetch_nger_raw_data(output_dir=raw_output_dir)
     cer_raw = fetch_cer_raw_data(output_dir=raw_output_dir)
     nger_clean = clean_nger_data(nger_raw)
@@ -205,28 +207,27 @@ def fetch_and_clean_assignment1_artifacts(output_dir: str | Path | None = None) 
     }
 
 
-def load_assignment1_csv(path: str | Path) -> pd.DataFrame:
+def load_facility_metadata_csv(path: str | Path) -> pd.DataFrame:
     """
-    Load the staged Assignment 1 CSV, falling back to the staged layer mirror
+    Load a staged metadata CSV, falling back to the staged mirror
     when callers still pass an equivalent clean filename.
     """
     path = Path(path)
     if path.exists():
         return pd.read_csv(path)
 
-    staged_path = staging_data_path("assignment1", path.name)
+    staged_path = staging_data_path(FACILITY_METADATA_DIR, path.name)
     if staged_path.exists():
         return pd.read_csv(staged_path)
 
     raise FileNotFoundError(f"Could not find {path} or staged fallback {staged_path}")
 
-
 __all__ = [
-    "clean_assignment1_artifacts",
     "clean_cer_data",
-    "fetch_and_clean_assignment1_artifacts",
+    "clean_facility_metadata_artifacts",
+    "clean_nger_data",
+    "fetch_and_clean_facility_metadata_artifacts",
     "fetch_cer_raw_data",
     "fetch_nger_raw_data",
-    "clean_nger_data",
-    "load_assignment1_csv",
+    "load_facility_metadata_csv",
 ]

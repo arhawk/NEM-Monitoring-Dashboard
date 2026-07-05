@@ -50,14 +50,14 @@ streamlit run app/streamlit_app.py --server.address 0.0.0.0 --server.port $PORT
 
 - `OPEN_ELECTRICITY_API_KEY`: required when the publisher needs to fetch fresh data from the API
 - `PUBLISH_DURATION_SECONDS`: how long the timed publisher should run in cloud mode
-- `ASSIGNMENT1_DATA_DIR`: optional source directory for raw Assignment 1 CSVs (`NGER_data.csv` and `CER_data.csv`)
+- `FACILITY_METADATA_DATA_DIR`: optional source directory for the raw metadata CSVs (`NGER_data.csv` and `CER_data.csv`)
 
 The publisher now uses layered artifact folders under `data/`:
 
 - `data/raw/open_electricity/`
-- `data/raw/assignment1/`
+- `data/raw/facility_metadata/`
 - `data/staging/open_electricity/`
-- `data/staging/assignment1/`
+- `data/staging/facility_metadata/`
 - `data/mart/`
 - `data/cache/`
 
@@ -81,12 +81,12 @@ The publisher now uses layered artifact folders under `data/`:
 
 These files are created during normal publisher runs:
 
-- `data/raw/assignment1/NGER_data.csv`
-- `data/raw/assignment1/CER_data.csv`
+- `data/raw/facility_metadata/NGER_data.csv`
+- `data/raw/facility_metadata/CER_data.csv`
 - `data/raw/open_electricity/facility_list.csv`
 - `data/raw/open_electricity/consolidated_data_total.csv`
-- `data/staging/assignment1/NGER_data_clean.csv`
-- `data/staging/assignment1/CER_data_clean.csv`
+- `data/staging/facility_metadata/NGER_data_clean.csv`
+- `data/staging/facility_metadata/CER_data_clean.csv`
 - `data/staging/open_electricity/facility_list_clean.csv`
 - `data/staging/open_electricity/consolidated_data_cleaned.csv`
 - `data/mart/data_for_publish.csv`

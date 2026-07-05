@@ -144,8 +144,8 @@ Behavior to remember:
   - `data/raw/open_electricity/consolidated_data_total.csv`
   - `data/staging/open_electricity/facility_list_clean.csv`
   - `data/staging/open_electricity/consolidated_data_cleaned.csv`
-  - `data/staging/assignment1/NGER_data_clean.csv`
-  - `data/staging/assignment1/CER_data_clean.csv`
+  - `data/staging/facility_metadata/NGER_data_clean.csv`
+  - `data/staging/facility_metadata/CER_data_clean.csv`
   - `data/mart/data_for_publish.csv`
   - `data/cache/facility_data_cache.json`
 - If `data/raw/open_electricity/consolidated_data_total.csv` already exists, the script reuses it and continues through the remaining cleaning and publish pipeline.

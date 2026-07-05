@@ -127,15 +127,15 @@ This means the live system keeps missing data visible as missing, rather than si
 The pipeline writes artifacts to:
 
 - `data/raw/open_electricity/` for facility and time-series source extracts
-- `data/raw/assignment1/` for downloaded NGER and CER inputs
+- `data/raw/facility_metadata/` for downloaded NGER and CER inputs
 - `data/staging/open_electricity/` for cleaned facility and time-series tables
-- `data/staging/assignment1/` for cleaned Assignment 1 tables
+- `data/staging/facility_metadata/` for cleaned facility metadata tables
 - `data/mart/` for the publish-ready MQTT input CSV
 - `data/cache/` for runtime cache state
 
-## 4. Integration with Assignment 1
+## 4. Integration with Facility Metadata
 
-The operational data is combined with static metadata from Assignment 1:
+The operational data is combined with static facility metadata:
 
 - `facility_code` is the integration key
 - `facility_name` is used for fuzzy matching and grouping

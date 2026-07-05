@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from .assignment1 import load_assignment1_csv
+from .facility_metadata import load_facility_metadata_csv
 
 
 def combine_matching(df1: pd.DataFrame, df2: pd.DataFrame, left_on: str, right_on: str, keep: bool) -> pd.DataFrame:
@@ -52,8 +52,8 @@ def build_publish_dataset(
     output_path = Path(output_path)
     df_cleaned = pd.read_csv(cleaned_data_path)
     df1 = pd.read_csv(facility_list_path)
-    df2 = load_assignment1_csv(nger_path)
-    df3 = load_assignment1_csv(cer_path)
+    df2 = load_facility_metadata_csv(nger_path)
+    df3 = load_facility_metadata_csv(cer_path)
 
     tmp_df = combine_matching(df1, df2, left_on="facility_name", right_on="facilityName", keep=False)
     tmp_df2 = combine_matching(tmp_df, df3, left_on="facility_name", right_on="powerStation", keep=True)

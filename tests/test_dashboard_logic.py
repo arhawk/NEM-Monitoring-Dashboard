@@ -42,7 +42,7 @@ from src.dashboard.views import sidebar as dashboard_sidebar_view
 from src.dashboard.views import table as dashboard_table_view
 from src.dashboard import runtime as dashboard_runtime
 from src.publisher import cli as publisher_cli
-from src.publisher.data import assignment1 as task_a1_cleaning
+from src.publisher.data import facility_metadata as task_facility_metadata
 from src.publisher.data import cleaning as task13_cleaning
 from src.publisher.publish import mqtt_publish as task13_mqtt
 from src.shared import stream_cache
@@ -129,7 +129,7 @@ class PublishLogicTests(TestCase):
         self.assertEqual(cleaned.iloc[1], 1.0)
         self.assertEqual(cleaned.iloc[2], 4.0)
 
-    def test_clean_nger_data_applies_assignment1_filters(self) -> None:
+    def test_clean_nger_data_applies_metadata_filters(self) -> None:
         df = pd.DataFrame(
             [
                 {
@@ -186,7 +186,7 @@ class PublishLogicTests(TestCase):
             ]
         )
 
-        cleaned = task_a1_cleaning.clean_nger_data(df)
+        cleaned = task_facility_metadata.clean_nger_data(df)
 
         self.assertEqual(cleaned.shape[0], 1)
         self.assertListEqual(
@@ -234,7 +234,7 @@ class PublishLogicTests(TestCase):
             ]
         )
 
-        cleaned = task_a1_cleaning.clean_cer_data(df)
+        cleaned = task_facility_metadata.clean_cer_data(df)
 
         self.assertListEqual(
             cleaned.columns.tolist(),
@@ -244,12 +244,12 @@ class PublishLogicTests(TestCase):
         self.assertEqual(cleaned.iloc[0]["year"], 2025)
         self.assertEqual(cleaned.iloc[1]["year"], 2025)
 
-    def test_load_assignment1_csv_falls_back_to_staged_data(self) -> None:
+    def test_load_facility_metadata_csv_falls_back_to_staged_data(self) -> None:
         from tempfile import TemporaryDirectory
 
         with TemporaryDirectory() as temp_dir:
             staged_root = Path(temp_dir)
-            staged_path = staged_root / "assignment1" / "NGER_data_clean.csv"
+            staged_path = staged_root / "facility_metadata" / "NGER_data_clean.csv"
             staged_path.parent.mkdir(parents=True, exist_ok=True)
             pd.DataFrame(
                 [
@@ -257,13 +257,13 @@ class PublishLogicTests(TestCase):
                 ]
             ).to_csv(staged_path, index=False)
 
-            missing_clean_path = Path("/tmp/nonexistent-assignment1/NGER_data_clean.csv")
+            missing_clean_path = Path("/tmp/nonexistent-facility-metadata/NGER_data_clean.csv")
             with patch.object(
-                task_a1_cleaning,
+                task_facility_metadata,
                 "staging_data_path",
                 side_effect=lambda *parts: staged_root.joinpath(*parts),
             ):
-                loaded = task_a1_cleaning.load_assignment1_csv(missing_clean_path)
+                loaded = task_facility_metadata.load_facility_metadata_csv(missing_clean_path)
 
         self.assertIn("lat", loaded.columns)
         self.assertIn("lng", loaded.columns)
