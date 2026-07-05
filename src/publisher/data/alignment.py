@@ -63,7 +63,7 @@ def build_publish_dataset(
 
     grouped = (
         tmp_df3_clean.groupby(["facility_name", "facility_code", "lat", "lng", "state"])
-        .apply(lambda x: combine_fuels(x))
+        .apply(combine_fuels, include_groups=False)
         .reset_index(name="fuel_list")
     )
 

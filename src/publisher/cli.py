@@ -29,6 +29,11 @@ CER_PATH = ASSIGNMENT1_STAGING_DIR / "CER_data_clean.csv"
 
 
 def prepare_data_artifacts() -> None:
+    if not NGER_PATH.exists() or not CER_PATH.exists():
+        fetch_and_clean_assignment1_artifacts()
+    else:
+        clean_assignment1_artifacts()
+
     if not RAW_CONSOLIDATED_PATH.exists() or not RAW_FACILITY_LIST_PATH.exists():
         fetch_and_build_consolidated_data(
             date_start=datetime(2025, 10, 24, 23, 0, 0),
@@ -37,11 +42,6 @@ def prepare_data_artifacts() -> None:
 
     STAGING_FACILITY_LIST_PATH.parent.mkdir(parents=True, exist_ok=True)
     clean_facility_list(pd.read_csv(RAW_FACILITY_LIST_PATH)).to_csv(STAGING_FACILITY_LIST_PATH, index=False)
-
-    if not NGER_PATH.exists() or not CER_PATH.exists():
-        fetch_and_clean_assignment1_artifacts()
-    else:
-        clean_assignment1_artifacts()
     clean_consolidated_data(RAW_CONSOLIDATED_PATH, STAGING_CONSOLIDATED_PATH)
     build_publish_dataset(
         STAGING_CONSOLIDATED_PATH,

@@ -100,7 +100,10 @@ def clean_consolidated_data(
         subset=[column for column in ("facility_code", "timestamp") if column in data.columns],
         keep="last",
     )
-    data = data.groupby("facility_code", group_keys=False, observed=True).apply(handle_missing_values_fast)
+    data = data.groupby("facility_code", group_keys=False, observed=True).apply(
+        handle_missing_values_fast,
+        include_groups=False,
+    )
     df_cleaned = data.dropna(how="all")
     if not df_cleaned.empty and {"facility_code", "timestamp"}.issubset(df_cleaned.columns):
         df_cleaned = df_cleaned.sort_values(["facility_code", "timestamp"]).reset_index(drop=True)
