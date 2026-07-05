@@ -1,16 +1,36 @@
 from __future__ import annotations
 
 import os
+from io import BytesIO
 from pathlib import Path
 
 import pandas as pd
+import requests
 
 from src.shared.paths import data_path, repo_path
+
+
+NGER_API_URLS = [
+    "https://api.cer.gov.au/datahub-public/v1/api/ODataDataset/NGER/dataset/ID0075?select%3D%2A",
+    "https://api.cer.gov.au/datahub-public/v1/api/ODataDataset/NGER/dataset/ID0076?select%3D%2A",
+    "https://api.cer.gov.au/datahub-public/v1/api/ODataDataset/NGER/dataset/ID0077?select%3D%2A",
+    "https://api.cer.gov.au/datahub-public/v1/api/ODataDataset/NGER/dataset/ID0078?select%3D%2A",
+    "https://api.cer.gov.au/datahub-public/v1/api/ODataDataset/NGER/dataset/ID0079?select%3D%2A",
+    "https://api.cer.gov.au/datahub-public/v1/api/ODataDataset/NGER/dataset/ID0080?select%3D%2A",
+    "https://api.cer.gov.au/datahub-public/v1/api/ODataDataset/NGER/dataset/ID0081?select%3D%2A",
+    "https://api.cer.gov.au/datahub-public/v1/api/ODataDataset/NGER/dataset/ID0082?select%3D%2A",
+    "https://api.cer.gov.au/datahub-public/v1/api/ODataDataset/NGER/dataset/ID0083?select%3D%2A",
+    "https://api.cer.gov.au/datahub-public/v1/api/ODataDataset/NGER/dataset/ID0243?select%3D%2A",
+]
+
+CER_XLSX_URL = "https://cer.gov.au/document/power-stations-and-projects-status"
 
 
 def clean_nger_data(df: pd.DataFrame) -> pd.DataFrame:
     """Apply the Assignment 1 NGER cleaning rules."""
     cleaned = df.copy()
+    if "importantNotes" in cleaned.columns:
+        cleaned["importantNotes"] = cleaned["importantNotes"].replace({"N/A": pd.NA, "-": pd.NA})
     cleaned = cleaned[cleaned["facilityName"].notna()]
     cleaned = cleaned[cleaned["importantNotes"].isna()]
 
@@ -48,6 +68,76 @@ def clean_cer_data(df: pd.DataFrame) -> pd.DataFrame:
     return cleaned.reset_index(drop=True)
 
 
+def fetch_nger_raw_data(output_dir: str | Path | None = None) -> pd.DataFrame:
+    """Download the remote NGER source datasets and write data/NGER_data.csv."""
+    output_dir = Path(output_dir) if output_dir is not None else data_path()
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    records: list[dict] = []
+    standard_columns: list[str] | None = None
+
+    for year_offset, api_url in enumerate(NGER_API_URLS):
+        response = requests.get(api_url, timeout=120)
+        response.raise_for_status()
+        df = pd.DataFrame(response.json())
+        df["year"] = 2015 + year_offset
+
+        if standard_columns is None:
+            standard_columns = df.columns.tolist()
+        else:
+            df = df.reindex(columns=standard_columns, fill_value=pd.NA)
+        records.extend(df.to_dict("records"))
+
+    combined = pd.DataFrame.from_records(records)
+    combined = combined.replace({"-": None, "N/A": None})
+    combined.to_csv(output_dir / "NGER_data.csv", index=False, encoding="utf-8-sig")
+    return combined
+
+
+def fetch_cer_raw_data(output_dir: str | Path | None = None) -> pd.DataFrame:
+    """Download the remote CER XLSX and write data/CER_data.csv."""
+    output_dir = Path(output_dir) if output_dir is not None else data_path()
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    response = requests.get(CER_XLSX_URL, timeout=120)
+    response.raise_for_status()
+    workbook = BytesIO(response.content)
+
+    approved_df = pd.read_excel(
+        workbook,
+        sheet_name=0,
+        skiprows=3,
+        skipfooter=1,
+    ).iloc[:, 1:]
+    approved_df["inSheet"] = "Approved"
+
+    workbook.seek(0)
+    committed_df = pd.read_excel(
+        workbook,
+        sheet_name=1,
+        skiprows=3,
+        skipfooter=1,
+    )
+    committed_df["inSheet"] = "Committed"
+
+    workbook.seek(0)
+    probable_df = pd.read_excel(
+        workbook,
+        sheet_name=2,
+        skiprows=3,
+        skipfooter=1,
+    )
+    probable_df["inSheet"] = "Probable"
+
+    approved_df.columns = ["powerStation", "state", "postcode", "MWCapacity", "fuelSource"] + approved_df.columns.tolist()[5:]
+    committed_df.columns = ["powerStation", "state", "MWCapacity", "fuelSource"] + committed_df.columns.tolist()[4:]
+    probable_df.columns = ["powerStation", "state", "MWCapacity", "fuelSource"] + probable_df.columns.tolist()[4:]
+
+    combined = pd.concat([approved_df, committed_df, probable_df], ignore_index=True)
+    combined.to_csv(output_dir / "CER_data.csv", index=False, encoding="utf-8-sig")
+    return combined
+
+
 def clean_assignment1_artifacts(
     source_dir: str | Path | None = None,
     output_dir: str | Path | None = None,
@@ -75,6 +165,23 @@ def clean_assignment1_artifacts(
     }
 
 
+def fetch_and_clean_assignment1_artifacts(output_dir: str | Path | None = None) -> dict[str, pd.DataFrame]:
+    """Fetch the remote Assignment 1 source files, then clean them into CSV artifacts."""
+    output_dir = Path(output_dir) if output_dir is not None else data_path()
+    nger_raw = fetch_nger_raw_data(output_dir=output_dir)
+    cer_raw = fetch_cer_raw_data(output_dir=output_dir)
+    nger_clean = clean_nger_data(nger_raw)
+    cer_clean = clean_cer_data(cer_raw)
+    nger_clean.to_csv(output_dir / "NGER_data_clean.csv", index=False, encoding="utf-8-sig")
+    cer_clean.to_csv(output_dir / "CER_data_clean.csv", index=False, encoding="utf-8-sig")
+    return {
+        "nger_raw": nger_raw,
+        "cer_raw": cer_raw,
+        "nger": nger_clean,
+        "cer": cer_clean,
+    }
+
+
 def load_assignment1_csv(path: str | Path) -> pd.DataFrame:
     """
     Load the preferred clean Assignment 1 CSV, falling back to the legacy
@@ -95,6 +202,9 @@ def load_assignment1_csv(path: str | Path) -> pd.DataFrame:
 __all__ = [
     "clean_assignment1_artifacts",
     "clean_cer_data",
+    "fetch_and_clean_assignment1_artifacts",
+    "fetch_cer_raw_data",
+    "fetch_nger_raw_data",
     "clean_nger_data",
     "load_assignment1_csv",
 ]

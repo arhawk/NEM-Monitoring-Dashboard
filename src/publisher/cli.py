@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from .data import build_publish_dataset, clean_assignment1_artifacts, clean_consolidated_data
+from .data import (
+    build_publish_dataset,
+    clean_assignment1_artifacts,
+    clean_consolidated_data,
+    fetch_and_clean_assignment1_artifacts,
+)
 from .fetch import fetch_and_build_consolidated_data
 from .publish import MEASURE_CSV, run_publisher_loop
 from src.shared.paths import data_path
@@ -23,7 +28,10 @@ def prepare_data_artifacts() -> None:
             date_end=datetime(2025, 10, 31, 22, 59, 59),
         )
 
-    clean_assignment1_artifacts()
+    if not NGER_PATH.exists() or not CER_PATH.exists():
+        fetch_and_clean_assignment1_artifacts()
+    else:
+        clean_assignment1_artifacts()
     clean_consolidated_data(RAW_CONSOLIDATED_PATH, CLEANED_PATH)
     build_publish_dataset(CLEANED_PATH, FACILITY_LIST_PATH, NGER_PATH, CER_PATH, PUBLISH_PATH)
 
