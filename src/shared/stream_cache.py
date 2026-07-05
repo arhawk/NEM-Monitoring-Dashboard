@@ -5,62 +5,31 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from threading import RLock
 from time import time
-import os
 from typing import Any, Deque, Dict, List, Optional
 
-
-DEFAULT_MAX_STREAM_ROWS = 5520
-DEFAULT_RESET_INTERVAL_HOURS = 6
-DEFAULT_MAIN_REFRESH_INTERVAL_SECONDS = 1
-DEFAULT_SIDEBAR_REFRESH_INTERVAL_SECONDS = 1
-
-
-def _get_env_int(name: str, default: int) -> int:
-    raw_value = os.getenv(name)
-    if raw_value is None or raw_value.strip() == "":
-        return default
-    try:
-        return int(raw_value)
-    except ValueError:
-        return default
-
-
-def _get_env_float(name: str, default: float) -> float:
-    raw_value = os.getenv(name)
-    if raw_value is None or raw_value.strip() == "":
-        return default
-    try:
-        return float(raw_value)
-    except ValueError:
-        return default
+from .config import (
+    DEFAULT_MAX_STREAM_ROWS,
+    get_main_refresh_interval_seconds as _get_main_refresh_interval_seconds,
+    get_max_stream_rows as _get_max_stream_rows,
+    get_reset_interval_hours as _get_reset_interval_hours,
+    get_sidebar_refresh_interval_seconds as _get_sidebar_refresh_interval_seconds,
+)
 
 
 def get_max_stream_rows() -> int:
-    return max(1, _get_env_int("MAX_STREAM_ROWS", DEFAULT_MAX_STREAM_ROWS))
+    return _get_max_stream_rows()
 
 
 def get_reset_interval_hours() -> float:
-    return max(
-        0.0, _get_env_float("RESET_INTERVAL_HOURS", DEFAULT_RESET_INTERVAL_HOURS)
-    )
+    return _get_reset_interval_hours()
 
 
 def get_main_refresh_interval_seconds() -> int:
-    return max(
-        1,
-        _get_env_int(
-            "MAIN_REFRESH_INTERVAL_SECONDS", DEFAULT_MAIN_REFRESH_INTERVAL_SECONDS
-        ),
-    )
+    return _get_main_refresh_interval_seconds()
 
 
 def get_sidebar_refresh_interval_seconds() -> int:
-    return max(
-        1,
-        _get_env_int(
-            "SIDEBAR_REFRESH_INTERVAL_SECONDS", DEFAULT_SIDEBAR_REFRESH_INTERVAL_SECONDS
-        ),
-    )
+    return _get_sidebar_refresh_interval_seconds()
 
 
 def utc_now_iso() -> str:

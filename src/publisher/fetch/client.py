@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-import os
 from types import SimpleNamespace
 from typing import Any
 
 import pandas as pd
+
+from src.shared.config import get_open_electricity_api_key
 
 try:
     import requests
@@ -32,12 +33,7 @@ except ImportError:  # pragma: no cover - exercised in dependency-light test env
 
 def get_api_key() -> str:
     """Read the Open Electricity API key only when remote fetches are needed."""
-    api_key = os.getenv("OPEN_ELECTRICITY_API_KEY")
-    if not api_key:
-        raise RuntimeError(
-            "OPEN_ELECTRICITY_API_KEY is required to fetch data from the Open Electricity API."
-        )
-    return api_key
+    return get_open_electricity_api_key()
 
 
 def create_session() -> requests.Session:

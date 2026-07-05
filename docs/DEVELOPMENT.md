@@ -2,18 +2,25 @@
 
 Use [README.md](../README.md) as the canonical start, verify, and troubleshoot runbook.
 
-## Working With Data Artifacts
+## Data Artifact Lifecycle
 
-The publisher reads and writes files under `data/`:
+The `data/` tree is a layered set of runtime artifacts, not source code.
 
-- `data/raw/open_electricity/`
-- `data/raw/facility_metadata/`
-- `data/staging/open_electricity/`
-- `data/staging/facility_metadata/`
-- `data/mart/data_for_publish.csv`
-- `data/cache/facility_data_cache.json`
+| Path | Role | Producer | Can delete? | Rebuild path |
+| --- | --- | --- | --- | --- |
+| `data/raw/open_electricity/` | Raw Open Electricity extracts | Publisher fetch pipeline | Yes | Delete to force a fresh API fetch |
+| `data/raw/facility_metadata/` | Raw CER and NGER downloads | Publisher fetch pipeline | Yes | Delete to re-download source files |
+| `data/staging/open_electricity/` | Cleaned Open Electricity tables | Publisher cleaning pipeline | Yes | Delete to regenerate from `data/raw/open_electricity/` |
+| `data/staging/facility_metadata/` | Cleaned CER and NGER tables | Publisher cleaning pipeline | Yes | Delete to regenerate from `data/raw/facility_metadata/` |
+| `data/mart/data_for_publish.csv` | Publish-ready dataset consumed by the MQTT publisher | Publisher alignment pipeline | Yes | Delete to rebuild the full publish dataset |
+| `data/cache/facility_data_cache.json` | Cached API payloads for the Open Electricity fetcher | Publisher runtime cache | Yes | Delete to force cache warm-up on next run |
 
-If you want a clean rebuild, remove the generated CSV and JSON artifacts before starting the publisher again.
+Practical rules:
+
+- Treat the code under `src/`, `app/`, `scripts/`, `tests/`, `docs/`, and `broker/` as source of truth.
+- Treat the `data/` directories above as derived artifacts.
+- It is safe to delete any of the generated files above when you want a clean rebuild; the publisher will recreate them on demand.
+- Rebuilding `data/raw/` can be expensive because it depends on external API and download availability.
 
 ## Entry Points
 
@@ -37,4 +44,6 @@ pytest -q
 
 - `src/__init__.py` loads a repo-root `.env` file when the package is imported.
 - The dashboard uses a cached `DashboardRuntime`; restarting the Streamlit process is the cleanest way to reset process-level state.
-- The map is rendered through a custom Streamlit component, so changes to the frontend live under `src/dashboard/components/nem_map_component_frontend/`.
+- The map is rendered through a custom Streamlit component, so frontend changes live under `src/dashboard/components/nem_map_component_frontend/`.
+- If you are debugging data freshness, delete `data/mart/data_for_publish.csv` and the cache JSON, then restart the publisher so it rebuilds from upstream inputs.
+

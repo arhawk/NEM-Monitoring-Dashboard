@@ -3,7 +3,6 @@ from __future__ import annotations
 import atexit
 import csv
 import json
-import os
 import sys
 import time
 from datetime import datetime
@@ -25,8 +24,14 @@ except ImportError:  # pragma: no cover - exercised in dependency-light test env
         CallbackAPIVersion=SimpleNamespace(VERSION1=1),
     )
 
-from src.shared.mqtt_topics import (
-    MQTT_PUBLISH_TOPIC_TEMPLATE as DEFAULT_PUBLISH_TOPIC_TEMPLATE,
+from src.shared.config import (
+    get_mqtt_broker,
+    get_mqtt_password,
+    get_mqtt_port,
+    get_mqtt_tls,
+    get_mqtt_username,
+    get_publish_duration_seconds,
+    get_publish_topic_template,
 )
 from src.shared.paths import mart_data_path
 
@@ -45,16 +50,14 @@ if sys.platform.startswith("win"):
             pass
 
 
-BROKER = os.getenv("MQTT_BROKER") or os.getenv("MQTT_BROKER_HOST", "127.0.0.1")
-PORT = int(os.getenv("MQTT_PORT") or os.getenv("MQTT_BROKER_PORT", "1883"))
-USERNAME = os.getenv("MQTT_USERNAME") or None
-PASSWORD = os.getenv("MQTT_PASSWORD") or None
-MQTT_TLS = os.getenv("MQTT_TLS", "false").strip().lower() in {"1", "true", "yes", "on"}
+BROKER = get_mqtt_broker()
+PORT = get_mqtt_port()
+USERNAME = get_mqtt_username()
+PASSWORD = get_mqtt_password()
+MQTT_TLS = get_mqtt_tls()
 CLIENT_ID = "comp5339-publisher"
-PUBLISH_TOPIC_TEMPLATE = (
-    os.getenv("MQTT_PUBLISH_TOPIC_TEMPLATE") or DEFAULT_PUBLISH_TOPIC_TEMPLATE
-)
-PUBLISH_DURATION_SECONDS = max(0, int(os.getenv("PUBLISH_DURATION_SECONDS", "0")))
+PUBLISH_TOPIC_TEMPLATE = get_publish_topic_template()
+PUBLISH_DURATION_SECONDS = get_publish_duration_seconds()
 TICK = 0.100
 TICK_NS = int(TICK * 1e9)
 POLL_SECONDS = 5

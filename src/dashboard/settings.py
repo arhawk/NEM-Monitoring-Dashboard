@@ -1,55 +1,49 @@
 from __future__ import annotations
 
-import os
-
-from src.shared.mqtt_topics import (
-    MQTT_SUBSCRIBE_TOPIC_FILTER as DEFAULT_SUBSCRIBE_TOPIC_FILTER,
-)
-from src.shared.stream_cache import (
+from src.shared.config import (
+    get_auto_start_cooldown_seconds,
+    get_auto_start_publisher,
+    get_enable_github_actions_control,
+    get_github_owner,
+    get_github_ref,
+    get_github_repo,
+    get_github_token,
+    get_github_workflow_file,
     get_max_stream_rows,
     get_main_refresh_interval_seconds,
-    get_sidebar_refresh_interval_seconds,
+    get_mqtt_broker,
+    get_mqtt_monitor_interval_seconds,
+    get_mqtt_password,
+    get_mqtt_port,
+    get_mqtt_tls,
+    get_mqtt_username,
     get_reset_interval_hours,
+    get_sidebar_refresh_interval_seconds,
+    get_subscribe_topic_filter,
 )
 
 
-BROKER = os.getenv("MQTT_BROKER") or os.getenv("MQTT_BROKER_HOST", "127.0.0.1")
-PORT = int(os.getenv("MQTT_PORT") or os.getenv("MQTT_BROKER_PORT", "1883"))
-SUBSCRIBE_TOPIC_FILTER = (
-    os.getenv("MQTT_SUBSCRIBE_TOPIC_FILTER") or DEFAULT_SUBSCRIBE_TOPIC_FILTER
-)
-USERNAME = os.getenv("MQTT_USERNAME") or None
-PASSWORD = os.getenv("MQTT_PASSWORD") or None
-MQTT_TLS = os.getenv("MQTT_TLS", "false").strip().lower() in {"1", "true", "yes", "on"}
+BROKER = get_mqtt_broker()
+PORT = get_mqtt_port()
+SUBSCRIBE_TOPIC_FILTER = get_subscribe_topic_filter()
+USERNAME = get_mqtt_username()
+PASSWORD = get_mqtt_password()
+MQTT_TLS = get_mqtt_tls()
 MAX_STREAM_ROWS = get_max_stream_rows()
 RESET_INTERVAL_HOURS = get_reset_interval_hours()
 MAIN_REFRESH_INTERVAL_SECONDS = get_main_refresh_interval_seconds()
 SIDEBAR_REFRESH_INTERVAL_SECONDS = get_sidebar_refresh_interval_seconds()
 CONNECTION_TIMEOUT_SECONDS = 10
 RECONNECT_COOLDOWN_SECONDS = 5
-MONITOR_INTERVAL_SECONDS = max(1, int(os.getenv("MQTT_MONITOR_INTERVAL_SECONDS", "5")))
-ENABLE_GITHUB_ACTIONS_CONTROL = os.getenv(
-    "ENABLE_GITHUB_ACTIONS_CONTROL", "false"
-).strip().lower() in {
-    "1",
-    "true",
-    "yes",
-    "on",
-}
-AUTO_START_PUBLISHER = os.getenv("AUTO_START_PUBLISHER", "false").strip().lower() in {
-    "1",
-    "true",
-    "yes",
-    "on",
-}
-AUTO_START_COOLDOWN_SECONDS = max(
-    0, int(os.getenv("AUTO_START_COOLDOWN_SECONDS", "600"))
-)
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN") or None
-GITHUB_OWNER = os.getenv("GITHUB_OWNER", "arhawk")
-GITHUB_REPO = os.getenv("GITHUB_REPO", "NEM-Monitoring-Dashboard")
-GITHUB_WORKFLOW_FILE = os.getenv("GITHUB_WORKFLOW_FILE", "publish-mqtt-on-demand.yml")
-GITHUB_REF = os.getenv("GITHUB_REF", "main")
+MONITOR_INTERVAL_SECONDS = get_mqtt_monitor_interval_seconds()
+ENABLE_GITHUB_ACTIONS_CONTROL = get_enable_github_actions_control()
+AUTO_START_PUBLISHER = get_auto_start_publisher()
+AUTO_START_COOLDOWN_SECONDS = get_auto_start_cooldown_seconds()
+GITHUB_TOKEN = get_github_token()
+GITHUB_OWNER = get_github_owner()
+GITHUB_REPO = get_github_repo()
+GITHUB_WORKFLOW_FILE = get_github_workflow_file()
+GITHUB_REF = get_github_ref()
 DISPLAY_REGION_OPTIONS = ["All", "ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
 CACHE_FRESHNESS_STALE_AFTER_SECONDS = 3
 SIDEBAR_HEADER_TITLE = "🔧 Control Center"
