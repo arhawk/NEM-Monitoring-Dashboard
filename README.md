@@ -1,341 +1,128 @@
 # NEM Monitoring Dashboard
 
-This repository contains a local reproduction flow for the NEM monitoring dashboard:
+Real-time monitoring stack for Australian NEM facilities built with Python, MQTT, and Streamlit. The project fetches electricity data, cleans and enriches it, publishes the result as a live MQTT stream, and renders an interactive dashboard with maps, charts, and tables.
 
-1. Build the derived data from the raw CSV inputs.
-2. Publish the prepared rows over MQTT.
-3. Run the Streamlit dashboard and subscribe to the live feed.
-4. Keep the live stream in a bounded in-memory cache inside the dashboard process.
+## Why This Project
 
-The repository includes a local `.venv` for convenience. You can use that environment or create a fresh `venv`. Only the MQTT broker is containerised with Docker.
+- End-to-end data pipeline from external API to live UI
+- Clear missing-data policy and deterministic cleaning
+- MQTT-based real-time delivery with confirmed publishes
+- Resilient dashboard that keeps running while the broker is reconnecting
+- Split local and cloud deployment paths that are easy to explain in interviews
 
-## Requirements
+## Architecture
 
-- Python 3.10+ recommended
-- Docker Desktop or Docker Engine with Docker Compose
-- Internet access for the Open Electricity API used by `src/publisher/cli.py`
+```mermaid
+flowchart LR
+  A[Open Electricity API] --> P[Publisher]
+  S[Static metadata CSVs] --> P
+  P --> M[MQTT broker]
+  M --> D[Streamlit dashboard]
+  D --> C[Bounded in-memory cache]
+  C --> V[Metrics, trend chart, map, table]
+  P --> F[data/data_for_publish.csv]
+```
 
-## Project Layout
+The source of truth for the live UI is MQTT plus the in-memory cache, not a database. The publisher persists intermediate CSV artifacts under `data/` so runs are reproducible and easy to inspect.
 
-- `src/publisher/`: fetch, cleaning, alignment, and MQTT publishing modules
-- `src/dashboard/`: dashboard runtime, data shaping, render logic, and map payload generation
-- `src/dashboard/actions.py`: optional GitHub Actions control layer for the cloud deployment
-- `src/shared/stream_cache.py`: shared bounded cache and environment helpers
-- `scripts/run_publisher.py`: deployment-friendly wrapper for the publisher entrypoint
-- `app/streamlit_app.py`: deployment-friendly wrapper for the Streamlit entrypoint
-- `archive/`: historical Task-era scripts kept out of the active tree
-- `data/`: input CSV files and generated run artifacts
-- `broker/`: Mosquitto configuration and persistence directories
-- `docker-compose.yml`: starts the Mosquitto broker only
+## Repository Layout
 
-## Setup
+- `src/publisher/`: data fetch, cleaning, alignment, and MQTT publishing
+- `src/dashboard/`: MQTT subscriber, runtime state, filters, and render logic
+- `src/shared/`: shared MQTT topics and cache helpers
+- `app/streamlit_app.py`: Streamlit entrypoint used by local and hosted runs
+- `scripts/run_publisher.py`: publisher entrypoint used by local runs and CI
+- `docs/data_pipeline_and_missing_values.md`: deeper technical notes on the pipeline and cleaning policy
+- `docs/deployment.md`: cloud/local deployment and operational details
+- `tests/`: logic tests for publisher and dashboard behavior
+
+## Quick Start
 
 ### 1. Create and activate a virtual environment
 
-If the repository already contains `.venv`, you can use it directly:
+If the repository already has `.venv`, you can use it directly:
 
 ```bash
 source .venv/bin/activate
 ```
 
-macOS/Linux:
+Or create a fresh environment:
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 
-Windows PowerShell:
-
-```powershell
-python -m venv venv
-.\\venv\\Scripts\\Activate.ps1
-```
-
-### 2. Install Python dependencies
+### 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Start the MQTT Broker
-
-If you use Colima on macOS, start it first:
-
-```bash
-colima start
-```
-
-Check Colima status with:
-
-```bash
-colima status
-```
-
-Then run the broker container locally on `localhost:1883`:
+### 3. Start the local MQTT broker
 
 ```bash
 docker compose up -d
 ```
 
-If your Docker installation only provides the legacy CLI, use `docker-compose up -d` instead.
-
-Useful checks:
-
-```bash
-docker compose ps
-docker compose logs -f mosquitto
-```
-
-Use the `docker-compose` form here as well if that is the only one installed.
-
-Stop the broker with:
-
-```bash
-docker compose down
-```
-
-Or `docker-compose down` with the legacy CLI.
-
-If you want to stop Colima itself, run:
-
-```bash
-colima stop
-```
-
-## Local Mode
-
-Use this when you want to run everything manually on your machine. GitHub Actions is not required.
-
-### 1. Generate the publish dataset
-
-Run the publisher from the repository root:
+### 4. Start the publisher
 
 ```bash
 python scripts/run_publisher.py
 ```
 
-What it does:
+If `data/data_for_publish.csv` already exists, the publisher reuses it. If it does not exist, the publisher rebuilds the data artifacts first.
 
-- if `data/data_for_publish.csv` already exists, reuses it and starts publishing immediately
-- otherwise fetches facility and market data from the Open Electricity API
-- writes `data/facility_list.csv`
-- writes `data/consolidated_data_total.csv`
-- writes `data/consolidated_data_cleaned.csv`
-- writes `data/data_for_publish.csv`
-- connects to MQTT broker at `127.0.0.1:1883`
-- begins publishing rows to `comp5339/task123/measurements/{facility_code}`
+### 5. Start the dashboard
 
-The publisher uses `MQTT_PUBLISH_TOPIC_TEMPLATE`, defaulting to `comp5339/task123/measurements/{facility_code}`.
-
-If `data/consolidated_data_total.csv` already exists, the script reuses it instead of fetching again.
-
-### 2. Start the dashboard
-
-Open a second terminal, activate the same `venv`, then run:
+Open a second terminal:
 
 ```bash
 streamlit run app/streamlit_app.py
 ```
 
-The dashboard connects to the same broker at `127.0.0.1:1883` and subscribes to:
+Then open `http://127.0.0.1:8501`.
 
-- `comp5339/task123/measurements/#`
+## What the Dashboard Shows
 
-The local Streamlit server binds to `127.0.0.1`, so the browser URL will show `http://127.0.0.1:8501`.
+- Top-line metrics for the current live snapshot
+- A trend panel for the latest facility message
+- An interactive map of facilities
+- A filterable table of the current snapshot
+- MQTT connection state and cache statistics in the sidebar
 
-To stop the local app processes, use `Ctrl+C` in each terminal.
+If MQTT is unavailable, the page stays up and shows the current connection state instead of crashing.
 
-### Local Mode Summary
+## Configuration
 
-- Run the publisher manually with `python scripts/run_publisher.py`
-- Run the dashboard manually with `streamlit run app/streamlit_app.py`
-- Keep `ENABLE_GITHUB_ACTIONS_CONTROL=false`
-- Leave `AUTO_START_PUBLISHER=false`
+The most important environment variables are:
 
-### Dashboard Architecture
-
-The Streamlit dashboard now uses MQTT as the live stream and stores the latest messages in a bounded in-memory cache.
-
-The cache keeps only the latest `MAX_STREAM_ROWS` messages, defaults to `5520`, and resets itself every `RESET_INTERVAL_HOURS` hours, default `6`.
-
-- `nem_facility_data.csv` is not used as live stream storage.
-- The dashboard can start even if `nem_facility_data.csv` is missing.
-- `nem_facility_data.csv` may still be kept as optional/static reference data or publisher input if you want it for offline inspection.
-
-Dashboard behavior:
-
-- The top cards are computed from the current cache snapshot.
-- The sidebar filters affect the map and table.
-- The trend chart is built from cached MQTT messages.
-- If MQTT is unavailable, the page stays up and shows a friendly waiting or disconnected state.
-
-The dashboard uses these environment variables:
-
-- `MQTT_BROKER`
-- `MQTT_PORT`
-- `MQTT_TLS`
+- `MQTT_BROKER` and `MQTT_PORT`
+- `MQTT_TLS`, `MQTT_USERNAME`, and `MQTT_PASSWORD`
 - `MQTT_SUBSCRIBE_TOPIC_FILTER`
 - `MQTT_PUBLISH_TOPIC_TEMPLATE`
-- `MQTT_USERNAME`
-- `MQTT_PASSWORD`
+- `OPEN_ELECTRICITY_API_KEY`
 - `MAX_STREAM_ROWS`
 - `RESET_INTERVAL_HOURS`
-- `MAIN_REFRESH_INTERVAL_SECONDS`
-- `SIDEBAR_REFRESH_INTERVAL_SECONDS`
+- `ENABLE_GITHUB_ACTIONS_CONTROL`
+- `AUTO_START_PUBLISHER`
 
-## Cloud Deployment Mode
+See [docs/deployment.md](docs/deployment.md) for the full environment matrix and deployment notes.
 
-Render and Streamlit Cloud both host only the Streamlit dashboard frontend. The publisher still runs through GitHub Actions, and the live data path goes through an external HiveMQ broker that forwards MQTT messages to the dashboard.
+## Testing
 
-Live deployment links:
+Run the main logic tests with:
+
+```bash
+pytest -q tests/test_dashboard_logic.py
+```
+
+## Demo Links
 
 - Render: https://nem-monitoring-dashboard.onrender.com
 - Streamlit Cloud: https://nem-monitoring-dashboard.streamlit.app
 
-Cloud deployment flow:
+## Related Docs
 
-1. Render or Streamlit Cloud starts the Streamlit dashboard service.
-2. On first load, the dashboard checks GitHub Actions for the configured publisher workflow.
-3. If no run is active and the cooldown window has expired, the dashboard dispatches the workflow once for the current browser session.
-4. GitHub Actions runs `python scripts/run_publisher.py` with `PUBLISH_DURATION_SECONDS=600`.
-5. The publisher sends MQTT data to the external HiveMQ broker.
-6. HiveMQ forwards MQTT messages to the Streamlit dashboard subscriber.
-7. When the publisher exits after 10 minutes, the dashboard stays up and either waits for the next run or falls back to cached/sample data.
-
-The repository includes a `render.yaml` blueprint for the Render deployment. Render does not deploy Mosquitto, and neither Render nor Streamlit Cloud runs a publisher worker in this mode.
-
-GitHub repository secrets required by the workflow:
-
-- `MQTT_BROKER`
-- `MQTT_PORT`
-- `MQTT_USERNAME`
-- `MQTT_PASSWORD`
-- `OPEN_ELECTRICITY_API_KEY` if the workflow needs to rebuild publish data
-
-Cloud environment variables for the dashboard:
-
-- `MQTT_BROKER=<your HiveMQ host>`
-- `MQTT_PORT=8883`
-- `MQTT_USERNAME=<your HiveMQ username>`
-- `MQTT_PASSWORD=<your HiveMQ password>`
-- `MQTT_TLS=true`
-- `MQTT_SUBSCRIBE_TOPIC_FILTER=comp5339/task123/measurements/#`
-- `MQTT_PUBLISH_TOPIC_TEMPLATE=comp5339/task123/measurements/{facility_code}`
-- `ENABLE_GITHUB_ACTIONS_CONTROL=true`
-- `AUTO_START_PUBLISHER=true`
-- `AUTO_START_COOLDOWN_SECONDS=600`
-- `GITHUB_TOKEN=<fine-grained GitHub token>`
-- `GITHUB_OWNER=arhawk`
-- `GITHUB_REPO=NEM-Monitoring-Dashboard`
-- `GITHUB_WORKFLOW_FILE=publish-mqtt-on-demand.yml`
-- `GITHUB_REF=main`
-- `MAX_STREAM_ROWS=5520`
-- `RESET_INTERVAL_HOURS=6`
-
-The dashboard service command remains `streamlit run app/streamlit_app.py`, using the default `$PORT` provided by Render. Streamlit Cloud uses the same Streamlit entrypoint. There is no platform-hosted worker in this deployment path.
-
-## Run Artifacts
-
-These files are generated during normal execution:
-
-- `data/facility_data_cache.json`
-- `data/facility_list.csv`
-- `data/consolidated_data_total.csv`
-- `data/consolidated_data_cleaned.csv`
-- `data/data_for_publish.csv`
-
-If you need a clean rerun, delete the generated files above and run `python3 -m src.publisher.cli` again.
-
-Live dashboard output is not written to CSV anymore. The bounded MQTT cache lives only in memory.
-
-## Common Issues
-
-- Broker connection fails: confirm Docker is running and port `1883` is free.
-- Dashboard shows no live data: make sure the publisher is still running and the broker is reachable.
-- Dashboard says waiting for MQTT messages: verify the publisher is sending to the same topic the dashboard subscribes to.
-- Old data is being reused: remove the generated CSVs if you want to regenerate the publisher input data.
-- API requests fail: the data preparation step needs outbound network access.
-
-## Environment File
-
-Copy `.env.example` to `.env` if you want local environment overrides for broker settings, cache size, refresh cadence, or soft reset cadence.
-
-`MAIN_REFRESH_INTERVAL_SECONDS` controls the main dashboard heartbeat for the metrics cards, current facility panel, map, and table.
-`SIDEBAR_REFRESH_INTERVAL_SECONDS` controls the lightweight sidebar heartbeat that keeps `Messages since reset` current even when MQTT traffic is slow.
-
-For cloud brokers that require encrypted transport, set:
-
-- `MQTT_TLS=true`
-- `MQTT_PORT=8883`
-
-Leave `MQTT_TLS=false` for the local Mosquitto broker on `1883`.
-
-If you want the GitHub Actions controls active in a local preview environment, set `ENABLE_GITHUB_ACTIONS_CONTROL=true` and provide a fine-grained `GITHUB_TOKEN` with Actions read/write permission for this repository only. Keep `AUTO_START_PUBLISHER=false` unless you want the dashboard to dispatch the workflow automatically on load.
-
-Security note:
-
-- Use a fine-grained GitHub token scoped to this repository only.
-- Grant `Actions: Read and write`.
-- Grant `Metadata: Read`.
-- Do not commit the token.
-
-## Pipeline Architecture
-
-This diagram reflects the current codebase, not a hypothetical warehouse design. The active pipeline uses CSV artifacts, MQTT, and an in-memory dashboard cache. Durable SQL or Parquet storage remains a future extension, not an implemented layer.
-
-```mermaid
-flowchart LR
-  subgraph Sources["External Sources"]
-    AEMO["AEMO / Open Electricity API\n- /v4/facilities/\n- /v4/data/facilities/NEM\n- /v4/market/network/NEM"]
-    STATIC["Assignment 1 static metadata\nNGER_data_aug.csv\nCER_data_aug.csv"]
-  end
-
-  subgraph Publisher["Data Ingestion + Preparation\nsrc/publisher"]
-    FETCH["Fetch + merge per facility\nfetch/orchestrator.py + fetch/transform.py"]
-    RAW["Raw layer\nconsolidated_data_total.csv\nfacility_list.csv"]
-    CLEAN["Cleaning + validation\ncleaning.py\nnormalize negatives, fill partial gaps, drop fully missing facilities"]
-    PROC["Processed layer\nconsolidated_data_cleaned.csv"]
-    ALIGN["Facility alignment + fuel enrichment\nalignment.py\nbuild fuel_list + join static metadata"]
-    READY["Publish-ready layer\ndata_for_publish.csv"]
-    PUB["MQTT publisher\nmqtt_publish.py\n0.1 s cadence + confirmed publish"]
-  end
-
-  subgraph Transport["Realtime Transport"]
-    BROKER["MQTT broker\ncomp5339/task123/measurements/{facility_code}"]
-  end
-
-  subgraph Dashboard["Streamlit Dashboard\nsrc/dashboard"]
-    SUB["MQTT subscriber + validation\nruntime/mqtt.py"]
-    CACHE["Bounded in-memory stream cache\nsrc/shared/stream_cache.py"]
-    CTX["Dashboard context + filters + aggregation\nrender_context.py"]
-    VIEWS["Metric cards\nTrend chart\nFacility map\nTable preview"]
-    WAITING["Waiting state\nsidebar notice when no publish messages have arrived"]
-  end
-
-  subgraph Modes["Deployment Modes"]
-    LOCAL["Local mode\nMosquitto + manual publisher + Streamlit"]
-    CLOUD["Cloud demo mode\nRender Streamlit + GitHub Actions publisher + external MQTT broker"]
-  end
-
-  AEMO --> FETCH
-  FETCH --> RAW --> CLEAN --> PROC --> ALIGN
-  STATIC --> ALIGN
-  ALIGN --> READY --> PUB --> BROKER --> SUB --> CACHE --> CTX --> VIEWS
-  CACHE -. stale or empty .-> FALLBACK --> CTX
-  LOCAL -. uses .-> BROKER
-  CLOUD -. uses .-> BROKER
-  CLOUD -. can trigger .-> PUB
-
-  EXT["Optional future durable storage\nSQLite / PostgreSQL / Parquet"]:::future
-  CACHE -. replaceable with .-> EXT
-
-  classDef future stroke-dasharray: 5 5,fill:#fff,stroke:#999,color:#555;
-```
-
-Key points:
-
-- Raw data is fetched from Open Electricity / AEMO, then normalized into CSV artifacts inside `data/`.
-- The publish path is file-backed, not database-backed.
-- The dashboard consumes MQTT live updates and keeps only the latest stream state in memory.
-- When no publish messages have arrived yet, the dashboard shows a waiting notice instead of replaying sample data.
+- [docs/data_pipeline_and_missing_values.md](docs/data_pipeline_and_missing_values.md)
+- [docs/deployment.md](docs/deployment.md)
