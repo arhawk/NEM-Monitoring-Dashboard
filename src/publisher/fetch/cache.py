@@ -8,10 +8,10 @@ from typing import Any
 
 import pandas as pd
 
-from src.shared.paths import data_path
+from src.shared.paths import cache_data_path
 
 
-CACHE_FILE = data_path("facility_data_cache.json")
+CACHE_FILE = cache_data_path("facility_data_cache.json")
 cache_lock = threading.Lock()
 
 

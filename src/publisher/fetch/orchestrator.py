@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
-from src.shared.paths import data_path
+from src.shared.paths import raw_data_path
 
 from .cache import cache_lock, load_cache, save_cache
 from .client import create_session, fetch_facility_list, fetch_response
@@ -75,6 +76,17 @@ def process_facility(f_code: str, date_start: datetime, date_end: datetime, cach
         session.close()
 
 
+def _write_raw_artifacts(
+    facility_list: pd.DataFrame,
+    consolidated_data: pd.DataFrame,
+    facility_list_path: Path,
+    consolidated_path: Path,
+) -> None:
+    facility_list_path.parent.mkdir(parents=True, exist_ok=True)
+    facility_list.to_csv(facility_list_path, index=False)
+    consolidated_data.to_csv(consolidated_path, index=False)
+
+
 def fetch_and_build_consolidated_data(
     *,
     date_start: datetime,
@@ -87,29 +99,34 @@ def fetch_and_build_consolidated_data(
     if facility_list.empty:
         return facility_list, pd.DataFrame()
 
+    facility_list_path = raw_data_path("open_electricity", "facility_list.csv")
+    consolidated_path = raw_data_path("open_electricity", "consolidated_data_total.csv")
+    _write_raw_artifacts(facility_list, pd.DataFrame(), facility_list_path, consolidated_path)
+
     all_merged_dfs: list[pd.DataFrame] = []
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {
             executor.submit(process_facility, f_code, date_start, date_end, cache): f_code
             for f_code in facility_list["facility_code"]
         }
+        total_facilities = len(futures)
+        completed_facilities = 0
         for future in as_completed(futures):
             f_code = futures[future]
             try:
                 merged_df = future.result()
                 if not merged_df.empty:
                     all_merged_dfs.append(merged_df)
+                    consolidated_data = pd.concat(all_merged_dfs, ignore_index=True)
+                    _write_raw_artifacts(facility_list, consolidated_data, facility_list_path, consolidated_path)
+                completed_facilities += 1
+                print(f"[Publisher] Completed {completed_facilities}/{total_facilities}: {f_code}")
             except Exception as e:
                 print(f"Error processing facility {f_code}: {e}")
 
     consolidated_data = pd.concat(all_merged_dfs, ignore_index=True) if all_merged_dfs else pd.DataFrame()
     save_cache(cache)
-
-    facility_list_path = data_path("facility_list.csv")
-    consolidated_path = data_path("consolidated_data_total.csv")
-    facility_list_path.parent.mkdir(parents=True, exist_ok=True)
-    facility_list.to_csv(facility_list_path, index=False)
-    consolidated_data.to_csv(consolidated_path, index=False)
+    _write_raw_artifacts(facility_list, consolidated_data, facility_list_path, consolidated_path)
     return facility_list, consolidated_data
 
 

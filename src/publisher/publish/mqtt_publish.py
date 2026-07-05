@@ -25,7 +25,7 @@ except ImportError:  # pragma: no cover - exercised in dependency-light test env
     )
 
 from src.shared.mqtt_topics import MQTT_PUBLISH_TOPIC_TEMPLATE as DEFAULT_PUBLISH_TOPIC_TEMPLATE
-from src.shared.paths import data_path
+from src.shared.paths import mart_data_path
 
 
 if sys.platform.startswith("win"):
@@ -56,7 +56,7 @@ PUBLISH_DURATION_SECONDS = max(0, int(os.getenv("PUBLISH_DURATION_SECONDS", "0")
 TICK = 0.100
 TICK_NS = int(TICK * 1e9)
 POLL_SECONDS = 5
-MEASURE_CSV = data_path("data_for_publish.csv")
+MEASURE_CSV = mart_data_path("data_for_publish.csv")
 
 
 def sleep_until_ns(target_ns: int, spin_ns: int = 5_000_000):

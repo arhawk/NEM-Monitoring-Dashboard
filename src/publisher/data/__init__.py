@@ -10,6 +10,7 @@ from .assignment1 import (
 )
 from .cleaning import (
     clean_consolidated_data,
+    clean_facility_list,
     fill_missing_half_ffill_bfill,
     handle_missing_values_fast,
     normalize_non_negative,
@@ -20,6 +21,7 @@ __all__ = [
     "build_publish_dataset",
     "clean_assignment1_artifacts",
     "clean_cer_data",
+    "clean_facility_list",
     "clean_nger_data",
     "fetch_and_clean_assignment1_artifacts",
     "fetch_cer_raw_data",

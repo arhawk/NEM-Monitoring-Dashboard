@@ -5,9 +5,20 @@ from io import BytesIO
 from pathlib import Path
 
 import pandas as pd
-import requests
 
-from src.shared.paths import data_path, repo_path
+try:
+    import requests
+except ImportError:  # pragma: no cover - exercised in dependency-light test envs
+    class _MissingRequests:
+        class exceptions:  # type: ignore[valid-type]
+            HTTPError = RuntimeError
+
+        def get(self, *args, **kwargs):
+            raise ModuleNotFoundError("requests is required for Assignment 1 fetches")
+
+    requests = _MissingRequests()
+
+from src.shared.paths import raw_data_path, staging_data_path
 
 
 NGER_API_URLS = [
@@ -29,6 +40,10 @@ CER_XLSX_URL = "https://cer.gov.au/document/power-stations-and-projects-status"
 def clean_nger_data(df: pd.DataFrame) -> pd.DataFrame:
     """Apply the Assignment 1 NGER cleaning rules."""
     cleaned = df.copy()
+    if "facilityName" in cleaned.columns:
+        cleaned["facilityName"] = cleaned["facilityName"].astype("string").str.strip()
+    if "type" in cleaned.columns:
+        cleaned["type"] = cleaned["type"].astype("string").str.strip()
     if "importantNotes" in cleaned.columns:
         cleaned["importantNotes"] = cleaned["importantNotes"].replace({"N/A": pd.NA, "-": pd.NA})
     cleaned = cleaned[cleaned["facilityName"].notna()]
@@ -43,13 +58,17 @@ def clean_nger_data(df: pd.DataFrame) -> pd.DataFrame:
         cleaned = cleaned.drop(columns=drop_columns)
 
     cleaned = cleaned[cleaned["type"] != "C"]
-    return cleaned.reset_index(drop=True)
+    return cleaned.drop_duplicates().reset_index(drop=True)
 
 
 def clean_cer_data(df: pd.DataFrame) -> pd.DataFrame:
     """Apply the Assignment 1 CER cleaning rules."""
     cleaned = df.copy()
     cleaned["powerStation"] = cleaned["powerStation"].astype("string").str.split("-", n=1).str[0].str.strip()
+    if "state" in cleaned.columns:
+        cleaned["state"] = cleaned["state"].astype("string").str.strip()
+    if "fuelSource" in cleaned.columns:
+        cleaned["fuelSource"] = cleaned["fuelSource"].astype("string").str.strip()
 
     if "postcode" in cleaned.columns:
         cleaned["postcode"] = cleaned["postcode"].astype("Int64")
@@ -65,12 +84,12 @@ def clean_cer_data(df: pd.DataFrame) -> pd.DataFrame:
 
     keep_columns = list(cleaned.columns[:5]) + [cleaned.columns[-1]]
     cleaned = cleaned.loc[:, keep_columns]
-    return cleaned.reset_index(drop=True)
+    return cleaned.drop_duplicates().reset_index(drop=True)
 
 
 def fetch_nger_raw_data(output_dir: str | Path | None = None) -> pd.DataFrame:
     """Download the remote NGER source datasets and write data/NGER_data.csv."""
-    output_dir = Path(output_dir) if output_dir is not None else data_path()
+    output_dir = Path(output_dir) if output_dir is not None else raw_data_path("assignment1")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     records: list[dict] = []
@@ -96,7 +115,7 @@ def fetch_nger_raw_data(output_dir: str | Path | None = None) -> pd.DataFrame:
 
 def fetch_cer_raw_data(output_dir: str | Path | None = None) -> pd.DataFrame:
     """Download the remote CER XLSX and write data/CER_data.csv."""
-    output_dir = Path(output_dir) if output_dir is not None else data_path()
+    output_dir = Path(output_dir) if output_dir is not None else raw_data_path("assignment1")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     response = requests.get(CER_XLSX_URL, timeout=120)
@@ -143,8 +162,10 @@ def clean_assignment1_artifacts(
     output_dir: str | Path | None = None,
 ) -> dict[str, pd.DataFrame]:
     """Read raw Assignment 1 CSVs, clean them, and write the clean outputs."""
-    source_dir = Path(source_dir) if source_dir is not None else Path(os.getenv("ASSIGNMENT1_DATA_DIR", data_path()))
-    output_dir = Path(output_dir) if output_dir is not None else data_path()
+    default_source_dir = raw_data_path("assignment1")
+    default_output_dir = staging_data_path("assignment1")
+    source_dir = Path(source_dir) if source_dir is not None else Path(os.getenv("ASSIGNMENT1_DATA_DIR", default_source_dir))
+    output_dir = Path(output_dir) if output_dir is not None else default_output_dir
 
     nger_raw_path = source_dir / "NGER_data.csv"
     cer_raw_path = source_dir / "CER_data.csv"
@@ -167,13 +188,15 @@ def clean_assignment1_artifacts(
 
 def fetch_and_clean_assignment1_artifacts(output_dir: str | Path | None = None) -> dict[str, pd.DataFrame]:
     """Fetch the remote Assignment 1 source files, then clean them into CSV artifacts."""
-    output_dir = Path(output_dir) if output_dir is not None else data_path()
-    nger_raw = fetch_nger_raw_data(output_dir=output_dir)
-    cer_raw = fetch_cer_raw_data(output_dir=output_dir)
+    raw_output_dir = Path(output_dir) if output_dir is not None else raw_data_path("assignment1")
+    staging_output_dir = staging_data_path("assignment1")
+    nger_raw = fetch_nger_raw_data(output_dir=raw_output_dir)
+    cer_raw = fetch_cer_raw_data(output_dir=raw_output_dir)
     nger_clean = clean_nger_data(nger_raw)
     cer_clean = clean_cer_data(cer_raw)
-    nger_clean.to_csv(output_dir / "NGER_data_clean.csv", index=False, encoding="utf-8-sig")
-    cer_clean.to_csv(output_dir / "CER_data_clean.csv", index=False, encoding="utf-8-sig")
+    staging_output_dir.mkdir(parents=True, exist_ok=True)
+    nger_clean.to_csv(staging_output_dir / "NGER_data_clean.csv", index=False, encoding="utf-8-sig")
+    cer_clean.to_csv(staging_output_dir / "CER_data_clean.csv", index=False, encoding="utf-8-sig")
     return {
         "nger_raw": nger_raw,
         "cer_raw": cer_raw,
@@ -184,19 +207,18 @@ def fetch_and_clean_assignment1_artifacts(output_dir: str | Path | None = None) 
 
 def load_assignment1_csv(path: str | Path) -> pd.DataFrame:
     """
-    Load the preferred clean Assignment 1 CSV, falling back to the legacy
-    augmented artifact stored under backup/data when the clean file is absent.
+    Load the staged Assignment 1 CSV, falling back to the staged layer mirror
+    when callers still pass an equivalent clean filename.
     """
     path = Path(path)
     if path.exists():
         return pd.read_csv(path)
 
-    legacy_name = path.name.replace("_clean", "_aug")
-    legacy_path = repo_path("backup", "data", legacy_name)
-    if legacy_path.exists():
-        return pd.read_csv(legacy_path)
+    staged_path = staging_data_path("assignment1", path.name)
+    if staged_path.exists():
+        return pd.read_csv(staged_path)
 
-    raise FileNotFoundError(f"Could not find {path} or legacy fallback {legacy_path}")
+    raise FileNotFoundError(f"Could not find {path} or staged fallback {staged_path}")
 
 
 __all__ = [

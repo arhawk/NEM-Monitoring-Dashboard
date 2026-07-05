@@ -58,7 +58,13 @@ In the repository, the cleaned output preserves:
 
 ## 3. Cleaning and Standardization
 
-Cleaning happens before MQTT publishing, so the stream already carries normalized rows.
+The repository now uses a layered artifact model:
+
+- **raw**: upstream files with minimal transformation
+- **staging**: cleaned, typed, and deduplicated tables
+- **mart**: publish-ready output
+
+Cleaning happens in staging before MQTT publishing, so the stream already carries normalized rows.
 
 ### 3.1 Schema Normalization
 
@@ -115,6 +121,17 @@ The repository matches that policy:
 - `src/dashboard/` keeps optional metrics missing and shows them as `N/A`
 
 This means the live system keeps missing data visible as missing, rather than silently turning it into a fabricated numeric value.
+
+### 3.4 Artifact Layout
+
+The pipeline writes artifacts to:
+
+- `data/raw/open_electricity/` for facility and time-series source extracts
+- `data/raw/assignment1/` for downloaded NGER and CER inputs
+- `data/staging/open_electricity/` for cleaned facility and time-series tables
+- `data/staging/assignment1/` for cleaned Assignment 1 tables
+- `data/mart/` for the publish-ready MQTT input CSV
+- `data/cache/` for runtime cache state
 
 ## 4. Integration with Assignment 1
 
@@ -332,7 +349,7 @@ This is the correct interpretation for downstream charts, summary cards, and map
 
 ## 10. Practical Notes
 
-- `data/data_for_publish.csv` is the cleaned publish-ready artifact.
+- `data/mart/data_for_publish.csv` is the cleaned publish-ready artifact.
 - `nem_facility_data.csv` is not used as live dashboard storage anymore; the dashboard relies on MQTT plus in-memory cache.
 - The system is designed to keep running even if the MQTT broker drops temporarily, but publish confirmation is required before advancing the data cursor.
 

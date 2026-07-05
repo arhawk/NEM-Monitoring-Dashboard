@@ -52,6 +52,15 @@ streamlit run app/streamlit_app.py --server.address 0.0.0.0 --server.port $PORT
 - `PUBLISH_DURATION_SECONDS`: how long the timed publisher should run in cloud mode
 - `ASSIGNMENT1_DATA_DIR`: optional source directory for raw Assignment 1 CSVs (`NGER_data.csv` and `CER_data.csv`)
 
+The publisher now uses layered artifact folders under `data/`:
+
+- `data/raw/open_electricity/`
+- `data/raw/assignment1/`
+- `data/staging/open_electricity/`
+- `data/staging/assignment1/`
+- `data/mart/`
+- `data/cache/`
+
 ### Dashboard Runtime
 
 - `MAX_STREAM_ROWS`: bounded cache size for live messages
@@ -72,13 +81,16 @@ streamlit run app/streamlit_app.py --server.address 0.0.0.0 --server.port $PORT
 
 These files are created during normal publisher runs:
 
-- `data/NGER_data_clean.csv`
-- `data/CER_data_clean.csv`
-- `data/facility_list.csv`
-- `data/consolidated_data_total.csv`
-- `data/consolidated_data_cleaned.csv`
-- `data/data_for_publish.csv`
-- `data/facility_data_cache.json`
+- `data/raw/assignment1/NGER_data.csv`
+- `data/raw/assignment1/CER_data.csv`
+- `data/raw/open_electricity/facility_list.csv`
+- `data/raw/open_electricity/consolidated_data_total.csv`
+- `data/staging/assignment1/NGER_data_clean.csv`
+- `data/staging/assignment1/CER_data_clean.csv`
+- `data/staging/open_electricity/facility_list_clean.csv`
+- `data/staging/open_electricity/consolidated_data_cleaned.csv`
+- `data/mart/data_for_publish.csv`
+- `data/cache/facility_data_cache.json`
 
 If you want a clean rebuild, remove the generated CSV and JSON artifacts before starting the publisher again.
 

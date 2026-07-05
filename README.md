@@ -20,10 +20,15 @@ flowchart LR
   M --> D[Streamlit dashboard]
   D --> C[Bounded in-memory cache]
   C --> V[Metrics, trend chart, map, table]
-  P --> F[data/data_for_publish.csv]
+  P --> F[data/mart/data_for_publish.csv]
 ```
 
-The source of truth for the live UI is MQTT plus the in-memory cache, not a database. The publisher persists intermediate CSV artifacts under `data/` so runs are reproducible and easy to inspect.
+The source of truth for the live UI is MQTT plus the in-memory cache, not a database. The publisher now persists artifacts in layered folders under `data/`:
+
+- `data/raw/`: upstream files with minimal transformation
+- `data/staging/`: cleaned, typed, and deduplicated tables
+- `data/mart/`: publish-ready output
+- `data/cache/`: runtime caches
 
 ## Repository Layout
 
@@ -71,7 +76,7 @@ docker compose up -d
 python scripts/run_publisher.py
 ```
 
-If `data/data_for_publish.csv` already exists, the publisher reuses it. If it does not exist, the publisher rebuilds the data artifacts first.
+If `data/mart/data_for_publish.csv` already exists, the publisher reuses it. If it does not exist, the publisher rebuilds the data artifacts first.
 
 ### 5. Start the dashboard
 

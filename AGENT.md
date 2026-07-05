@@ -43,8 +43,8 @@ source .venv/bin/activate
 Important environment variables:
 
 - `OPEN_ELECTRICITY_API_KEY`
-  - Required when `data/consolidated_data_total.csv` is unavailable and the publisher must fetch from the Open Electricity API.
-  - Not required when an existing `data/consolidated_data_total.csv` is intentionally being reused.
+  - Required when `data/raw/open_electricity/consolidated_data_total.csv` is unavailable and the publisher must fetch from the Open Electricity API.
+  - Not required when an existing `data/raw/open_electricity/consolidated_data_total.csv` is intentionally being reused.
 - `MQTT_BROKER` / `MQTT_PORT`
   - Used by both the publisher and dashboard.
   - Default fallback is `127.0.0.1` and `1883`.
@@ -139,13 +139,16 @@ python3 -m src.publisher.cli
 
 Behavior to remember:
 
-- If `data/consolidated_data_total.csv` does not exist, the script fetches API data and then generates:
-  - `data/facility_list.csv`
-  - `data/consolidated_data_total.csv`
-  - `data/consolidated_data_cleaned.csv`
-  - `data/data_for_publish.csv`
-  - `data/facility_data_cache.json`
-- If `data/consolidated_data_total.csv` already exists, the script reuses it and continues through the remaining cleaning and publish pipeline.
+- If `data/raw/open_electricity/consolidated_data_total.csv` does not exist, the script fetches API data and then generates:
+  - `data/raw/open_electricity/facility_list.csv`
+  - `data/raw/open_electricity/consolidated_data_total.csv`
+  - `data/staging/open_electricity/facility_list_clean.csv`
+  - `data/staging/open_electricity/consolidated_data_cleaned.csv`
+  - `data/staging/assignment1/NGER_data_clean.csv`
+  - `data/staging/assignment1/CER_data_clean.csv`
+  - `data/mart/data_for_publish.csv`
+  - `data/cache/facility_data_cache.json`
+- If `data/raw/open_electricity/consolidated_data_total.csv` already exists, the script reuses it and continues through the remaining cleaning and publish pipeline.
 - The publisher defaults to `127.0.0.1:1883` and also supports `MQTT_BROKER_HOST` / `MQTT_BROKER_PORT`.
 
 ### 3.5 Start the Streamlit Dashboard
@@ -206,7 +209,7 @@ Test caveat:
 
 Useful extra checks:
 
-- Confirm `data/data_for_publish.csv` exists if publisher input generation matters.
+- Confirm `data/mart/data_for_publish.csv` exists if publisher input generation matters.
 - If validating a fresh API fetch path, deliberately decide whether existing run artifacts should be reused before deleting anything.
 
 ## 5. Deployment Procedure
@@ -265,7 +268,7 @@ Deployment boundary to remember:
 
 Cause:
 
-- `data/consolidated_data_total.csv` is missing, so the script needs to fetch from the Open Electricity API.
+- `data/raw/open_electricity/consolidated_data_total.csv` is missing, so the script needs to fetch from the Open Electricity API.
 
 Fix:
 

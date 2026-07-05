@@ -244,14 +244,30 @@ class PublishLogicTests(TestCase):
         self.assertEqual(cleaned.iloc[0]["year"], 2025)
         self.assertEqual(cleaned.iloc[1]["year"], 2025)
 
-    def test_load_assignment1_csv_falls_back_to_legacy_augmented_data(self) -> None:
-        missing_clean_path = Path("/tmp/nonexistent-assignment1/NGER_data_clean.csv")
+    def test_load_assignment1_csv_falls_back_to_staged_data(self) -> None:
+        from tempfile import TemporaryDirectory
 
-        loaded = task_a1_cleaning.load_assignment1_csv(missing_clean_path)
+        with TemporaryDirectory() as temp_dir:
+            staged_root = Path(temp_dir)
+            staged_path = staged_root / "assignment1" / "NGER_data_clean.csv"
+            staged_path.parent.mkdir(parents=True, exist_ok=True)
+            pd.DataFrame(
+                [
+                    {"facilityName": "Alpha", "lat": -33.0, "lng": 151.0},
+                ]
+            ).to_csv(staged_path, index=False)
+
+            missing_clean_path = Path("/tmp/nonexistent-assignment1/NGER_data_clean.csv")
+            with patch.object(
+                task_a1_cleaning,
+                "staging_data_path",
+                side_effect=lambda *parts: staged_root.joinpath(*parts),
+            ):
+                loaded = task_a1_cleaning.load_assignment1_csv(missing_clean_path)
 
         self.assertIn("lat", loaded.columns)
         self.assertIn("lng", loaded.columns)
-        self.assertGreater(len(loaded), 0)
+        self.assertEqual(len(loaded), 1)
 
     def test_safe_publish_stream_requires_confirmed_publish(self) -> None:
         class DummyInfo:
