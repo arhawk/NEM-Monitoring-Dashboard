@@ -211,9 +211,7 @@ def clean_facility_metadata_artifacts(
     """Read raw metadata CSVs, clean them, and write the staged outputs."""
     default_output_dir = staging_data_path(FACILITY_METADATA_DIR)
     source_dir = (
-        Path(source_dir)
-        if source_dir is not None
-        else get_facility_metadata_data_dir()
+        Path(source_dir) if source_dir is not None else get_facility_metadata_data_dir()
     )
     output_dir = Path(output_dir) if output_dir is not None else default_output_dir
 

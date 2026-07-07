@@ -2,6 +2,32 @@
 
 Python project that fetches National Electricity Market related data, prepares publishable records, streams them over MQTT, and renders a Streamlit dashboard with a live map, metrics, and a table. The repository is structured as a small data pipeline plus a frontend that subscribes to the pipeline output.
 
+## Portfolio Highlights
+
+This project is designed to demonstrate end-to-end data engineering and real-time visualization skills:
+
+- **Data pipeline**: multi-source ingestion (Open Electricity API + CER/NGER metadata), layered artifacts (`raw` → `staging` → `mart`), and deterministic cleaning/alignment
+- **Streaming architecture**: MQTT pub/sub with bounded in-memory cache, reconnect monitoring, and optional disk snapshot persistence
+- **Interactive dashboard**: Streamlit UI with custom Leaflet map component, live metrics, filters, and operational controls
+- **Engineering quality**: Ruff lint/format, pytest coverage, GitHub Actions CI, Docker Compose one-command local demo, and Render deployment support
+
+### Live Demo
+
+- Deploy the dashboard to [Render](https://render.com) using `render.yaml`
+- Start the MQTT publisher via GitHub Actions (`publish-mqtt-on-demand.yml`) or a self-hosted broker
+- Point the dashboard at your broker with `MQTT_BROKER`, `MQTT_PORT`, and optional TLS credentials
+
+### One-Command Local Demo
+
+```bash
+chmod +x scripts/start_local.sh
+./scripts/start_local.sh
+```
+
+This builds and starts Mosquitto, the publisher, and the dashboard. Open `http://127.0.0.1:8501`.
+
+For interview talking points and a project walkthrough script, see [docs/PORTFOLIO.md](docs/PORTFOLIO.md).
+
 ## Key Features
 
 - Open Electricity API ingestion for operational electricity data
@@ -9,8 +35,9 @@ Python project that fetches National Electricity Market related data, prepares p
 - Deterministic cleaning and staging into `data/raw/`, `data/staging/`, `data/mart/`, and `data/cache/`
 - MQTT publish/subscribe flow using `comp5339/task123/measurements/{facility_code}`
 - Streamlit dashboard with a custom facility map component, summary cards, filters, and a cache reset action
+- Optional disk snapshot persistence for the bounded MQTT stream cache
 - Ruff-based formatting and lint checks for low-cost style and error detection
-- Optional GitHub Actions control for hosted deployments
+- GitHub Actions CI plus optional on-demand publisher workflow for hosted deployments
 - Lightweight tests for the dashboard and dotenv loader
 
 ## Tech Stack
@@ -31,6 +58,7 @@ Python project that fetches National Electricity Market related data, prepares p
 - `src/dashboard/`: runtime state, MQTT subscriber, and Streamlit rendering
 - `src/shared/`: shared dotenv, config, paths, topics, and stream cache helpers
 - `broker/`: Mosquitto configuration and runtime volumes
+- `Dockerfile` and `docker-compose.yml`: one-command local full stack
 - `data/`: tracked sample artifacts plus generated pipeline outputs
 - `docs/`: architecture, configuration, deployment, and troubleshooting notes
 - `tests/`: logic tests for the dashboard, publisher, and pipeline smoke coverage
@@ -59,6 +87,14 @@ The runtime flow is:
 ## Runbook
 
 ### 1. Start
+
+**Option A: Docker Compose full stack (recommended for demos)**
+
+```bash
+docker compose up --build
+```
+
+**Option B: Manual local setup**
 
 Create a virtual environment, then install dependencies.
 

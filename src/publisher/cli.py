@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime
-
 import pandas as pd
 
 from .data import (
@@ -13,6 +11,7 @@ from .data import (
 )
 from .fetch import fetch_and_build_consolidated_data
 from .publish import run_publisher_loop
+from src.shared.config import get_fetch_date_end, get_fetch_date_start
 from src.shared.paths import mart_data_path, raw_data_path, staging_data_path
 
 
@@ -36,8 +35,8 @@ def prepare_data_artifacts() -> None:
 
     if not RAW_CONSOLIDATED_PATH.exists() or not RAW_FACILITY_LIST_PATH.exists():
         fetch_and_build_consolidated_data(
-            date_start=datetime(2025, 10, 24, 23, 0, 0),
-            date_end=datetime(2025, 10, 31, 22, 59, 59),
+            date_start=get_fetch_date_start(),
+            date_end=get_fetch_date_end(),
         )
 
     STAGING_FACILITY_LIST_PATH.parent.mkdir(parents=True, exist_ok=True)

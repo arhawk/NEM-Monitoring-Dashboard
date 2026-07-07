@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+from .cache_snapshot import default_snapshot_path, resolve_snapshot_path
 from .mqtt_topics import MQTT_PUBLISH_TOPIC_TEMPLATE, MQTT_SUBSCRIBE_TOPIC_FILTER
 from .paths import raw_data_path
 
@@ -30,6 +32,10 @@ DEFAULT_GITHUB_REPO = "NEM-Monitoring-Dashboard"
 DEFAULT_GITHUB_WORKFLOW_FILE = "publish-mqtt-on-demand.yml"
 DEFAULT_GITHUB_REF = "main"
 DEFAULT_FACILITY_METADATA_DATA_DIR = raw_data_path("facility_metadata")
+DEFAULT_FETCH_DATE_START = "2025-10-24T23:00:00"
+DEFAULT_FETCH_DATE_END = "2025-10-31T22:59:59"
+DEFAULT_STREAM_CACHE_SNAPSHOT_PATH = str(default_snapshot_path())
+DEFAULT_STREAM_CACHE_PERSIST_EVERY_MESSAGES = 100
 
 
 def _read_env(name: str) -> Optional[str]:
@@ -221,7 +227,9 @@ def get_github_ref() -> str:
 
 def get_facility_metadata_data_dir() -> Path:
     raw_value = get_env_str("FACILITY_METADATA_DATA_DIR")
-    return Path(raw_value) if raw_value is not None else DEFAULT_FACILITY_METADATA_DATA_DIR
+    return (
+        Path(raw_value) if raw_value is not None else DEFAULT_FACILITY_METADATA_DATA_DIR
+    )
 
 
 def get_open_electricity_api_key() -> str:
@@ -233,11 +241,58 @@ def get_open_electricity_api_key() -> str:
     return api_key
 
 
+def _parse_fetch_datetime(raw_value: str | None, default: datetime) -> datetime:
+    if raw_value is None:
+        return default
+    normalized = raw_value.strip()
+    if not normalized:
+        return default
+    if normalized.endswith("Z"):
+        normalized = normalized[:-1] + "+00:00"
+    try:
+        return datetime.fromisoformat(normalized)
+    except ValueError:
+        return default
+
+
+def get_fetch_date_start() -> datetime:
+    return _parse_fetch_datetime(
+        get_env_str("FETCH_DATE_START"),
+        datetime.fromisoformat(DEFAULT_FETCH_DATE_START),
+    )
+
+
+def get_fetch_date_end() -> datetime:
+    return _parse_fetch_datetime(
+        get_env_str("FETCH_DATE_END"),
+        datetime.fromisoformat(DEFAULT_FETCH_DATE_END),
+    )
+
+
+def get_stream_cache_snapshot_path() -> Path | None:
+    raw_value = get_env_str("STREAM_CACHE_SNAPSHOT_PATH")
+    if raw_value is None:
+        return default_snapshot_path()
+    return resolve_snapshot_path(raw_value)
+
+
+def get_stream_cache_persist_every_messages() -> int:
+    return get_env_int(
+        "STREAM_CACHE_PERSIST_EVERY_MESSAGES",
+        DEFAULT_STREAM_CACHE_PERSIST_EVERY_MESSAGES,
+        minimum=1,
+    )
+
+
 __all__ = [
     "DEFAULT_AUTO_START_COOLDOWN_SECONDS",
     "DEFAULT_AUTO_START_PUBLISHER",
     "DEFAULT_ENABLE_GITHUB_ACTIONS_CONTROL",
     "DEFAULT_FACILITY_METADATA_DATA_DIR",
+    "DEFAULT_FETCH_DATE_END",
+    "DEFAULT_FETCH_DATE_START",
+    "DEFAULT_STREAM_CACHE_PERSIST_EVERY_MESSAGES",
+    "DEFAULT_STREAM_CACHE_SNAPSHOT_PATH",
     "DEFAULT_GITHUB_OWNER",
     "DEFAULT_GITHUB_REF",
     "DEFAULT_GITHUB_REPO",
@@ -263,6 +318,8 @@ __all__ = [
     "get_env_int",
     "get_env_str",
     "get_facility_metadata_data_dir",
+    "get_fetch_date_end",
+    "get_fetch_date_start",
     "get_github_owner",
     "get_github_ref",
     "get_github_repo",
@@ -281,6 +338,8 @@ __all__ = [
     "get_publish_topic_template",
     "get_reset_interval_hours",
     "get_sidebar_refresh_interval_seconds",
+    "get_stream_cache_persist_every_messages",
+    "get_stream_cache_snapshot_path",
     "get_subscribe_topic_filter",
     "parse_bool",
 ]
