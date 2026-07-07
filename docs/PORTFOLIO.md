@@ -36,7 +36,7 @@ Energy market operators and analysts need a consolidated view of facility-level 
 
 - **Streamlit fragments** refresh the main panel and sidebar independently
 - **Custom map component** (`nem_map_component_frontend/`) uses Leaflet for facility-level geospatial context
-- **Operational sidebar** exposes MQTT status, throughput, cache utilization, filters, and reset controls
+- **Operational sidebar** exposes MQTT status, filters, and reset controls
 
 ## Demo Paths
 
@@ -94,6 +94,6 @@ The runtime marks status as disconnected, retries on a cooldown, and keeps servi
 ## Files Worth Screenshots
 
 1. Dashboard map with facility markers and legend
-2. Sidebar showing MQTT connected + throughput/cache utilization
+2. Sidebar showing MQTT connected status and filters
 3. `data/` directory showing raw/staging/mart layers
 4. GitHub Actions CI passing on a PR

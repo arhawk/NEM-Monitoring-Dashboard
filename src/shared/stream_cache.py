@@ -99,19 +99,6 @@ class StreamCache:
             self._messages_since_persist = 0
         self._persist_messages([])
 
-    def utilization_ratio(self) -> float:
-        with self._lock:
-            if self.maxlen <= 0:
-                return 0.0
-            return len(self._messages) / self.maxlen
-
-    def throughput_per_minute(self) -> float:
-        uptime_minutes = max(self.uptime_seconds() / 60.0, 1.0 / 60.0)
-        return self.messages_since_reset() / uptime_minutes
-
-    def snapshot_enabled(self) -> bool:
-        return self.snapshot_path is not None
-
     def _hydrate_from_snapshot(self) -> None:
         if self.snapshot_path is None:
             return

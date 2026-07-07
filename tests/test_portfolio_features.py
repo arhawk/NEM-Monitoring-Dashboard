@@ -43,16 +43,6 @@ class StreamCachePersistenceTests(TestCase):
             self.assertEqual(len(restored), 1)
             self.assertEqual(restored[0]["facility_code"], "ABC")
 
-    def test_stream_cache_metrics(self) -> None:
-        cache = stream_cache.StreamCache(
-            maxlen=10,
-            snapshot_path=None,
-            persist_every_messages=100,
-        )
-        cache.add_message({"facility_code": "ABC"})
-        self.assertGreater(cache.throughput_per_minute(), 0.0)
-        self.assertGreater(cache.utilization_ratio(), 0.0)
-
 
 class FetchDateConfigTests(TestCase):
     def test_fetch_dates_use_defaults_when_unset(self) -> None:

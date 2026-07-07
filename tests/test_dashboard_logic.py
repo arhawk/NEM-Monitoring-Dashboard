@@ -767,10 +767,6 @@ class DashboardLogicTests(TestCase):
         runtime.cache.max_size.return_value = 100
         runtime.cache.last_updated_at.return_value = None
         runtime.cache.last_reset_at.return_value = None
-        runtime.cache.uptime_seconds.return_value = 120.0
-        runtime.cache.throughput_per_minute.return_value = 1.5
-        runtime.cache.utilization_ratio.return_value = 0.02
-        runtime.cache.snapshot_enabled.return_value = False
         return runtime
 
     def test_build_dashboard_context_does_not_touch_connection_state(self) -> None:
@@ -1496,7 +1492,6 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "title"),
             patch.object(task4.st, "badge") as badge_mock,
             patch.object(task4.st, "caption"),
-            patch.object(task4.st, "progress"),
             patch.object(task4.st, "info") as info_mock,
             patch.object(task4.st, "success") as success_mock,
             patch.object(task4.st, "columns", return_value=column_mocks),
@@ -1587,7 +1582,6 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "write") as write_mock,
             patch.object(task4.st, "json"),
             patch.object(task4.st, "caption"),
-            patch.object(task4.st, "progress"),
             patch.object(task4.st, "info") as info_mock,
             patch.object(task4.st, "success") as success_mock,
             patch.object(task4.st, "warning") as warning_mock,
@@ -1647,7 +1641,6 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "selectbox"),
             patch.object(task4.st, "write") as write_mock,
             patch.object(task4.st, "caption") as caption_mock,
-            patch.object(task4.st, "progress"),
             patch.object(task4.st, "json") as json_mock,
             patch.object(task4.st, "info"),
             patch.object(task4.st, "success"),
@@ -1701,7 +1694,6 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "selectbox"),
             patch.object(task4.st, "write") as write_mock,
             patch.object(task4.st, "caption"),
-            patch.object(task4.st, "progress"),
             patch.object(task4.st, "json"),
             patch.object(task4.st, "info"),
             patch.object(task4.st, "success"),
@@ -1760,7 +1752,6 @@ class DashboardLogicTests(TestCase):
             patch.object(task4.st, "selectbox"),
             patch.object(task4.st, "write"),
             patch.object(task4.st, "caption"),
-            patch.object(task4.st, "progress"),
             patch.object(task4.st, "info"),
             patch.object(task4.st, "success"),
             patch.object(task4.st, "warning"),
