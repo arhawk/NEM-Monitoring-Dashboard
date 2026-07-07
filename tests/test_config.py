@@ -18,7 +18,9 @@ class ConfigTests(TestCase):
         self.assertTrue(config.parse_bool("maybe", default=True))
         self.assertFalse(config.parse_bool("maybe", default=False))
 
-    def test_mqtt_broker_prefers_primary_name_then_legacy_alias_then_default(self) -> None:
+    def test_mqtt_broker_prefers_primary_name_then_legacy_alias_then_default(
+        self,
+    ) -> None:
         with patch.dict(
             os.environ,
             {"MQTT_BROKER": "broker-a", "MQTT_BROKER_HOST": "broker-b"},
@@ -54,7 +56,9 @@ class ConfigTests(TestCase):
             },
             clear=True,
         ):
-            self.assertEqual(config.get_max_stream_rows(), config.DEFAULT_MAX_STREAM_ROWS)
+            self.assertEqual(
+                config.get_max_stream_rows(), config.DEFAULT_MAX_STREAM_ROWS
+            )
             self.assertEqual(
                 config.get_reset_interval_hours(), config.DEFAULT_RESET_INTERVAL_HOURS
             )
@@ -83,4 +87,3 @@ class ConfigTests(TestCase):
         with patch.dict(os.environ, {}, clear=True):
             with self.assertRaises(RuntimeError):
                 config.get_open_electricity_api_key()
-

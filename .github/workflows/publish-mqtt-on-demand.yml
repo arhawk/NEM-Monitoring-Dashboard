@@ -36,7 +36,7 @@ jobs:
           MQTT_USERNAME: ${{ secrets.MQTT_USERNAME }}
           MQTT_PASSWORD: ${{ secrets.MQTT_PASSWORD }}
           MQTT_TLS: "true"
-          MQTT_TOPIC_TEMPLATE: comp5339/task123/measurements/{facility_code}
+          MQTT_PUBLISH_TOPIC_TEMPLATE: comp5339/task123/measurements/{facility_code}
           OPEN_ELECTRICITY_API_KEY: ${{ secrets.OPEN_ELECTRICITY_API_KEY }}
           PUBLISH_DURATION_SECONDS: ${{ inputs.duration_seconds }}
         run: python scripts/run_publisher.py

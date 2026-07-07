@@ -25,6 +25,8 @@ If a value is missing or blank, the code falls back to the default below. For nu
 | `OPEN_ELECTRICITY_API_KEY` | required | Publisher | Needed only when the publisher must fetch fresh Open Electricity data |
 | `PUBLISH_DURATION_SECONDS` | `0` | Publisher | `0` means run continuously; positive values enable timed publish mode |
 | `FACILITY_METADATA_DATA_DIR` | `data/raw/facility_metadata` | Publisher | Optional override for the raw CER/NGER source directory |
+| `FETCH_DATE_START` | `2025-10-24T23:00:00` | Publisher | ISO datetime used when fetching Open Electricity data |
+| `FETCH_DATE_END` | `2025-10-31T22:59:59` | Publisher | ISO datetime used when fetching Open Electricity data |
 
 ## Dashboard Runtime
 
@@ -35,6 +37,8 @@ If a value is missing or blank, the code falls back to the default below. For nu
 | `MAIN_REFRESH_INTERVAL_SECONDS` | `1` | Dashboard | Refresh cadence for the main Streamlit fragment |
 | `SIDEBAR_REFRESH_INTERVAL_SECONDS` | `1` | Dashboard | Refresh cadence for the sidebar fragment |
 | `MQTT_MONITOR_INTERVAL_SECONDS` | `5` | Dashboard | Background monitor interval for reconnect and soft-reset checks |
+| `STREAM_CACHE_SNAPSHOT_PATH` | `data/cache/stream_cache_snapshot.json` | Dashboard | Disk snapshot path; set to `off` to disable persistence |
+| `STREAM_CACHE_PERSIST_EVERY_MESSAGES` | `100` | Dashboard | Snapshot write frequency while messages are streaming in |
 
 ## GitHub Actions Control
 

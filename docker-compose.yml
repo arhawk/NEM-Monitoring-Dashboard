@@ -9,3 +9,38 @@ services:
       - ./broker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
       - ./broker/data:/mosquitto/data
       - ./broker/log:/mosquitto/log
+
+  publisher:
+    build: .
+    container_name: nem-publisher
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+    environment:
+      MQTT_BROKER: mosquitto
+      MQTT_PORT: 1883
+      PUBLISH_DURATION_SECONDS: 0
+      STREAM_CACHE_SNAPSHOT_PATH: "off"
+    volumes:
+      - ./data:/app/data
+    command: python scripts/run_publisher.py
+
+  dashboard:
+    build: .
+    container_name: nem-dashboard
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+      - publisher
+    ports:
+      - "8501:8501"
+    environment:
+      MQTT_BROKER: mosquitto
+      MQTT_PORT: 1883
+      STREAM_CACHE_SNAPSHOT_PATH: /app/data/cache/stream_cache_snapshot.json
+    volumes:
+      - ./data:/app/data
+    command: >
+      streamlit run app/streamlit_app.py
+      --server.address 0.0.0.0
+      --server.port 8501

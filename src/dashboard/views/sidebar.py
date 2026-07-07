@@ -137,6 +137,16 @@ def _render_sidebar(
     else:
         st.error("Error")
     st.write(f"Messages since reset: {model.messages_since_reset}")
+    uptime_seconds = model.runtime.cache.uptime_seconds()
+    throughput = model.runtime.cache.throughput_per_minute()
+    utilization = model.runtime.cache.utilization_ratio()
+    st.caption(f"Uptime: {uptime_seconds:.0f}s | Throughput: {throughput:.1f} msg/min")
+    st.progress(
+        min(max(utilization, 0.0), 1.0),
+        text=f"Cache utilization: {utilization * 100:.1f}%",
+    )
+    if model.runtime.cache.snapshot_enabled():
+        st.caption("Disk snapshot: enabled")
     if model.last_error:
         st.caption(model.last_error)
 
