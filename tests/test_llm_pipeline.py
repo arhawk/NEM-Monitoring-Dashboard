@@ -9,7 +9,7 @@ from unittest.mock import Mock, patch
 
 import pandas as pd
 
-from src.llm.client import OpenAIClient, parse_llm_json
+from src.llm.client import GeminiClient, parse_llm_json
 from src.llm.executor import execute_analysis_code, format_result_for_display
 from src.llm.pipeline import run_llm_query
 from src.llm.validators import validate_analysis_code
@@ -94,7 +94,7 @@ class LlmPipelineTests(TestCase):
                     os.environ,
                     {
                         "ENABLE_LLM_ANALYTICS": "true",
-                        "OPENAI_API_KEY": "",
+                        "GOOGLE_AI_API_KEY": "",
                     },
                     clear=False,
                 ),
@@ -113,7 +113,7 @@ class LlmPipelineTests(TestCase):
                     os.environ,
                     {
                         "ENABLE_LLM_ANALYTICS": "false",
-                        "OPENAI_API_KEY": "test-key",
+                        "GOOGLE_AI_API_KEY": "test-key",
                     },
                     clear=False,
                 ),
@@ -127,7 +127,7 @@ class LlmPipelineTests(TestCase):
     def test_pipeline_end_to_end_with_mock_client(self) -> None:
         df = _mini_mart_dataframe()
         code = 'result = df.groupby("state")["Emissions (tonnes)"].mean().sort_values(ascending=False)'
-        mock_client = Mock(spec=OpenAIClient)
+        mock_client = Mock(spec=GeminiClient)
         mock_client.complete.side_effect = [
             json.dumps(
                 {
@@ -147,7 +147,7 @@ class LlmPipelineTests(TestCase):
                 os.environ,
                 {
                     "ENABLE_LLM_ANALYTICS": "true",
-                    "OPENAI_API_KEY": "test-key",
+                    "GOOGLE_AI_API_KEY": "test-key",
                     "LLM_AUDIT_DIR": str(audit_dir),
                 },
                 clear=False,
@@ -171,7 +171,7 @@ class LlmPipelineTests(TestCase):
     def test_pipeline_retries_on_validation_error(self) -> None:
         df = _mini_mart_dataframe()
         valid_code = 'result = df.groupby("state")["Power (MW)"].mean().sort_values(ascending=False)'
-        mock_client = Mock(spec=OpenAIClient)
+        mock_client = Mock(spec=GeminiClient)
         mock_client.complete.side_effect = [
             json.dumps(
                 {
@@ -198,7 +198,7 @@ class LlmPipelineTests(TestCase):
                 os.environ,
                 {
                     "ENABLE_LLM_ANALYTICS": "true",
-                    "OPENAI_API_KEY": "test-key",
+                    "GOOGLE_AI_API_KEY": "test-key",
                     "LLM_AUDIT_DIR": str(audit_dir),
                 },
                 clear=False,

@@ -37,7 +37,7 @@ DEFAULT_FETCH_DATE_END = "2025-10-31T22:59:59"
 DEFAULT_STREAM_CACHE_SNAPSHOT_PATH = str(default_snapshot_path())
 DEFAULT_STREAM_CACHE_PERSIST_EVERY_MESSAGES = 100
 DEFAULT_ENABLE_LLM_ANALYTICS = False
-DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
+DEFAULT_GOOGLE_AI_MODEL = "gemini-2.0-flash"
 DEFAULT_LLM_MAX_ROWS = 5000
 DEFAULT_LLM_AUDIT_DIR = str(cache_data_path("llm_runs"))
 
@@ -292,18 +292,18 @@ def get_enable_llm_analytics() -> bool:
     return get_env_bool("ENABLE_LLM_ANALYTICS", DEFAULT_ENABLE_LLM_ANALYTICS)
 
 
-def get_openai_api_key() -> str:
-    api_key = get_env_str("OPENAI_API_KEY")
+def get_google_ai_api_key() -> str:
+    api_key = get_env_str("GOOGLE_AI_API_KEY") or get_env_str("GEMINI_API_KEY")
     if not api_key:
         raise RuntimeError(
-            "OPENAI_API_KEY is required for LLM analytics. "
-            "Set ENABLE_LLM_ANALYTICS=true and provide a valid API key."
+            "GOOGLE_AI_API_KEY is required for LLM analytics. "
+            "Set ENABLE_LLM_ANALYTICS=true and provide a Google AI Studio API key."
         )
     return api_key
 
 
-def get_openai_model() -> str:
-    return get_env_str("OPENAI_MODEL") or DEFAULT_OPENAI_MODEL
+def get_google_ai_model() -> str:
+    return get_env_str("GOOGLE_AI_MODEL") or DEFAULT_GOOGLE_AI_MODEL
 
 
 def get_llm_max_rows() -> int:
@@ -322,7 +322,7 @@ __all__ = [
     "DEFAULT_ENABLE_LLM_ANALYTICS",
     "DEFAULT_LLM_AUDIT_DIR",
     "DEFAULT_LLM_MAX_ROWS",
-    "DEFAULT_OPENAI_MODEL",
+    "DEFAULT_GOOGLE_AI_MODEL",
     "DEFAULT_FACILITY_METADATA_DATA_DIR",
     "DEFAULT_FETCH_DATE_END",
     "DEFAULT_FETCH_DATE_START",
@@ -361,6 +361,8 @@ __all__ = [
     "get_github_repo",
     "get_github_token",
     "get_github_workflow_file",
+    "get_google_ai_api_key",
+    "get_google_ai_model",
     "get_llm_audit_dir",
     "get_llm_max_rows",
     "get_main_refresh_interval_seconds",
@@ -372,8 +374,6 @@ __all__ = [
     "get_mqtt_tls",
     "get_mqtt_username",
     "get_open_electricity_api_key",
-    "get_openai_api_key",
-    "get_openai_model",
     "get_publish_duration_seconds",
     "get_publish_topic_template",
     "get_reset_interval_hours",

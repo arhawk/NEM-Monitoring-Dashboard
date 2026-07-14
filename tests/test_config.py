@@ -92,7 +92,11 @@ class ConfigTests(TestCase):
         with patch.dict(os.environ, {"LLM_MAX_ROWS": "bad"}, clear=True):
             self.assertEqual(config.get_llm_max_rows(), config.DEFAULT_LLM_MAX_ROWS)
 
-    def test_openai_api_key_is_required_for_llm_analytics(self) -> None:
-        with patch.dict(os.environ, {"OPENAI_API_KEY": ""}, clear=True):
+    def test_google_ai_api_key_is_required_for_llm_analytics(self) -> None:
+        with patch.dict(os.environ, {"GOOGLE_AI_API_KEY": ""}, clear=True):
             with self.assertRaises(RuntimeError):
-                config.get_openai_api_key()
+                config.get_google_ai_api_key()
+
+    def test_google_ai_api_key_accepts_gemini_alias(self) -> None:
+        with patch.dict(os.environ, {"GEMINI_API_KEY": "alias-key"}, clear=True):
+            self.assertEqual(config.get_google_ai_api_key(), "alias-key")

@@ -5,7 +5,7 @@ Read-only analytics overlay for the NEM monitoring dashboard mart dataset. This 
 ## What It Does
 
 1. Load a capped sample of mart data.
-2. Ask an LLM to generate a single pandas expression that assigns to `result`.
+2. Ask Google Gemini (via Google AI Studio API) to generate a single pandas expression that assigns to `result`.
 3. Validate the generated code with AST checks.
 4. Execute the code in a constrained namespace (`df`, `pd` only).
 5. Summarize the result and write an audit log.
@@ -15,7 +15,7 @@ Read-only analytics overlay for the NEM monitoring dashboard mart dataset. This 
 - It does not modify the cleaning pipeline.
 - It does not publish to MQTT.
 - It does not write back to mart or staging files.
-- CI does not call the real OpenAI API.
+- CI does not call the real Google AI API.
 
 ## Configuration
 
@@ -23,13 +23,17 @@ Add these optional variables to your environment or `.env` file:
 
 ```bash
 ENABLE_LLM_ANALYTICS=true
-OPENAI_API_KEY=your-key-here
-OPENAI_MODEL=gpt-4o-mini
+GOOGLE_AI_API_KEY=your-google-ai-studio-key
+GOOGLE_AI_MODEL=gemini-2.0-flash
 LLM_MAX_ROWS=5000
 LLM_AUDIT_DIR=data/cache/llm_runs
 ```
 
-`ENABLE_LLM_ANALYTICS` defaults to `false`. The pipeline fails closed when analytics is disabled or `OPENAI_API_KEY` is missing.
+Get an API key from [Google AI Studio](https://aistudio.google.com/apikey).
+
+`GOOGLE_AI_API_KEY` also accepts the alias `GEMINI_API_KEY` for compatibility with Google SDK examples.
+
+`ENABLE_LLM_ANALYTICS` defaults to `false`. The pipeline fails closed when analytics is disabled or `GOOGLE_AI_API_KEY` is missing.
 
 ## CLI Usage
 
@@ -66,13 +70,13 @@ Audit log: data/cache/llm_runs/2026-07-14T04-30-00.123456+00-00.json
 | Problem | Fix |
 | --- | --- |
 | `LLM analytics is disabled` | Set `ENABLE_LLM_ANALYTICS=true` |
-| `OPENAI_API_KEY is required` | Provide a valid API key |
+| `GOOGLE_AI_API_KEY is required` | Provide a valid Google AI Studio API key |
 | `Mart data file not found` | Run the publisher pipeline to generate `data/mart/data_for_publish.csv` |
 | Validation failed after retry | Rephrase the question or inspect the audit log for the rejected code |
 
 ## Manual Smoke Test
 
-After setting `ENABLE_LLM_ANALYTICS=true` and `OPENAI_API_KEY`, run the three CLI examples above against an existing mart file. Confirm each run prints a summary and creates a JSON file under `data/cache/llm_runs/`.
+After setting `ENABLE_LLM_ANALYTICS=true` and `GOOGLE_AI_API_KEY`, run the three CLI examples above against an existing mart file. Confirm each run prints a summary and creates a JSON file under `data/cache/llm_runs/`.
 
 ## Tests
 

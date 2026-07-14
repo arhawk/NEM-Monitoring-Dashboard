@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from src.llm.audit import write_audit_log
-from src.llm.client import OpenAIClient, parse_llm_json
+from src.llm.client import GeminiClient, parse_llm_json
 from src.llm.executor import (
     describe_result,
     execute_analysis_code,
@@ -19,7 +19,7 @@ from src.shared.config import (
     get_enable_llm_analytics,
     get_llm_audit_dir,
     get_llm_max_rows,
-    get_openai_model,
+    get_google_ai_model,
 )
 
 
@@ -39,7 +39,7 @@ def _ensure_enabled() -> None:
 
 
 def _generate_analysis(
-    client: OpenAIClient,
+    client: GeminiClient,
     question: str,
     df,
     *,
@@ -60,7 +60,7 @@ def _generate_analysis(
 
 
 def _summarize_result(
-    client: OpenAIClient,
+    client: GeminiClient,
     question: str,
     code: str,
     result: Any,
@@ -79,11 +79,11 @@ def run_llm_query(
     question: str,
     *,
     data_path: Path | None = None,
-    client: OpenAIClient | None = None,
+    client: GeminiClient | None = None,
 ) -> QueryResult:
     _ensure_enabled()
-    active_client = client or OpenAIClient()
-    model = get_openai_model()
+    active_client = client or GeminiClient()
+    model = get_google_ai_model()
     started_at = datetime.now(timezone.utc).isoformat()
 
     df = load_mart_dataframe(get_llm_max_rows(), data_path)
