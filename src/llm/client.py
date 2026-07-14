@@ -2,23 +2,13 @@ from __future__ import annotations
 
 import json
 import re
+from typing import Callable
+
+import requests
 
 from src.shared.config import get_google_ai_api_key, get_google_ai_model
 
-try:
-    from google import genai
-    from google.genai import types
-except ImportError:  # pragma: no cover - exercised in dependency-light test envs
-
-    class genai:  # type: ignore[no-redef]
-        class Client:
-            def __init__(self, *args, **kwargs):
-                raise ModuleNotFoundError("google-genai is required for LLM analytics")
-
-    class types:  # type: ignore[no-redef]
-        class GenerateContentConfig:
-            def __init__(self, *args, **kwargs):
-                raise ModuleNotFoundError("google-genai is required for LLM analytics")
+GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta"
 
 
 def _messages_to_gemini_request(
@@ -40,33 +30,50 @@ def _messages_to_gemini_request(
     return system_instruction, contents
 
 
+def _extract_text_from_response(data: dict) -> str:
+    candidates = data.get("candidates") or []
+    if not candidates:
+        raise RuntimeError("LLM returned no candidates.")
+
+    parts = candidates[0].get("content", {}).get("parts") or []
+    texts = [part.get("text", "") for part in parts if part.get("text")]
+    content = "\n".join(text for text in texts if text).strip()
+    if not content:
+        raise RuntimeError("LLM returned an empty response.")
+    return content
+
+
 class GeminiClient:
+    """Google AI Studio client using the Gemini REST API and requests."""
+
     def __init__(
         self,
         *,
         api_key: str | None = None,
         model: str | None = None,
-        client: object | None = None,
+        session: requests.Session | None = None,
+        post: Callable[..., requests.Response] | None = None,
     ) -> None:
         self.api_key = api_key or get_google_ai_api_key()
         self.model = model or get_google_ai_model()
-        self._client = client or genai.Client(api_key=self.api_key)
+        self._session = session or requests.Session()
+        self._post = post or self._session.post
 
     def complete(self, messages: list[dict[str, str]]) -> str:
         system_instruction, contents = _messages_to_gemini_request(messages)
-        config = types.GenerateContentConfig(
-            system_instruction=system_instruction,
-            temperature=0,
+        payload: dict[str, object] = {
+            "contents": contents,
+            "generationConfig": {"temperature": 0},
+        }
+        if system_instruction:
+            payload["systemInstruction"] = {"parts": [{"text": system_instruction}]}
+
+        url = (
+            f"{GEMINI_API_BASE}/models/{self.model}:generateContent?key={self.api_key}"
         )
-        response = self._client.models.generate_content(
-            model=self.model,
-            contents=contents,
-            config=config,
-        )
-        content = response.text
-        if not content:
-            raise RuntimeError("LLM returned an empty response.")
-        return content
+        response = self._post(url, json=payload, timeout=60)
+        response.raise_for_status()
+        return _extract_text_from_response(response.json())
 
 
 def parse_llm_json(raw: str) -> dict:

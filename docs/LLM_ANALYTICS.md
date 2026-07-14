@@ -5,7 +5,7 @@ Read-only analytics overlay for the NEM monitoring dashboard mart dataset. This 
 ## What It Does
 
 1. Load a capped sample of mart data.
-2. Ask Google Gemini (via Google AI Studio API) to generate a single pandas expression that assigns to `result`.
+2. Ask Google Gemini (via Google AI Studio REST API) to generate a single pandas expression that assigns to `result`.
 3. Validate the generated code with AST checks.
 4. Execute the code in a constrained namespace (`df`, `pd` only).
 5. Summarize the result and write an audit log.
@@ -36,6 +36,8 @@ Get an API key from [Google AI Studio](https://aistudio.google.com/apikey).
 `ENABLE_LLM_ANALYTICS` defaults to `false`. The pipeline fails closed when analytics is disabled or `GOOGLE_AI_API_KEY` is missing.
 
 The CLI loads variables from the repository root `.env` file automatically when present.
+
+LLM analytics uses the Gemini REST API through the existing `requests` dependency only. It does not install `google-genai` or upgrade `websockets`, so it can coexist with `pyppeteer` in the same virtual environment.
 
 ## CLI Usage
 
@@ -76,6 +78,7 @@ Audit log: data/cache/llm_runs/2026-07-14T04-30-00.123456+00-00.json
 | `OPENAI_API_KEY is required` | You are on an old revision; run `git pull` and switch to `GOOGLE_AI_API_KEY` |
 | `Mart data file not found` | Run the publisher pipeline to generate `data/mart/data_for_publish.csv` |
 | Validation failed after retry | Rephrase the question or inspect the audit log for the rejected code |
+| `pyppeteer` / `websockets` conflict after an older install | Remove `google-genai` if present, then run `pip install 'websockets>=10.0,<11.0'` |
 
 ## Manual Smoke Test
 

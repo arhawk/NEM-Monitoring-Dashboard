@@ -9,7 +9,7 @@ from unittest.mock import Mock, patch
 
 import pandas as pd
 
-from src.llm.client import GeminiClient, parse_llm_json
+from src.llm.client import GeminiClient, _extract_text_from_response, parse_llm_json
 from src.llm.executor import execute_analysis_code, format_result_for_display
 from src.llm.pipeline import run_llm_query
 from src.llm.validators import validate_analysis_code
@@ -220,3 +220,45 @@ class LlmPipelineTests(TestCase):
         df = pd.DataFrame({"value": range(60)})
         rendered = format_result_for_display(df)
         self.assertIn("(60 rows)", rendered)
+
+    def test_extract_text_from_response_reads_gemini_payload(self) -> None:
+        text = _extract_text_from_response(
+            {
+                "candidates": [
+                    {
+                        "content": {
+                            "parts": [
+                                {
+                                    "text": '{"reasoning":"ok","code":"result = df.head()","expected_output":"table"}'
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        )
+        self.assertIn("result = df.head()", text)
+
+    def test_gemini_client_uses_rest_api(self) -> None:
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "candidates": [{"content": {"parts": [{"text": "summary text"}]}}]
+        }
+        mock_response.raise_for_status = Mock()
+
+        client = GeminiClient(
+            api_key="test-key",
+            model="gemini-2.0-flash",
+            post=Mock(return_value=mock_response),
+        )
+        result = client.complete(
+            [
+                {"role": "system", "content": "system"},
+                {"role": "user", "content": "question"},
+            ]
+        )
+
+        self.assertEqual(result, "summary text")
+        call_kwargs = client._post.call_args.kwargs
+        self.assertIn("systemInstruction", call_kwargs["json"])
+        self.assertEqual(call_kwargs["json"]["generationConfig"]["temperature"], 0)
