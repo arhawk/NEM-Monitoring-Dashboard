@@ -16,6 +16,10 @@ def main() -> int:
     if str(repo_root) not in sys.path:
         sys.path.insert(0, str(repo_root))
 
+    from src.shared.dotenv import load_dotenv_from_repo
+
+    load_dotenv_from_repo(repo_root / ".env")
+
     from datetime import datetime, timezone
 
     from src.llm.audit import write_audit_log

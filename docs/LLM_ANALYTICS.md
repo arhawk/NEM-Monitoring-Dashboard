@@ -35,6 +35,8 @@ Get an API key from [Google AI Studio](https://aistudio.google.com/apikey).
 
 `ENABLE_LLM_ANALYTICS` defaults to `false`. The pipeline fails closed when analytics is disabled or `GOOGLE_AI_API_KEY` is missing.
 
+The CLI loads variables from the repository root `.env` file automatically when present.
+
 ## CLI Usage
 
 From the repository root:
@@ -70,7 +72,8 @@ Audit log: data/cache/llm_runs/2026-07-14T04-30-00.123456+00-00.json
 | Problem | Fix |
 | --- | --- |
 | `LLM analytics is disabled` | Set `ENABLE_LLM_ANALYTICS=true` |
-| `GOOGLE_AI_API_KEY is required` | Provide a valid Google AI Studio API key |
+| `GOOGLE_AI_API_KEY is required` | Provide a valid Google AI Studio API key in `.env` or your shell |
+| `OPENAI_API_KEY is required` | You are on an old revision; run `git pull` and switch to `GOOGLE_AI_API_KEY` |
 | `Mart data file not found` | Run the publisher pipeline to generate `data/mart/data_for_publish.csv` |
 | Validation failed after retry | Rephrase the question or inspect the audit log for the rejected code |
 
