@@ -7,7 +7,7 @@ from typing import Optional
 
 from .cache_snapshot import default_snapshot_path, resolve_snapshot_path
 from .mqtt_topics import MQTT_PUBLISH_TOPIC_TEMPLATE, MQTT_SUBSCRIBE_TOPIC_FILTER
-from .paths import raw_data_path
+from .paths import cache_data_path, raw_data_path
 
 
 TRUE_VALUES = {"1", "true", "yes", "on"}
@@ -36,6 +36,10 @@ DEFAULT_FETCH_DATE_START = "2025-10-24T23:00:00"
 DEFAULT_FETCH_DATE_END = "2025-10-31T22:59:59"
 DEFAULT_STREAM_CACHE_SNAPSHOT_PATH = str(default_snapshot_path())
 DEFAULT_STREAM_CACHE_PERSIST_EVERY_MESSAGES = 100
+DEFAULT_ENABLE_LLM_ANALYTICS = False
+DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
+DEFAULT_LLM_MAX_ROWS = 5000
+DEFAULT_LLM_AUDIT_DIR = str(cache_data_path("llm_runs"))
 
 
 def _read_env(name: str) -> Optional[str]:
@@ -284,10 +288,41 @@ def get_stream_cache_persist_every_messages() -> int:
     )
 
 
+def get_enable_llm_analytics() -> bool:
+    return get_env_bool("ENABLE_LLM_ANALYTICS", DEFAULT_ENABLE_LLM_ANALYTICS)
+
+
+def get_openai_api_key() -> str:
+    api_key = get_env_str("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError(
+            "OPENAI_API_KEY is required for LLM analytics. "
+            "Set ENABLE_LLM_ANALYTICS=true and provide a valid API key."
+        )
+    return api_key
+
+
+def get_openai_model() -> str:
+    return get_env_str("OPENAI_MODEL") or DEFAULT_OPENAI_MODEL
+
+
+def get_llm_max_rows() -> int:
+    return get_env_int("LLM_MAX_ROWS", DEFAULT_LLM_MAX_ROWS, minimum=1)
+
+
+def get_llm_audit_dir() -> Path:
+    raw_value = get_env_str("LLM_AUDIT_DIR")
+    return Path(raw_value) if raw_value is not None else Path(DEFAULT_LLM_AUDIT_DIR)
+
+
 __all__ = [
     "DEFAULT_AUTO_START_COOLDOWN_SECONDS",
     "DEFAULT_AUTO_START_PUBLISHER",
     "DEFAULT_ENABLE_GITHUB_ACTIONS_CONTROL",
+    "DEFAULT_ENABLE_LLM_ANALYTICS",
+    "DEFAULT_LLM_AUDIT_DIR",
+    "DEFAULT_LLM_MAX_ROWS",
+    "DEFAULT_OPENAI_MODEL",
     "DEFAULT_FACILITY_METADATA_DATA_DIR",
     "DEFAULT_FETCH_DATE_END",
     "DEFAULT_FETCH_DATE_START",
@@ -313,6 +348,7 @@ __all__ = [
     "get_auto_start_cooldown_seconds",
     "get_auto_start_publisher",
     "get_enable_github_actions_control",
+    "get_enable_llm_analytics",
     "get_env_bool",
     "get_env_float",
     "get_env_int",
@@ -325,6 +361,8 @@ __all__ = [
     "get_github_repo",
     "get_github_token",
     "get_github_workflow_file",
+    "get_llm_audit_dir",
+    "get_llm_max_rows",
     "get_main_refresh_interval_seconds",
     "get_max_stream_rows",
     "get_mqtt_broker",
@@ -334,6 +372,8 @@ __all__ = [
     "get_mqtt_tls",
     "get_mqtt_username",
     "get_open_electricity_api_key",
+    "get_openai_api_key",
+    "get_openai_model",
     "get_publish_duration_seconds",
     "get_publish_topic_template",
     "get_reset_interval_hours",
