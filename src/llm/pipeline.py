@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from src.llm.audit import write_audit_log
 from src.llm.client import GeminiClient, parse_llm_json
@@ -12,7 +12,7 @@ from src.llm.executor import (
     execute_analysis_code,
     format_result_for_display,
 )
-from src.llm.prompts import build_analysis_prompt, build_summary_prompt
+from src.llm.prompts import build_analysis_prompt
 from src.llm.schema import load_mart_dataframe, sample_rows_json, schema_json
 from src.llm.validators import validate_analysis_code
 from src.shared.config import (
@@ -59,20 +59,11 @@ def _generate_analysis(
     return payload
 
 
-def _summarize_result(
-    client: GeminiClient,
-    question: str,
-    code: str,
-    result: Any,
-) -> str:
-    _, shape, preview = describe_result(result)
-    try:
-        messages = build_summary_prompt(question, code, preview)
-        return client.complete(messages).strip()
-    except Exception:
-        if shape:
-            return f"Analysis completed with {shape}."
-        return "Analysis completed successfully."
+def _summarize_result_locally(result: Any) -> str:
+    result_type, shape, preview = describe_result(result)
+    if result_type == "scalar":
+        return f"The analysis returned a single value: {preview}"
+    return f"The analysis returned a {result_type} with {shape}. Preview:\n{preview}"
 
 
 def run_llm_query(
@@ -80,12 +71,18 @@ def run_llm_query(
     *,
     data_path: Path | None = None,
     client: GeminiClient | None = None,
+    on_progress: Callable[[str], None] | None = None,
 ) -> QueryResult:
     _ensure_enabled()
     active_client = client or GeminiClient()
     model = get_google_ai_model()
     started_at = datetime.now(timezone.utc).isoformat()
 
+    def _progress(message: str) -> None:
+        if on_progress is not None:
+            on_progress(message)
+
+    _progress("Loading mart data...")
     df = load_mart_dataframe(get_llm_max_rows(), data_path)
     retry_count = 0
     validation_error: str | None = None
@@ -94,6 +91,11 @@ def run_llm_query(
 
     for attempt in range(2):
         try:
+            _progress(
+                "Calling Gemini to generate analysis code..."
+                if attempt == 0
+                else "Retrying Gemini with validation feedback..."
+            )
             payload = _generate_analysis(
                 active_client,
                 question,
@@ -117,8 +119,9 @@ def run_llm_query(
     reasoning = str(payload.get("reasoning", ""))
     expected_output = str(payload.get("expected_output", ""))
 
+    _progress("Executing generated pandas code...")
     result = execute_analysis_code(df, code)
-    summary = _summarize_result(active_client, question, code, result)
+    summary = _summarize_result_locally(result)
     result_type, result_shape, result_preview = describe_result(result)
 
     audit_path = write_audit_log(

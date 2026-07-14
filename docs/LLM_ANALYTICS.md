@@ -39,6 +39,8 @@ The CLI loads variables from the repository root `.env` file automatically when 
 
 LLM analytics uses the Gemini REST API through the existing `requests` dependency only. It does not install `google-genai` or upgrade `websockets`, so it can coexist with `pyppeteer` in the same virtual environment.
 
+Each CLI run performs one Gemini request by default and prints progress to stderr while loading data, calling the API, and executing pandas code. The default request timeout is 30 seconds (`LLM_REQUEST_TIMEOUT_SECONDS`).
+
 ## CLI Usage
 
 From the repository root:
@@ -79,6 +81,8 @@ Audit log: data/cache/llm_runs/2026-07-14T04-30-00.123456+00-00.json
 | `Mart data file not found` | Run the publisher pipeline to generate `data/mart/data_for_publish.csv` |
 | Validation failed after retry | Rephrase the question or inspect the audit log for the rejected code |
 | `pyppeteer` / `websockets` conflict after an older install | Remove `google-genai` if present, then run `pip install 'websockets>=10.0,<11.0'` |
+| CLI appears stuck with no output | Check stderr progress lines; verify network access to `generativelanguage.googleapis.com` |
+| Request timed out | Lower `LLM_MAX_ROWS`, increase `LLM_REQUEST_TIMEOUT_SECONDS`, or retry later |
 
 ## Manual Smoke Test
 

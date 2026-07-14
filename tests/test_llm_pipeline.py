@@ -136,7 +136,6 @@ class LlmPipelineTests(TestCase):
                     "expected_output": "series",
                 }
             ),
-            "QLD has the highest average emissions in the sample.",
         ]
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -167,6 +166,7 @@ class LlmPipelineTests(TestCase):
             )
             self.assertEqual(audit_payload["status"], "success")
             self.assertEqual(audit_payload["retry_count"], 0)
+            self.assertEqual(mock_client.complete.call_count, 1)
 
     def test_pipeline_retries_on_validation_error(self) -> None:
         df = _mini_mart_dataframe()
@@ -187,7 +187,6 @@ class LlmPipelineTests(TestCase):
                     "expected_output": "series",
                 }
             ),
-            "NSW leads average power output in the sample.",
         ]
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -214,7 +213,7 @@ class LlmPipelineTests(TestCase):
                 query_result.audit_path.read_text(encoding="utf-8")
             )
             self.assertEqual(audit_payload["retry_count"], 1)
-            self.assertEqual(mock_client.complete.call_count, 3)
+            self.assertEqual(mock_client.complete.call_count, 2)
 
     def test_format_result_for_display_truncates_dataframe(self) -> None:
         df = pd.DataFrame({"value": range(60)})

@@ -39,6 +39,7 @@ DEFAULT_STREAM_CACHE_PERSIST_EVERY_MESSAGES = 100
 DEFAULT_ENABLE_LLM_ANALYTICS = False
 DEFAULT_GOOGLE_AI_MODEL = "gemini-2.0-flash"
 DEFAULT_LLM_MAX_ROWS = 5000
+DEFAULT_LLM_REQUEST_TIMEOUT_SECONDS = 30
 DEFAULT_LLM_AUDIT_DIR = str(cache_data_path("llm_runs"))
 
 
@@ -310,6 +311,14 @@ def get_llm_max_rows() -> int:
     return get_env_int("LLM_MAX_ROWS", DEFAULT_LLM_MAX_ROWS, minimum=1)
 
 
+def get_llm_request_timeout_seconds() -> int:
+    return get_env_int(
+        "LLM_REQUEST_TIMEOUT_SECONDS",
+        DEFAULT_LLM_REQUEST_TIMEOUT_SECONDS,
+        minimum=5,
+    )
+
+
 def get_llm_audit_dir() -> Path:
     raw_value = get_env_str("LLM_AUDIT_DIR")
     return Path(raw_value) if raw_value is not None else Path(DEFAULT_LLM_AUDIT_DIR)
@@ -322,6 +331,7 @@ __all__ = [
     "DEFAULT_ENABLE_LLM_ANALYTICS",
     "DEFAULT_LLM_AUDIT_DIR",
     "DEFAULT_LLM_MAX_ROWS",
+    "DEFAULT_LLM_REQUEST_TIMEOUT_SECONDS",
     "DEFAULT_GOOGLE_AI_MODEL",
     "DEFAULT_FACILITY_METADATA_DATA_DIR",
     "DEFAULT_FETCH_DATE_END",
@@ -365,6 +375,7 @@ __all__ = [
     "get_google_ai_model",
     "get_llm_audit_dir",
     "get_llm_max_rows",
+    "get_llm_request_timeout_seconds",
     "get_main_refresh_interval_seconds",
     "get_max_stream_rows",
     "get_mqtt_broker",

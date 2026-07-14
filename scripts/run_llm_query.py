@@ -31,8 +31,11 @@ def main() -> int:
         print("Question must not be empty.", file=sys.stderr)
         return 1
 
+    def _progress(message: str) -> None:
+        print(message, file=sys.stderr, flush=True)
+
     try:
-        query_result = run_llm_query(question)
+        query_result = run_llm_query(question, on_progress=_progress)
         print(format_query_output(query_result))
         return 0
     except Exception as exc:

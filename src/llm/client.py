@@ -6,7 +6,11 @@ from typing import Callable
 
 import requests
 
-from src.shared.config import get_google_ai_api_key, get_google_ai_model
+from src.shared.config import (
+    get_google_ai_api_key,
+    get_google_ai_model,
+    get_llm_request_timeout_seconds,
+)
 
 GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta"
 
@@ -51,11 +55,13 @@ class GeminiClient:
         *,
         api_key: str | None = None,
         model: str | None = None,
+        timeout_seconds: int | None = None,
         session: requests.Session | None = None,
         post: Callable[..., requests.Response] | None = None,
     ) -> None:
         self.api_key = api_key or get_google_ai_api_key()
         self.model = model or get_google_ai_model()
+        self.timeout_seconds = timeout_seconds or get_llm_request_timeout_seconds()
         self._session = session or requests.Session()
         self._post = post or self._session.post
 
@@ -69,9 +75,11 @@ class GeminiClient:
             payload["systemInstruction"] = {"parts": [{"text": system_instruction}]}
 
         url = (
-            f"{GEMINI_API_BASE}/models/{self.model}:generateContent?key={self.api_key}"
+            f"{GEMINI_API_BASE}/models/{self.model}:generateContent"
+            f"?key={self.api_key}"
         )
-        response = self._post(url, json=payload, timeout=60)
+        timeout = (5, self.timeout_seconds)
+        response = self._post(url, json=payload, timeout=timeout)
         response.raise_for_status()
         return _extract_text_from_response(response.json())
 
