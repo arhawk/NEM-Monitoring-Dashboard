@@ -83,6 +83,7 @@ Audit log: data/cache/llm_runs/2026-07-14T04-30-00.123456+00-00.json
 | `pyppeteer` / `websockets` conflict after an older install | Remove `google-genai` if present, then run `pip install 'websockets>=10.0,<11.0'` |
 | CLI appears stuck with no output | Check stderr progress lines; verify network access to `generativelanguage.googleapis.com` |
 | Request timed out | Lower `LLM_MAX_ROWS`, increase `LLM_REQUEST_TIMEOUT_SECONDS`, or retry later |
+| `429 Too Many Requests` | Wait 30-60 seconds and retry; free-tier Gemini quotas are easy to exhaust with back-to-back calls |
 
 ## Manual Smoke Test
 

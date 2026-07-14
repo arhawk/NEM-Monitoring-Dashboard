@@ -240,10 +240,10 @@ class LlmPipelineTests(TestCase):
 
     def test_gemini_client_uses_rest_api(self) -> None:
         mock_response = Mock()
+        mock_response.status_code = 200
         mock_response.json.return_value = {
             "candidates": [{"content": {"parts": [{"text": "summary text"}]}}]
         }
-        mock_response.raise_for_status = Mock()
 
         client = GeminiClient(
             api_key="test-key",
@@ -261,3 +261,38 @@ class LlmPipelineTests(TestCase):
         call_kwargs = client._post.call_args.kwargs
         self.assertIn("systemInstruction", call_kwargs["json"])
         self.assertEqual(call_kwargs["json"]["generationConfig"]["temperature"], 0)
+
+    def test_gemini_client_retries_rate_limit_then_succeeds(self) -> None:
+        rate_limited = Mock(status_code=429)
+        success = Mock(status_code=200)
+        success.json.return_value = {
+            "candidates": [{"content": {"parts": [{"text": "ok"}]}}]
+        }
+        sleeps: list[float] = []
+
+        client = GeminiClient(
+            api_key="test-key",
+            model="gemini-2.0-flash",
+            post=Mock(side_effect=[rate_limited, success]),
+            sleep=sleeps.append,
+        )
+
+        result = client.complete([{"role": "user", "content": "question"}])
+        self.assertEqual(result, "ok")
+        self.assertEqual(client._post.call_count, 2)
+        self.assertEqual(sleeps, [2])
+
+    def test_gemini_client_rate_limit_error_is_sanitized(self) -> None:
+        response = Mock(status_code=429)
+        client = GeminiClient(
+            api_key="secret-key",
+            model="gemini-2.0-flash",
+            post=Mock(return_value=response),
+            sleep=lambda _seconds: None,
+        )
+
+        with self.assertRaises(RuntimeError) as ctx:
+            client.complete([{"role": "user", "content": "question"}])
+
+        self.assertIn("rate limit", str(ctx.exception).lower())
+        self.assertNotIn("secret-key", str(ctx.exception))

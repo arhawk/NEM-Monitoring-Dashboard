@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import time
 from typing import Callable
 
 import requests
@@ -13,6 +14,7 @@ from src.shared.config import (
 )
 
 GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta"
+RATE_LIMIT_BACKOFF_SECONDS = (2, 4, 8)
 
 
 def _messages_to_gemini_request(
@@ -47,6 +49,24 @@ def _extract_text_from_response(data: dict) -> str:
     return content
 
 
+def _redact_api_key(message: str, api_key: str) -> str:
+    return message.replace(api_key, "***")
+
+
+def _raise_api_error(response: requests.Response, api_key: str) -> None:
+    if response.status_code == 429:
+        raise RuntimeError(
+            "Gemini API rate limit exceeded (429). Wait 30-60 seconds and retry, "
+            "or check your Google AI Studio quota."
+        )
+
+    try:
+        response.raise_for_status()
+    except requests.HTTPError as exc:
+        detail = _redact_api_key(str(exc), api_key)
+        raise RuntimeError(detail) from exc
+
+
 class GeminiClient:
     """Google AI Studio client using the Gemini REST API and requests."""
 
@@ -58,12 +78,14 @@ class GeminiClient:
         timeout_seconds: int | None = None,
         session: requests.Session | None = None,
         post: Callable[..., requests.Response] | None = None,
+        sleep: Callable[[float], None] | None = None,
     ) -> None:
         self.api_key = api_key or get_google_ai_api_key()
         self.model = model or get_google_ai_model()
         self.timeout_seconds = timeout_seconds or get_llm_request_timeout_seconds()
         self._session = session or requests.Session()
         self._post = post or self._session.post
+        self._sleep = sleep or time.sleep
 
     def complete(self, messages: list[dict[str, str]]) -> str:
         system_instruction, contents = _messages_to_gemini_request(messages)
@@ -75,13 +97,22 @@ class GeminiClient:
             payload["systemInstruction"] = {"parts": [{"text": system_instruction}]}
 
         url = (
-            f"{GEMINI_API_BASE}/models/{self.model}:generateContent"
-            f"?key={self.api_key}"
+            f"{GEMINI_API_BASE}/models/{self.model}:generateContent?key={self.api_key}"
         )
         timeout = (5, self.timeout_seconds)
-        response = self._post(url, json=payload, timeout=timeout)
-        response.raise_for_status()
-        return _extract_text_from_response(response.json())
+
+        last_response: requests.Response | None = None
+        for attempt, delay in enumerate((*RATE_LIMIT_BACKOFF_SECONDS, None)):
+            response = self._post(url, json=payload, timeout=timeout)
+            last_response = response
+            if response.status_code != 429:
+                break
+            if delay is not None:
+                self._sleep(delay)
+
+        assert last_response is not None
+        _raise_api_error(last_response, self.api_key)
+        return _extract_text_from_response(last_response.json())
 
 
 def parse_llm_json(raw: str) -> dict:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -106,9 +107,11 @@ def run_llm_query(
             break
         except Exception as exc:
             last_error = exc
-            if attempt == 0:
+            if attempt == 0 and not str(exc).startswith("Gemini API rate limit"):
                 validation_error = str(exc)
                 retry_count = 1
+                _progress("Waiting briefly before validation retry...")
+                time.sleep(3)
                 continue
             raise
 
