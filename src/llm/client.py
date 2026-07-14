@@ -53,8 +53,28 @@ def _redact_api_key(message: str, api_key: str) -> str:
     return message.replace(api_key, "***")
 
 
+def _quota_exhausted_message(response: requests.Response) -> str | None:
+    try:
+        payload = response.json()
+    except ValueError:
+        return None
+    error = payload.get("error") or {}
+    message = str(error.get("message", ""))
+    if "quota" not in message.lower() and error.get("status") != "RESOURCE_EXHAUSTED":
+        return None
+    return message
+
+
 def _raise_api_error(response: requests.Response, api_key: str) -> None:
     if response.status_code == 429:
+        quota_message = _quota_exhausted_message(response)
+        if quota_message:
+            raise RuntimeError(
+                "Gemini API quota exceeded (429). "
+                "Try a different GOOGLE_AI_MODEL such as gemini-3.1-flash-lite, "
+                "wait for quota reset, or check usage at https://ai.dev/rate-limit. "
+                f"Details: {quota_message}"
+            )
         raise RuntimeError(
             "Gemini API rate limit exceeded (429). Wait 30-60 seconds and retry, "
             "or check your Google AI Studio quota."

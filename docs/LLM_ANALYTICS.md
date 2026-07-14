@@ -24,7 +24,7 @@ Add these optional variables to your environment or `.env` file:
 ```bash
 ENABLE_LLM_ANALYTICS=true
 GOOGLE_AI_API_KEY=your-google-ai-studio-key
-GOOGLE_AI_MODEL=gemini-2.0-flash
+GOOGLE_AI_MODEL=gemini-3.1-flash-lite
 LLM_MAX_ROWS=5000
 LLM_AUDIT_DIR=data/cache/llm_runs
 ```
@@ -84,6 +84,7 @@ Audit log: data/cache/llm_runs/2026-07-14T04-30-00.123456+00-00.json
 | CLI appears stuck with no output | Check stderr progress lines; verify network access to `generativelanguage.googleapis.com` |
 | Request timed out | Lower `LLM_MAX_ROWS`, increase `LLM_REQUEST_TIMEOUT_SECONDS`, or retry later |
 | `429 Too Many Requests` | Wait 30-60 seconds and retry; free-tier Gemini quotas are easy to exhaust with back-to-back calls |
+| `429` with quota exhausted for `gemini-2.0-flash` | Switch `GOOGLE_AI_MODEL` to `gemini-3.1-flash-lite` or another available model from Google AI Studio |
 
 ## Manual Smoke Test
 
