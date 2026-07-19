@@ -7,6 +7,7 @@ import pandas as pd
 
 from src.shared.paths import staging_data_path
 
+
 def normalize_non_negative(series: pd.Series) -> pd.Series:
     """Replace negative values with 0 while preserving NaN for true missing data."""
     return series.mask(series < 0, 0)

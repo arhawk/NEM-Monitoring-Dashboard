@@ -16,7 +16,11 @@ class QcIntegrationTests(TestCase):
         exit_code = run_validate(write_reports=False)
         self.assertEqual(exit_code, 0)
 
-        from src.publisher.qc.rules import load_qc_context, run_all_checks, summarize_checks
+        from src.publisher.qc.rules import (
+            load_qc_context,
+            run_all_checks,
+            summarize_checks,
+        )
 
         ctx = load_qc_context()
         summary = summarize_checks(run_all_checks(ctx))
