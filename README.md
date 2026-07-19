@@ -227,3 +227,4 @@ The most important values are:
 - [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 - [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
 - [docs/data_pipeline_and_missing_values.md](docs/data_pipeline_and_missing_values.md)
+- [docs/LLM_ANALYTICS.md](docs/LLM_ANALYTICS.md)
