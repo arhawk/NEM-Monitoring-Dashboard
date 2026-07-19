@@ -15,3 +15,9 @@ class QcIntegrationTests(TestCase):
             self.skipTest("Tracked mart/staging artifacts are not available.")
         exit_code = run_validate(write_reports=False)
         self.assertEqual(exit_code, 0)
+
+        from src.publisher.qc.rules import load_qc_context, run_all_checks, summarize_checks
+
+        ctx = load_qc_context()
+        summary = summarize_checks(run_all_checks(ctx))
+        self.assertEqual(summary["overall_status"], "pass")

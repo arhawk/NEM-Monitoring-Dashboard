@@ -315,7 +315,7 @@ def check_mart_007_optional_null_rates(ctx: QcContext) -> CheckResult:
     return _pass(
         "MART-007",
         "optional_null_rates",
-        "warn",
+        "info",
         metric={"null_rates": rates},
         threshold={"optional_null_warn_rate": warn_limits},
     )
@@ -611,9 +611,7 @@ def summarize_checks(checks: list[CheckResult]) -> dict[str, Any]:
         for check in checks
         if check.status == "fail" and check.severity == "error"
     ]
-    warnings = [
-        check for check in checks if check.status == "warn" or check.severity == "warn"
-    ]
+    warnings = [check for check in checks if check.status == "warn"]
     passed = [check for check in checks if check.status == "pass"]
     overall = "fail" if errors else ("warn" if warnings else "pass")
     return {

@@ -7,7 +7,6 @@ import pandas as pd
 
 from src.shared.paths import staging_data_path
 
-
 def normalize_non_negative(series: pd.Series) -> pd.Series:
     """Replace negative values with 0 while preserving NaN for true missing data."""
     return series.mask(series < 0, 0)
@@ -118,9 +117,18 @@ def clean_consolidated_data(
         ],
         keep="last",
     )
-    data = data.groupby("facility_code", group_keys=False, observed=True).apply(
-        handle_missing_values_fast,
-        include_groups=False,
+    processed_groups: list[pd.DataFrame] = []
+    for facility_code, group in data.groupby("facility_code", observed=True):
+        processed = handle_missing_values_fast(group)
+        if processed.empty:
+            continue
+        processed = processed.copy()
+        processed["facility_code"] = facility_code
+        processed_groups.append(processed)
+    data = (
+        pd.concat(processed_groups, ignore_index=True)
+        if processed_groups
+        else pd.DataFrame()
     )
     df_cleaned = data.dropna(how="all")
     if not df_cleaned.empty and {"facility_code", "timestamp"}.issubset(

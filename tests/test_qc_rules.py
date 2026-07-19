@@ -54,7 +54,8 @@ class QcRulesFixtureTests(TestCase):
         checks = run_all_checks(ctx)
         summary = summarize_checks(checks)
         self.assertFalse(should_fail_exit(checks))
-        self.assertIn(summary["overall_status"], {"pass", "warn"})
+        self.assertEqual(summary["overall_status"], "pass")
+        self.assertEqual(summary["warnings"], 0)
 
     def test_duplicate_primary_key_fails(self) -> None:
         ctx = self._ctx("mart_dup_fail.csv", "staging_pass.csv")
