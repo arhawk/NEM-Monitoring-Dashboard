@@ -17,3 +17,5 @@ broker/data/*
 broker/log/*
 !broker/data/.gitkeep
 !broker/log/.gitkeep
+reports/*
+!reports/.gitkeep

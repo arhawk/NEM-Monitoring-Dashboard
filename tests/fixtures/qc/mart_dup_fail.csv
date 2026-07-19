@@ -1,0 +1,3 @@
+timestamp,Price ($/MWh),Demand (MW),facility_code,Power (MW),Emissions (tonnes),facility_name,lat,lng,state,fuel_list
+2025-10-25 00:00:00+11:00,100.0,20000.0,ADP,5.0,0.0,Adelaide Desalination,-35.096948,138.484061,SA,"['Solar']"
+2025-10-25 00:00:00+11:00,100.0,20000.0,ADP,6.0,0.0,Adelaide Desalination,-35.096948,138.484061,SA,"['Solar']"

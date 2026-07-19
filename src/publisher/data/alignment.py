@@ -115,16 +115,18 @@ def find_nger_candidates(oe_row: pd.Series, nger_df: pd.DataFrame) -> pd.DataFra
     substring_hits = nger_df[
         nger_df["facilityName"].str.contains(oe_text, case=False, na=False, regex=False)
     ]
-    normalized_hits = nger_df[
-        nger_df["facilityName"].map(normalize_name) == normalized_oe
-    ] if normalized_oe else nger_df.iloc[0:0]
+    normalized_hits = (
+        nger_df[nger_df["facilityName"].map(normalize_name) == normalized_oe]
+        if normalized_oe
+        else nger_df.iloc[0:0]
+    )
 
     candidates = pd.concat([substring_hits, normalized_hits], ignore_index=True)
     if candidates.empty:
         return candidates
-    return candidates.drop_duplicates(subset=["facilityName", "state", "primaryFuel"]).reset_index(
-        drop=True
-    )
+    return candidates.drop_duplicates(
+        subset=["facilityName", "state", "primaryFuel"]
+    ).reset_index(drop=True)
 
 
 def find_cer_candidates(oe_row: pd.Series, cer_df: pd.DataFrame) -> pd.DataFrame:
@@ -140,16 +142,18 @@ def find_cer_candidates(oe_row: pd.Series, cer_df: pd.DataFrame) -> pd.DataFrame
     substring_hits = cer_df[
         cer_df["powerStation"].str.contains(oe_text, case=False, na=False, regex=False)
     ]
-    normalized_hits = cer_df[
-        cer_df["powerStation"].map(normalize_name) == normalized_oe
-    ] if normalized_oe else cer_df.iloc[0:0]
+    normalized_hits = (
+        cer_df[cer_df["powerStation"].map(normalize_name) == normalized_oe]
+        if normalized_oe
+        else cer_df.iloc[0:0]
+    )
 
     candidates = pd.concat([substring_hits, normalized_hits], ignore_index=True)
     if candidates.empty:
         return candidates
-    return candidates.drop_duplicates(subset=["powerStation", "state", "fuelSource"]).reset_index(
-        drop=True
-    )
+    return candidates.drop_duplicates(
+        subset=["powerStation", "state", "fuelSource"]
+    ).reset_index(drop=True)
 
 
 def select_best_nger_match(
@@ -205,7 +209,9 @@ def combine_fuels_from(
     return fuels
 
 
-def build_facility_metadata(df1: pd.DataFrame, nger_df: pd.DataFrame, cer_df: pd.DataFrame) -> pd.DataFrame:
+def build_facility_metadata(
+    df1: pd.DataFrame, nger_df: pd.DataFrame, cer_df: pd.DataFrame
+) -> pd.DataFrame:
     records: list[dict] = []
     for _, oe_row in df1.iterrows():
         nger_candidates = find_nger_candidates(oe_row, nger_df)
@@ -231,7 +237,9 @@ def build_facility_metadata(df1: pd.DataFrame, nger_df: pd.DataFrame, cer_df: pd
     grouped = pd.DataFrame.from_records(records)
     if grouped.empty:
         return grouped
-    return grouped.drop_duplicates(subset=["facility_code"], keep="last").reset_index(drop=True)
+    return grouped.drop_duplicates(subset=["facility_code"], keep="last").reset_index(
+        drop=True
+    )
 
 
 def combine_matching(
@@ -291,6 +299,14 @@ def build_publish_dataset(
     return merged_df
 
 
+def get_state_bounds_map() -> dict[str, tuple[float, float, float, float]]:
+    """Return state -> (lat_min, lat_max, lng_min, lng_max) bounding boxes."""
+    return {
+        state: (lat_min, lat_max, lng_min, lng_max)
+        for state, lat_min, lat_max, lng_min, lng_max in _STATE_BOUNDS
+    }
+
+
 __all__ = [
     "build_facility_metadata",
     "build_publish_dataset",
@@ -299,6 +315,7 @@ __all__ = [
     "combine_matching",
     "find_cer_candidates",
     "find_nger_candidates",
+    "get_state_bounds_map",
     "infer_state_from_coords",
     "normalize_name",
     "score_name_similarity",

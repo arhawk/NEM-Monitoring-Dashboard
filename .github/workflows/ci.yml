@@ -31,3 +31,6 @@ jobs:
 
       - name: Run tests
         run: pytest -q
+
+      - name: Validate tracked mart artifacts
+        run: python -m src.publisher.qc.runner --no-write

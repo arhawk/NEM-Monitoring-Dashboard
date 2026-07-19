@@ -63,9 +63,17 @@ class AlignmentHelperTests(TestCase):
         )
         nger_df = pd.DataFrame(
             [
-                {"facilityName": "Hume Power Station", "state": "NSW", "primaryFuel": "Hydro"},
+                {
+                    "facilityName": "Hume Power Station",
+                    "state": "NSW",
+                    "primaryFuel": "Hydro",
+                },
                 {"facilityName": "Hume Hydro", "state": "NSW", "primaryFuel": "Hydro"},
-                {"facilityName": "Unrelated Facility", "state": "VIC", "primaryFuel": "Gas"},
+                {
+                    "facilityName": "Unrelated Facility",
+                    "state": "VIC",
+                    "primaryFuel": "Gas",
+                },
             ]
         )
         candidates = find_nger_candidates(oe_row, nger_df)

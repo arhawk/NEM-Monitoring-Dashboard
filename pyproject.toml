@@ -1,2 +1,7 @@
 [tool.ruff]
 extend-exclude = ["archive"]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: tests that validate tracked production-like artifacts",
+]

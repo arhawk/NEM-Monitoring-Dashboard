@@ -1,0 +1,32 @@
+version: 1
+mart:
+  required_columns:
+    - timestamp
+    - facility_code
+    - facility_name
+    - state
+    - fuel_list
+    - "Power (MW)"
+    - "Emissions (tonnes)"
+    - "Price ($/MWh)"
+    - "Demand (MW)"
+    - lat
+    - lng
+  required_null_max_rate:
+    facility_code: 0.0
+    timestamp: 0.0
+    lat: 0.0
+    lng: 0.0
+  power_null_max_rate: 0.001
+  optional_null_warn_rate:
+    "Price ($/MWh)": 0.05
+    "Demand (MW)": 0.05
+  optional_null_error_rate:
+    "Price ($/MWh)": 0.50
+    "Demand (MW)": 0.50
+consistency:
+  staging_retention_min: 0.95
+baseline:
+  mart_rows_min_ratio: 0.9
+publish:
+  sample_size: 500

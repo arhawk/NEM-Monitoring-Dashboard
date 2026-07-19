@@ -1,0 +1,2 @@
+timestamp,Price ($/MWh),Demand (MW),facility_code,Power (MW),Emissions (tonnes),facility_name,lat,lng,state,fuel_list
+2025-10-25 00:00:00+11:00,100.0,20000.0,BAD,5.0,0.0,Wrong State Plant,-37.8136,144.9631,NSW,"['Gas']"

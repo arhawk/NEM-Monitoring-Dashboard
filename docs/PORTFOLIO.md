@@ -4,7 +4,7 @@ Use this document when presenting the project in interviews, on a resume, or in 
 
 ## One-Line Pitch
 
-Built an end-to-end Australian National Electricity Market monitoring system that ingests multi-source energy data, publishes facility-level measurements over MQTT, and renders a live Streamlit dashboard with a custom Leaflet map.
+Built a maintained Australian National Electricity Market data pipeline with structured QC gates, reproducible multi-stage Bash execution, MQTT publishing, and a live Streamlit dashboard consumer with a custom Leaflet map.
 
 ## What Problem It Solves
 
@@ -21,6 +21,8 @@ Energy market operators and analysts need a consolidated view of facility-level 
 
 - **Ingestion**: Open Electricity API for operational metrics; CER/NGER for facility metadata
 - **Layered storage**: `data/raw/` → `data/staging/` → `data/mart/`
+- **QC gate**: `src/publisher/qc/` validates mart artifacts and writes JSON/Markdown/HTML reports plus manifest metadata
+- **Pipeline CLI**: `scripts/run_pipeline.sh` runs fetch → stage → mart → validate with fail-fast exits
 - **Deterministic transforms**: cleaning, deduplication, and metadata joins are isolated in testable modules
 - **Configurable fetch window**: `FETCH_DATE_START` and `FETCH_DATE_END` remove hard-coded date ranges
 
@@ -59,17 +61,19 @@ Open `http://127.0.0.1:8501`.
 
 | Area | Where to point reviewers |
 | --- | --- |
+| Pipeline CLI | `scripts/run_pipeline.sh`, `src/publisher/pipeline.py` |
+| QC | `src/publisher/qc/`, `docs/QC_RULES.md`, `config/qc_thresholds.yaml` |
 | CI | `.github/workflows/ci.yml` |
-| Tests | `tests/test_dashboard_logic.py`, `tests/test_portfolio_features.py` |
+| Tests | `tests/test_qc_rules.py`, `tests/test_qc_integration.py`, `tests/test_dashboard_logic.py` |
 | Lint/format | `pyproject.toml`, Ruff in CI |
 | Deployment | `render.yaml`, `docker-compose.yml`, `Dockerfile` |
 | Docs | `docs/ARCHITECTURE.md`, `docs/CONFIGURATION.md` |
 
 ## Suggested Resume Bullets
 
-- Built a Python data pipeline that ingests Open Electricity API and government facility metadata, stages layered CSV artifacts, and publishes aligned facility records over MQTT.
-- Implemented a Streamlit real-time dashboard with a custom Leaflet map component, bounded in-memory stream cache, reconnect monitoring, and optional disk snapshot persistence.
-- Added CI, Docker Compose full-stack orchestration, and Render deployment support for reproducible demos.
+- Built a maintained Python NEM data pipeline with Bash CLI orchestration, layered CSV artifacts, structured pass/fail QC reports, and run-level manifest metadata before MQTT publish.
+- Implemented automated data cleansing verification (row counts, duplicate keys, null-rate thresholds, per-state coordinate bounds, staging/mart consistency) with fixture and tracked-data test coverage in CI.
+- Delivered a Streamlit real-time dashboard with a custom Leaflet map component, bounded in-memory stream cache, reconnect monitoring, and optional disk snapshot persistence as the pipeline consumer.
 
 ## Common Interview Questions
 
@@ -96,4 +100,5 @@ The runtime marks status as disconnected, retries on a cooldown, and keeps servi
 1. Dashboard map with facility markers and legend
 2. Sidebar showing MQTT connected status and filters
 3. `data/` directory showing raw/staging/mart layers
-4. GitHub Actions CI passing on a PR
+4. `reports/qc_latest.html` or `reports/qc_latest.json` showing pass/fail summary
+5. GitHub Actions CI passing on a PR

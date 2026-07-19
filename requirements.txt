@@ -9,6 +9,7 @@ altair==5.5.0
 branca==0.8.2
 pyarrow==22.0.0
 pytest>=9,<10
+PyYAML>=6.0.2,<7
 ruff
 
 # to run task4 use `streamlit run app/streamlit_app.py`

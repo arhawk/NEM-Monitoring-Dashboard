@@ -82,6 +82,15 @@ def normalize_ts(ts: str) -> str:
     return ts.replace(" ", "T")
 
 
+def _parse_optional_float(value) -> float | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    if text == "":
+        return None
+    return float(text)
+
+
 def load_measure_rows(path):
     with open(path, newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
@@ -93,14 +102,12 @@ def load_measure_rows(path):
         r["facility_name"] = r["facility_name"]
         r["state"] = r["state"] if r["state"] else None
         r["fuel_list"] = r["fuel_list"] if r["fuel_list"] else None
-        r["power_value"] = float(r["Power (MW)"]) if r["Power (MW)"] else None
-        r["emission_value"] = (
-            float(r["Emissions (tonnes)"]) if r["Emissions (tonnes)"] else None
-        )
-        r["price_per_mwh"] = float(r["Price ($/MWh)"]) if r["Price ($/MWh)"] else None
-        r["demand_mw"] = float(r["Demand (MW)"]) if r["Demand (MW)"] else None
-        r["lat"] = float(r["lat"]) if r["lat"] else None
-        r["lng"] = float(r["lng"]) if r["lng"] else None
+        r["power_value"] = _parse_optional_float(r.get("Power (MW)"))
+        r["emission_value"] = _parse_optional_float(r.get("Emissions (tonnes)"))
+        r["price_per_mwh"] = _parse_optional_float(r.get("Price ($/MWh)"))
+        r["demand_mw"] = _parse_optional_float(r.get("Demand (MW)"))
+        r["lat"] = _parse_optional_float(r.get("lat"))
+        r["lng"] = _parse_optional_float(r.get("lng"))
         r["unit"] = {"power_value": "MW", "emission_value": "tCO2e"}
     rows.sort(key=lambda r: (r["_ts_dt"], r["facility_code"]))
     return rows

@@ -2,13 +2,15 @@
 
 This repository is split into three runtime layers:
 
-- `src/publisher/` fetches, cleans, aligns, and publishes data
+- `src/publisher/` fetches, cleans, aligns, validates, and publishes data
 - `src/dashboard/` subscribes to MQTT and renders the Streamlit UI
 - `src/shared/` holds shared paths, topic names, dotenv loading, and cache utilities
 
 ## Runtime Entry Points
 
-- `scripts/run_publisher.py` -> `src.publisher.cli.main()`
+- `scripts/run_pipeline.sh` -> `src.publisher.pipeline` (`fetch -> stage -> mart -> validate`)
+- `scripts/validate_mart.py` -> `src.publisher.qc.runner`
+- `scripts/run_publisher.py` -> `src.publisher.cli.main()` (legacy publish path without automatic QC)
 - `app/streamlit_app.py` -> `src.dashboard.app.main()`
 - `src/__init__.py` loads a repo-root `.env` file when the package is imported
 
@@ -21,29 +23,39 @@ flowchart LR
   F --> C[Clean and stage]
   M --> C
   C --> P[data/mart/data_for_publish.csv]
-  P --> Q[MQTT publisher]
+  P --> V[QC validate]
+  V --> Q[MQTT publisher]
   Q --> R[MQTT broker]
   R --> S[Dashboard MQTT client]
   S --> T[StreamCache]
-  T --> U[Snapshot, filters, map, table]
+  T --> U[Snapshot filters map table]
 ```
 
 ## Publisher Flow
 
-`src/publisher/cli.py` coordinates the publish pipeline:
+`src/publisher/pipeline.py` coordinates the maintained pipeline:
 
-1. Ensure the staged metadata files exist.
-2. Fetch Open Electricity raw data when the cached raw files are missing.
-3. Clean the facility list and consolidated data.
-4. Join operational rows with cleaned facility metadata.
-5. Write the publish-ready CSV to `data/mart/data_for_publish.csv`.
-6. Enter the MQTT publish loop.
+1. Ensure raw/staged metadata and operational artifacts exist (`fetch`, `stage`).
+2. Build `data/mart/data_for_publish.csv` (`mart`).
+3. Run QC checks and write reports/manifest (`validate`).
+4. Optionally enter the MQTT publish loop (`publish`).
+
+`src/publisher/cli.py` keeps the legacy publish-only entrypoint used by Docker Compose and `scripts/run_publisher.py`.
 
 The publisher emits one JSON record per facility snapshot row. Messages are sent to:
 
 - `comp5339/task123/measurements/{facility_code}`
 
 The payload includes the facility identifier, location, state, fuel list, and the current operational metrics.
+
+## QC Layer
+
+`src/publisher/qc/` validates mart and staging consolidated artifacts before publish/release:
+
+- Rule definitions in `docs/QC_RULES.md`
+- Thresholds in `config/qc_thresholds.yaml`
+- Production baseline counts in `config/qc_baseline.yaml`
+- Outputs under `reports/` (gitignored at runtime)
 
 ## Dashboard Flow
 

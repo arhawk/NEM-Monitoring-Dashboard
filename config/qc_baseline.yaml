@@ -1,0 +1,7 @@
+pipeline_version: "1.0.0"
+generated_at: "2026-07-19T13:00:00+00:00"
+mart_rows: 685440
+staging_rows: 685440
+facility_count: 340
+mart_rows_min_ratio: 0.9
+staging_retention_min: 0.95

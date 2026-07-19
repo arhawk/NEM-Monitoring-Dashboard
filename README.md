@@ -1,15 +1,17 @@
-# NEM Monitoring Dashboard
+# Maintained NEM Data Pipeline with QC and Live Monitoring
 
-Python project that fetches National Electricity Market related data, prepares publishable records, streams them over MQTT, and renders a Streamlit dashboard with a live map, metrics, and a table. The repository is structured as a small data pipeline plus a frontend that subscribes to the pipeline output.
+Python project that maintains a National Electricity Market data pipeline with structured QC gates, layered CSV artifacts, MQTT publishing, and a Streamlit dashboard that consumes the live stream. The pipeline is the primary maintained surface; the dashboard is the downstream consumer.
 
 ## Portfolio Highlights
 
-This project is designed to demonstrate end-to-end data engineering and real-time visualization skills:
+This project is designed to demonstrate maintained data-engineering workflow plus live monitoring:
 
-- **Data pipeline**: multi-source ingestion (Open Electricity API + CER/NGER metadata), layered artifacts (`raw` → `staging` → `mart`), and deterministic cleaning/alignment
+- **Maintained pipeline**: Bash CLI entry point (`scripts/run_pipeline.sh`) for reproducible multi-stage runs with fail-fast stage gates
+- **Data QC**: automated pass/fail checks with JSON/Markdown/HTML reports and run-level manifest metadata
+- **Layered artifacts**: multi-source ingestion (Open Electricity API + CER/NGER metadata), deterministic cleaning/alignment (`raw` → `staging` → `mart`)
 - **Streaming architecture**: MQTT pub/sub with bounded in-memory cache, reconnect monitoring, and optional disk snapshot persistence
 - **Interactive dashboard**: Streamlit UI with custom Leaflet map component, live metrics, filters, and operational controls
-- **Engineering quality**: Ruff lint/format, pytest coverage, GitHub Actions CI, Docker Compose one-command local demo, and Render deployment support
+- **Engineering quality**: Ruff lint/format, pytest coverage (fixture + tracked-data QC tests), GitHub Actions CI, Docker Compose demo, and Render deployment support
 
 ### Live Demo
 
@@ -30,8 +32,25 @@ On macOS without Docker Desktop, start [Colima](https://github.com/abiosoft/coli
 
 For interview talking points and a project walkthrough script, see [docs/PORTFOLIO.md](docs/PORTFOLIO.md).
 
+### Pipeline + QC (recommended)
+
+```bash
+chmod +x scripts/run_pipeline.sh
+./scripts/run_pipeline.sh
+```
+
+This runs `fetch → stage → mart → validate`, writes `reports/qc_latest.{json,md,html}`, and exits non-zero on QC failure. See [docs/RUNBOOK.md](docs/RUNBOOK.md).
+
+Validate existing artifacts only:
+
+```bash
+python scripts/validate_mart.py
+```
+
 ## Key Features
 
+- Bash pipeline CLI with validate gate before optional publish
+- Structured QC reports and run manifest (`reports/qc_latest.json`, `reports/manifest_latest.json`)
 - Open Electricity API ingestion for operational electricity data
 - CER and NGER facility metadata ingestion and matching
 - Deterministic cleaning and staging into `data/raw/`, `data/staging/`, `data/mart/`, and `data/cache/`
@@ -55,8 +74,10 @@ For interview talking points and a project walkthrough script, see [docs/PORTFOL
 ## Repository Structure
 
 - `app/streamlit_app.py`: Streamlit wrapper entrypoint
-- `scripts/run_publisher.py`: publisher wrapper entrypoint
-- `src/publisher/`: fetch, clean, align, and publish data
+- `scripts/run_pipeline.sh`: pipeline CLI (`fetch → stage → mart → validate`)
+- `scripts/validate_mart.py`: QC-only entrypoint
+- `scripts/run_publisher.py`: legacy publisher wrapper entrypoint
+- `src/publisher/`: fetch, clean, align, QC, and publish data
 - `src/dashboard/`: runtime state, MQTT subscriber, and Streamlit rendering
 - `src/shared/`: shared dotenv, config, paths, topics, and stream cache helpers
 - `broker/`: Mosquitto configuration and runtime volumes
@@ -69,22 +90,23 @@ For interview talking points and a project walkthrough script, see [docs/PORTFOL
 
 ```mermaid
 flowchart LR
-  A[Open Electricity API] --> P[Publisher]
+  A[Open Electricity API] --> P[Pipeline fetch stage mart]
   B[CER and NGER metadata] --> P
-  P --> C[data/raw and data/staging artifacts]
-  P --> M[MQTT broker]
+  P --> C[data/raw staging mart]
+  C --> V[QC validate]
+  V --> M[MQTT broker]
   M --> D[Streamlit dashboard]
   D --> S[Bounded in-memory StreamCache]
-  S --> V[Metrics, trend card, map, table]
+  S --> U[Metrics trend map table]
 ```
 
 The runtime flow is:
 
 1. `src/__init__.py` loads a repo-root `.env` file if one exists.
-2. `scripts/run_publisher.py` calls `src.publisher.cli.main()`.
-3. The publisher prepares CSV artifacts when `data/mart/data_for_publish.csv` is missing, then streams rows as MQTT messages.
+2. `./scripts/run_pipeline.sh` (or `python -m src.publisher.pipeline`) builds artifacts and runs QC before optional publish.
+3. `scripts/run_publisher.py` remains a legacy path that publishes without an automatic QC gate.
 4. `app/streamlit_app.py` calls `src.dashboard.app.main()`.
-5. The dashboard starts an MQTT client, stores accepted messages in a bounded `StreamCache`, and renders from the latest cached snapshot.
+5. The dashboard subscribes to MQTT, stores accepted messages in a bounded `StreamCache`, and renders from the latest cached snapshot.
 
 ## Runbook
 
@@ -183,7 +205,7 @@ The most important values are:
 
 ## Deployment Notes
 
-- `docker-compose.yml` only starts Mosquitto. It does not start the Python services.
+- `docker-compose.yml` starts Mosquitto, the publisher, and the dashboard as a local full stack.
 - `render.yaml` deploys the Streamlit frontend as a web service.
 - The cloud dashboard is frontend-only; live data still depends on an MQTT broker.
 - GitHub Actions control is optional and only works when `ENABLE_GITHUB_ACTIONS_CONTROL=true` and `GITHUB_TOKEN` is configured.
@@ -191,12 +213,14 @@ The most important values are:
 ## Known Limitations
 
 - The publisher reuses `data/mart/data_for_publish.csv` if it already exists.
-- When the publisher must rebuild raw Open Electricity artifacts, it uses the historical window defined in `src/publisher/cli.py`.
+- When the publisher must rebuild raw Open Electricity artifacts, it uses the fetch window from `FETCH_DATE_START` / `FETCH_DATE_END` (see `src/shared/config.py`).
 - The dashboard keeps live state in memory; it does not persist a durable event history.
 - Several features depend on external services; see the boundary notes above for the failure mode of each one.
 
 ## Docs
 
+- [docs/RUNBOOK.md](docs/RUNBOOK.md)
+- [docs/QC_RULES.md](docs/QC_RULES.md)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [docs/CONFIGURATION.md](docs/CONFIGURATION.md)
 - [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)

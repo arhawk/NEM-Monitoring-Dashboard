@@ -4,11 +4,14 @@ This file is for future Codex agents working in this repository. The goal is not
 
 ## 1. Project Overview and Architecture
 
-- This repository reproduces the NEM monitoring dashboard data flow locally: fetch and prepare data, publish over MQTT, subscribe in Streamlit, and render from an in-memory stream cache.
-- Only the MQTT broker is containerized locally. `docker-compose.yml` starts Mosquitto only. It does not start the Python services.
-- The publisher has two practical entrypoints:
-  - Direct module entrypoint: `python3 -m src.publisher.cli`
-  - Deployment-friendly wrapper: `python scripts/run_publisher.py`
+- This repository maintains a NEM data pipeline with QC gates plus a Streamlit dashboard consumer over MQTT.
+- `docker-compose.yml` starts Mosquitto, the publisher container, and the dashboard container as a local full stack. You can also run Mosquitto alone with `docker compose up -d mosquitto`.
+- Preferred maintained pipeline entrypoint:
+  - `./scripts/run_pipeline.sh` (fetch -> stage -> mart -> validate)
+  - `python scripts/validate_mart.py` (QC only)
+- Legacy publish entrypoints (no automatic QC gate):
+  - `python scripts/run_publisher.py`
+  - `python3 -m src.publisher.cli`
 - The dashboard also has two practical entrypoints:
   - Wrapper entrypoint: `streamlit run app/streamlit_app.py`
   - Equivalent explicit form: `python3 -m streamlit run app/streamlit_app.py --server.port 8501`
@@ -108,7 +111,8 @@ docker compose logs -f mosquitto
 
 Notes:
 
-- Only Mosquitto is containerized here.
+- `docker compose up -d` starts Mosquitto, publisher, and dashboard when using the default compose file.
+- `docker compose up -d mosquitto` starts only the broker for manual Python runs.
 - The default local broker endpoint is `127.0.0.1:1883`.
 
 ### 3.3 Prepare Environment Variables
@@ -198,8 +202,15 @@ docker compose ps
 Test command:
 
 ```bash
-pytest -q tests/test_dashboard_logic.py
+pytest -q
+python -m src.publisher.qc.runner --no-write
 ```
+
+QC notes:
+
+- Structured QC lives in `src/publisher/qc/` with thresholds in `config/qc_thresholds.yaml` and production baseline in `config/qc_baseline.yaml`.
+- Fixture unit tests use `tests/fixtures/qc/`; integration tests validate tracked `data/mart/data_for_publish.csv`.
+- CI runs pytest and a standalone QC validate step.
 
 Test caveat:
 
