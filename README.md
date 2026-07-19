@@ -26,6 +26,8 @@ chmod +x scripts/start_local.sh
 
 This builds and starts Mosquitto, the publisher, and the dashboard. Open `http://127.0.0.1:8501`.
 
+On macOS without Docker Desktop, start [Colima](https://github.com/abiosoft/colima) first (`colima start`), then run the script above. See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#local-docker-with-colima-macos) for the full Colima setup guide.
+
 For interview talking points and a project walkthrough script, see [docs/PORTFOLIO.md](docs/PORTFOLIO.md).
 
 ## Key Features
@@ -87,6 +89,8 @@ The runtime flow is:
 ## Runbook
 
 ### 1. Start
+
+If you use Colima on macOS, run `colima start` before any `docker compose` command. See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#local-docker-with-colima-macos).
 
 **Option A: Docker Compose full stack (recommended for demos)**
 

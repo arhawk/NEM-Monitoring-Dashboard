@@ -24,7 +24,9 @@ Required tools:
 
 - Python 3.10+
 - `pip`
-- Docker Desktop or Docker Engine with `docker compose`
+- Docker Desktop, Colima, or another Docker Engine with `docker compose`
+  - On macOS without Docker Desktop: `brew install colima docker` then `colima start` before `docker compose`
+  - See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#local-docker-with-colima-macos)
 
 Prefer the repository virtual environment if it exists. The current repo includes `.venv`, but do not assume that will always be true.
 

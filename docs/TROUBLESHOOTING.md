@@ -1,5 +1,28 @@
 # Troubleshooting
 
+## Docker Or Colima Is Not Running
+
+Symptoms:
+
+- `Cannot connect to the Docker daemon`
+- `docker compose ps` fails before listing services
+
+Fix on macOS with Colima:
+
+```bash
+colima start
+docker ps
+docker compose ps
+```
+
+If you recently switched from Docker Desktop to Colima, check the active context:
+
+```bash
+docker context ls
+```
+
+Then retry `./scripts/start_local.sh` or `docker compose up --build`. Full setup steps live in [DEVELOPMENT.md](DEVELOPMENT.md#local-docker-with-colima-macos).
+
 ## Dashboard Shows Disconnected
 
 - Confirm Mosquitto is running with `docker compose ps`.
