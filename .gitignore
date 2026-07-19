@@ -10,9 +10,13 @@ __pycache__/
 !.streamlit/config.toml
 .env
 *.log
+.DS_Store
+**/.DS_Store
+backup_data/
 data/runtime/
-data/facility_data_cache.json
-data/cache/stream_cache_snapshot.json
+data/cache/
+data/staging/**/*_test.csv
+data/staging/**/*_debug.csv
 broker/data/*
 broker/log/*
 !broker/data/.gitkeep

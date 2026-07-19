@@ -22,6 +22,38 @@ Practical rules:
 - It is safe to delete any of the generated files above when you want a clean rebuild; the publisher will recreate them on demand.
 - Rebuilding `data/raw/` can be expensive because it depends on external API and download availability.
 
+## Git: What Not To Commit
+
+Do not commit local runtime or debug artifacts. The following are gitignored and should stay out of version control:
+
+- `.DS_Store`, `.venv/`, `__pycache__/`, `.pytest_cache/`, `.env`
+- `reports/*` (except `reports/.gitkeep`)
+- `broker/data/*`, `broker/log/*` (except `.gitkeep` files)
+- `data/cache/` (publisher fetch cache; rebuilds on demand)
+- `backup_data/` (local backup copies of `data/`)
+- Debug scratch files such as `data/staging/**/*_test.csv` or `*_debug.csv`
+
+Tracked CSVs under `data/raw/`, `data/staging/`, and `data/mart/` are sample artifacts used by CI and local demos. Do not commit casual pipeline reruns.
+
+### When To Commit Tracked Sample Data
+
+Only commit changes under `data/` when you intentionally refresh the sample dataset or baseline, for example after a pipeline bug fix that changes expected row counts or schema.
+
+Before committing tracked data:
+
+1. Confirm the change is intentional, not a local trial run.
+2. Update [`config/qc_baseline.yaml`](../config/qc_baseline.yaml) to match the new mart row counts and facility totals.
+3. Run QC validation and tests:
+
+```bash
+python -m src.publisher.qc.runner --no-write
+pytest -q
+```
+
+4. Include a short note in the commit message explaining why the baseline changed.
+
+If any of the above checks fail, do not commit the data diff.
+
 ## Local Docker With Colima (macOS)
 
 Use [Colima](https://github.com/abiosoft/colima) when you want `docker compose` on macOS without Docker Desktop. Colima provides the Docker engine; this repository still uses the same Compose commands afterward.
